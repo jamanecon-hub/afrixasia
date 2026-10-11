@@ -8,25 +8,25 @@ export default function PrivacyPage() {
     [
       t("What is public?", "Apa yang dipublikasikan?", "Quelles données sont publiques ?"),
       t(
-        "With your publication consent, your name, country, entity type, role, sector, listing title and description, volume, origin, target, website, membership ID and dates appear in public profiles, the directory, API and CSV exports. Email and phone are published only if you opt in.",
-        "Dengan persetujuan publikasi, nama, negara, jenis entitas, peran, sektor, judul, deskripsi, volume, asal, tujuan, website, ID anggota, dan tanggal tampil di profil, direktori, API, dan CSV publik. Email dan telepon hanya dipublikasikan jika Anda memilihnya.",
-        "Avec votre consentement, votre nom, pays, type d’entité, rôle, secteur, titre, description, volume, origine, destination, site, identifiant et dates figurent dans les profils publics, l’annuaire, l’API et les exports CSV. E-mail et téléphone ne sont publiés que sur votre accord.",
+        "With your publication consent, your name, organization, country, role, interest, segment, and capabilities (products or services, capacity, certifications, and lead time), website, membership ID, and dates appear in public profiles, the directory, API, and CSV exports. Email and phone are published only if you opt in.",
+        "Dengan persetujuan publikasi, nama, organisasi, negara, peran, minat, segmen, dan kapabilitas (produk atau jasa, kapasitas, sertifikasi, dan lead time), website, ID anggota, serta tanggal tampil di profil, direktori, API, dan CSV publik. Email dan telepon hanya dipublikasikan jika Anda memilihnya.",
+        "Avec votre consentement, votre nom, organisation, pays, rôle, intérêt, segment et capacités (produits ou services, capacité, certifications et délai), site, identifiant et dates figurent dans les profils publics, l’annuaire, l’API et les exports CSV. E-mail et téléphone ne sont publiés que sur votre accord.",
       ),
     ],
     [
       t("What stays private?", "Apa yang tetap privat?", "Quelles données restent privées ?"),
       t(
-        "Buyer purpose, budget, timeline and selection criteria, and supplier business model, minimum order, lead time, experience and certifications remain private. Only your signed-in account can read or modify your full profile. Do not put confidential information in your public listing.",
-        "Tujuan, anggaran, waktu, dan kriteria buyer serta model bisnis, minimum order, lead time, pengalaman, dan sertifikasi supplier tetap privat. Hanya akun Anda yang dapat membaca atau mengubah profil lengkap. Jangan masukkan informasi rahasia ke listing publik.",
-        "L’objectif, le budget, les délais et les critères d’achat, ainsi que le modèle d’activité, les minimums, délais, expérience et certifications du fournisseur restent privés. Seul votre compte connecté peut consulter et modifier votre profil complet. N’insérez pas d’informations confidentielles dans l’annonce publique.",
+        "Email and phone stay private unless you opt in. Buyer purpose, budget, and selection criteria, and supplier business model, minimum order, and market experience stay on your account and are not listed. Certifications and lead time that you enter as capabilities are published. Do not put secrets in the public interest, segment, or capabilities.",
+        "Email dan telepon tetap privat kecuali Anda memilih publik. Tujuan, anggaran, dan kriteria buyer, serta model bisnis, minimum order, dan pengalaman pasar supplier tetap di akun dan tidak ditampilkan. Sertifikasi dan lead time yang Anda isi sebagai kapabilitas dipublikasikan. Jangan masukkan rahasia ke minat, segmen, atau kapabilitas publik.",
+        "E-mail et téléphone restent privés sauf accord. L’objectif, le budget et les critères d’achat, ainsi que le modèle, le minimum et l’expérience du fournisseur restent sur le compte. Les certifications et le délai saisis comme capacités sont publiés. N’insérez pas de secret dans l’intérêt, le segment ou les capacités publics.",
       ),
     ],
     [
       t("Your account and control", "Akun dan kendali Anda", "Votre compte et votre contrôle"),
       t(
-        "A signed-in account is required to create, edit or delete a profile. One account has one active profile and listing. Your data is stored on this site while the profile is active. Deleting your membership removes it from active site storage and public listings. Copies already downloaded by others or indexed by search engines cannot be recalled.",
-        "Akun yang masuk diperlukan untuk membuat, mengubah, atau menghapus profil. Satu akun memiliki satu profil dan listing aktif. Data disimpan di situs selama profil aktif. Menghapus membership menghapusnya dari penyimpanan aktif dan listing publik. Salinan yang telah diunduh pihak lain atau diindeks mesin pencari tidak dapat ditarik kembali.",
-        "Un compte connecté est requis pour créer, modifier ou supprimer un profil. Un compte possède un profil et une annonce actifs. Vos données restent stockées sur ce site tant que le profil est actif. La suppression retire le profil du stockage actif et des listes publiques. Les copies téléchargées ou indexées ne peuvent pas être rappelées.",
+        "You can join with the local Google sign-in or a manual form; the manual form does not need a prior login. A browser session is stored when you continue with Google, or after a manual registration is saved, so that email can edit or delete the profile. One email has one active profile. Deleting membership removes it from active storage and public listings. Copies already downloaded cannot be recalled.",
+        "Anda dapat mendaftar lewat masuk Google lokal atau form manual; form manual tidak membutuhkan login sebelumnya. Sesi browser tersimpan saat Anda lanjut dengan Google, atau setelah pendaftaran manual berhasil, sehingga email itu dapat mengubah atau menghapus profil. Satu email memiliki satu profil aktif. Menghapus membership menghapusnya dari penyimpanan aktif dan listing publik. Salinan yang sudah diunduh tidak dapat ditarik kembali.",
+        "Vous pouvez adhérer via la connexion Google locale ou le formulaire manuel ; le formulaire manuel ne demande pas de connexion préalable. Une session est enregistrée avec Google, ou après une inscription manuelle, pour modifier ou supprimer le profil. Un e-mail possède un profil actif. La suppression retire le profil du stockage actif et des listes publiques. Les copies déjà téléchargées ne peuvent pas être rappelées.",
       ),
     ],
     [

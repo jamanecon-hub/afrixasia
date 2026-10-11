@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { findCountry, market } from "../../shared/reference.mjs";
 import { Footer, Header, Wordmark } from "../components/Chrome.jsx";
+import { MemberMapping } from "../components/MemberMapping.jsx";
 import Filters from "../components/Filters.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { registerSearch, ResearchBar, useResearch } from "../research.jsx";
@@ -53,7 +54,11 @@ export default function MembershipPage() {
       (!context.type || row.listingType === context.type) &&
       (!context.origin || row.originCountry === context.origin) &&
       (!context.target || row.targetCountry === context.target) &&
-      (!context.q || [row.name, row.title, row.description].join(" ").toLowerCase().includes(context.q.toLowerCase())),
+      (!context.q ||
+        [row.name, row.organization, row.title, row.description, row.interest?.statement, row.capabilities?.offer, row.capabilities?.certifications, ...(row.interest?.intents || [])]
+          .join(" ")
+          .toLowerCase()
+          .includes(context.q.toLowerCase())),
   );
 
   return (
@@ -82,9 +87,9 @@ export default function MembershipPage() {
             </div>
             <p className="small">
               {t(
-                "Separate buyer and supplier applications • Individuals and entities welcome • Sign in to save and manage your profile",
-                "Form buyer dan supplier terpisah • Individu dan entitas • Masuk untuk menyimpan dan mengelola profil",
-                "Formulaires acheteur et fournisseur distincts • Particuliers et organisations • Connexion pour gérer votre profil",
+                "Google or a manual form • Buyer and supplier roles • Interest, segment, and capabilities are published • Email and phone stay private unless you opt in",
+                "Google atau form manual • Peran buyer dan supplier • Minat, segmen, dan kapabilitas dipublikasikan • Email dan telepon tetap privat kecuali Anda memilih sebaliknya",
+                "Google ou formulaire manuel • Rôles acheteur et fournisseur • Intérêt, segment et capacités publiés • E-mail et téléphone privés sauf accord",
               )}
             </p>
             <Link to="/daftar">{t("Already a member? Manage your profile", "Sudah menjadi anggota? Kelola profil", "Déjà membre ? Gérez votre profil")} →</Link>
@@ -212,11 +217,13 @@ export default function MembershipPage() {
                   <span className="eyebrow">
                     {member.role} · {member.membershipId}
                   </span>
-                  <h3>{member.name}</h3>
-                  <p>{member.title}</p>
+                  <h3>{member.organization || member.name}</h3>
+                  {member.organization && member.name && member.organization !== member.name && <p>{member.name}</p>}
                   <p>
-                    {member.country} · {sector(member.category)}
+                    {member.country}
+                    {member.category ? ` · ${sector(member.category)}` : ""}
                   </p>
+                  <MemberMapping member={member} compact />
                   <Link to={member.profilePath}>{t("View profile", "Lihat profil", "Voir le profil")} →</Link>
                 </article>
               ))}

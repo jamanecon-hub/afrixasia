@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Footer, Header } from "../components/Chrome.jsx";
+import { MemberMapping } from "../components/MemberMapping.jsx";
 import { useLanguage } from "../i18n.jsx";
 
 export default function ProfilePage() {
@@ -53,16 +54,26 @@ export default function ProfilePage() {
             <span className="eyebrow">
               {member.role} · {member.membershipId}
             </span>
-            <h1>{member.name}</h1>
+            <h1>{member.organization || member.name}</h1>
+            {member.organization && member.name && member.organization !== member.name && <p>{member.name}</p>}
             <p>
-              {member.country} · {sector(member.category)} · {member.entityType}
+              {member.country} · {sector(member.category)} ·{" "}
+              {member.entityType === "individual"
+                ? t("Individual", "Individu", "Particulier")
+                : t("Organization", "Organisasi", "Organisation")}
             </p>
-            <h2>{member.title}</h2>
-            <p style={{ whiteSpace: "pre-wrap" }}>{member.description}</p>
-            <p>{member.quantity}</p>
-            <p>
-              {member.originCountry || "—"} → {member.targetCountry || "—"}
-            </p>
+            {member.interest || member.segment || member.capabilities ? (
+              <MemberMapping member={member} />
+            ) : (
+              <>
+                <h2>{member.title}</h2>
+                <p style={{ whiteSpace: "pre-wrap" }}>{member.description}</p>
+                <p>{member.quantity}</p>
+                <p>
+                  {member.originCountry || "—"} → {member.targetCountry || "—"}
+                </p>
+              </>
+            )}
             {member.website && (
               <p>
                 <a href={member.website} target="_blank" rel="noreferrer">
@@ -70,8 +81,14 @@ export default function ProfilePage() {
                 </a>
               </p>
             )}
-            {member.email && <p>{member.email}</p>}
-            {member.phone && <p>{member.phone}</p>}
+            {member.email || member.phone ? (
+              <>
+                {member.email && <p>{member.email}</p>}
+                {member.phone && <p>{member.phone}</p>}
+              </>
+            ) : (
+              <p className="small muted">{t("Contact details are private.", "Kontak bersifat privat.", "Les coordonnées sont privées.")}</p>
+            )}
             <p className="small muted">
               {t("Updated", "Diperbarui", "Mis à jour")} {member.updatedAt?.slice(0, 10)}
             </p>

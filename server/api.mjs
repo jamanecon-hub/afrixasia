@@ -15,6 +15,8 @@ import {
   toCsv,
   intelligence,
 } from "../shared/reference.mjs";
+import { dossier } from "./dossier.mjs";
+import { localGoogleProfiles } from "../shared/google-local.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const membersPath = path.join(root, "data", "members.json");
@@ -30,7 +32,7 @@ function readMembers() {
 }
 
 function writeMembers(members) {
-  fs.writeFileSync(membersPath, JSON.stringify(members, null, 2));
+  fs.writeFileSync(membersPath, `${JSON.stringify(members, null, 2)}\n`);
 }
 
 function cookies(req) {
@@ -49,6 +51,75 @@ function cookies(req) {
 function sessionEmail(req) {
   const email = cookies(req).axa_email || "";
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
+}
+
+function sessionProvider(req) {
+  const provider = cookies(req).axa_provider || "";
+  return provider === "google-local" || provider === "manual" ? provider : "";
+}
+
+function identityFor(email, provider) {
+  if (provider !== "google-local") return null;
+  const profile = localGoogleProfiles.find((item) => item.email === email);
+  if (!profile) return null;
+  return {
+    name: profile.name,
+    email: profile.email,
+    country: profile.country,
+    entityType: profile.entityType,
+    organization: profile.organization || "",
+  };
+}
+
+function googleAuthInfo() {
+  return {
+    mode: "local",
+    clientConfigured: Boolean(process.env.GOOGLE_CLIENT_ID),
+    profiles: localGoogleProfiles.map((profile) => ({
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      country: profile.country,
+      entityType: profile.entityType,
+      organization: profile.organization || "",
+    })),
+  };
+}
+
+function setSession(res, email, provider) {
+  const base = "Path=/; Max-Age=2592000; SameSite=Lax";
+  res.setHeader("set-cookie", [
+    `axa_email=${encodeURIComponent(email)}; ${base}`,
+    `axa_provider=${encodeURIComponent(provider)}; ${base}`,
+  ]);
+}
+
+function clearSession(res) {
+  res.setHeader("set-cookie", [
+    "axa_email=; Path=/; Max-Age=0; SameSite=Lax",
+    "axa_provider=; Path=/; Max-Age=0; SameSite=Lax",
+  ]);
+}
+
+function flag(value) {
+  return value === "on" || value === "true" || value === true || value === "1";
+}
+
+function clip(value, max) {
+  return String(value ?? "").trim().slice(0, max);
+}
+
+function parseIntents(value, role) {
+  const allowed = ["buy", "supply", "research", "partnership"];
+  const raw = Array.isArray(value) ? value.join(",") : String(value || "");
+  const intents = [];
+  for (const part of raw.split(/[,|]/)) {
+    const token = part.trim().toLowerCase();
+    if (allowed.includes(token) && !intents.includes(token)) intents.push(token);
+  }
+  if (role === "buyer" && !intents.includes("buy")) intents.unshift("buy");
+  if (role === "supplier" && !intents.includes("supply")) intents.unshift("supply");
+  return intents;
 }
 
 function readBody(req) {
@@ -95,6 +166,7 @@ function publicMember(member) {
   const profile = {
     id: member.id,
     name: member.name,
+    organization: member.organization || "",
     title: member.title,
     description: member.description,
     country: member.country,
@@ -112,11 +184,53 @@ function publicMember(member) {
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   };
+  if (member.interest) profile.interest = member.interest;
+  if (member.segment) profile.segment = member.segment;
+  if (member.capabilities) profile.capabilities = member.capabilities;
   if (member.publicContact) {
     profile.email = member.email;
-    profile.phone = member.phone;
+    if (member.phone) profile.phone = member.phone;
   }
   return profile;
+}
+
+function listingCsvRow(member) {
+  const profile = publicMember(member);
+  const row = {
+    id: profile.id,
+    name: profile.name,
+    organization: profile.organization || "",
+    title: profile.title,
+    description: profile.description,
+    country: profile.country,
+    category: profile.category,
+    role: profile.role,
+    entityType: profile.entityType,
+    listingType: profile.listingType,
+    originCountry: profile.originCountry || "",
+    targetCountry: profile.targetCountry || "",
+    quantity: profile.quantity || "",
+    website: profile.website || "",
+    membershipId: profile.membershipId,
+    publicKey: profile.publicKey,
+    profilePath: profile.profilePath,
+    createdAt: profile.createdAt,
+    updatedAt: profile.updatedAt,
+    interestRole: profile.interest?.role || "",
+    interestIntents: (profile.interest?.intents || []).join("|"),
+    interestStatement: profile.interest?.statement || "",
+    segmentCategory: profile.segment?.category || "",
+    segmentListingType: profile.segment?.listingType || "",
+    segmentOrigin: profile.segment?.originCountry || "",
+    segmentTarget: profile.segment?.targetCountry || "",
+    capabilityOffer: profile.capabilities?.offer || "",
+    capabilityCapacity: profile.capabilities?.capacity || "",
+    capabilityCertifications: profile.capabilities?.certifications || "",
+    capabilityLeadTime: profile.capabilities?.leadTime || "",
+  };
+  if (profile.email) row.email = profile.email;
+  if (profile.phone) row.phone = profile.phone;
+  return row;
 }
 
 function enrichObservation(row) {
@@ -247,7 +361,18 @@ async function route(req, res, url) {
     });
     return;
   }
+  if (url.pathname === "/api/country" && req.method === "GET") {
+    const row = dossier(url.searchParams.get("code") || url.searchParams.get("country"));
+    send(res, row ? 200 : 404, row || { error: "Country not found." });
+    return;
+  }
   if (url.pathname === "/api/market" && req.method === "GET") {
+    const id = url.searchParams.get("id");
+    if (id) {
+      const row = market.records.find((item) => item.id === id);
+      send(res, row ? 200 : 404, row || { error: "Record not found." });
+      return;
+    }
     const records = filterMarket(Object.fromEntries(url.searchParams));
     if (format === "csv") {
       send(res, 200, toCsv(records), "text/csv; charset=utf-8");
@@ -273,6 +398,12 @@ async function route(req, res, url) {
     return;
   }
   if (url.pathname === "/api/providers" && req.method === "GET") {
+    const id = url.searchParams.get("id");
+    if (id) {
+      const row = market.providers.find((item) => item.id === id);
+      send(res, row ? 200 : 404, row || { error: "Provider not found." });
+      return;
+    }
     const providers = filterProviders(Object.fromEntries(url.searchParams));
     if (format === "csv") {
       send(res, 200, toCsv(providers), "text/csv; charset=utf-8");
@@ -317,7 +448,7 @@ async function route(req, res, url) {
     const next = members[Math.max(0, start) + 25];
     const rows = page.map(publicMember);
     if (format === "csv") {
-      send(res, 200, toCsv(members.map(publicMember)), "text/csv; charset=utf-8");
+      send(res, 200, toCsv(members.map(listingCsvRow)), "text/csv; charset=utf-8");
       return;
     }
     send(res, 200, { listings: rows, cursor: next ? next.publicKey : null });
@@ -325,9 +456,13 @@ async function route(req, res, url) {
   }
   if (url.pathname === "/api/session" && req.method === "GET") {
     const email = sessionEmail(req);
+    const provider = email ? sessionProvider(req) : "";
     const member = email ? readMembers().find((item) => item.email === email) : null;
     send(res, 200, {
       email,
+      provider,
+      identity: email ? identityFor(email, provider) : null,
+      google: googleAuthInfo(),
       member: member ? { ...member, profilePath: `/anggota/${member.publicKey}` } : null,
     });
     return;
@@ -335,8 +470,23 @@ async function route(req, res, url) {
   if (url.pathname === "/api/session" && req.method === "POST") {
     const body = await readForm(req);
     if (body.action === "signout") {
-      res.setHeader("set-cookie", "axa_email=; Path=/; Max-Age=0; SameSite=Lax");
+      clearSession(res);
       send(res, 200, { ok: true });
+      return;
+    }
+    if (body.provider === "google-local" || body.profileId) {
+      const profile = localGoogleProfiles.find((item) => item.id === String(body.profileId || ""));
+      if (!profile) {
+        send(res, 400, { code: "bad_profile", error: "Choose a sample profile from the local Google sign-in." });
+        return;
+      }
+      setSession(res, profile.email, "google-local");
+      send(res, 200, {
+        email: profile.email,
+        provider: "google-local",
+        identity: identityFor(profile.email, "google-local"),
+        local: true,
+      });
       return;
     }
     const email = String(body.email || "").trim().toLowerCase();
@@ -344,65 +494,136 @@ async function route(req, res, url) {
       send(res, 400, { error: "Enter a valid email to open a local member session." });
       return;
     }
-    res.setHeader(
-      "set-cookie",
-      `axa_email=${encodeURIComponent(email)}; Path=/; Max-Age=2592000; SameSite=Lax`,
-    );
-    send(res, 200, { email });
+    setSession(res, email, "manual");
+    send(res, 200, { email, provider: "manual" });
     return;
   }
   if (url.pathname === "/api/registration" && req.method === "POST") {
-    const email = sessionEmail(req);
-    if (!email) {
-      send(res, 401, { error: "Sign in before saving a membership." });
-      return;
-    }
+    const sessionMail = sessionEmail(req);
     const body = await readForm(req);
     const members = readMembers();
-    const index = members.findIndex((item) => item.email === email);
     if (body.action === "delete") {
+      if (!sessionMail) {
+        send(res, 401, { code: "need_session", error: "Sign in before deleting a membership." });
+        return;
+      }
+      const index = members.findIndex((item) => item.email === sessionMail);
       if (index >= 0) members.splice(index, 1);
       writeMembers(members);
       send(res, 200, { deleted: true });
       return;
     }
-    const required = ["name", "country", "title", "description", "quantity", "category", "role"];
-    if (required.some((key) => !String(body[key] || "").trim())) {
-      send(res, 400, { error: "Required membership fields are missing." });
+    const authPath =
+      body.authPath === "google" ? "google" : body.authPath === "manual" ? "manual" : sessionMail ? "google" : "manual";
+    let email = "";
+    let authProvider = "manual";
+    if (authPath === "google") {
+      if (!sessionMail) {
+        send(res, 400, {
+          code: "need_path",
+          error: "Choose a local Google profile or submit the manual form. A session is not required for manual registration.",
+        });
+        return;
+      }
+      email = sessionMail;
+      authProvider = sessionProvider(req) === "manual" ? "manual" : "google-local";
+    } else {
+      email = clip(body.email, 200).toLowerCase();
+      authProvider = "manual";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      send(res, 400, { code: "need_email", error: "A valid contact email is required." });
       return;
     }
-    if (body.publishConsent !== "on" && body.publishConsent !== "true" && body.publishConsent !== true) {
-      send(res, 400, { error: "Publication consent is required." });
+    const index = members.findIndex((item) => item.email === email);
+    if (authPath === "manual" && index >= 0 && sessionMail !== email) {
+      send(res, 409, {
+        code: "email_taken",
+        error: "This email already has a membership. Sign in with the same address to update it.",
+      });
       return;
     }
-    if (body.membershipConsent !== "on" && body.membershipConsent !== "true" && body.membershipConsent !== true) {
-      send(res, 400, { error: "Membership consent is required." });
+    const role = clip(body.role, 20);
+    if (role !== "buyer" && role !== "supplier") {
+      send(res, 400, { code: "bad_role", error: "Choose a buyer or supplier role." });
       return;
     }
+    if (!flag(body.publishConsent) || !flag(body.membershipConsent)) {
+      send(res, 400, { code: "need_consent", error: "Publication and membership consent are required." });
+      return;
+    }
+    const name = clip(body.name, 120);
+    const country = clip(body.country, 80);
+    const statement = clip(body.interestStatement, 280) || clip(body.title, 140);
+    const offer = clip(body.description, 2000);
+    const capacity = clip(body.quantity, 160);
+    const category = clip(body.category, 80);
+    const leadTime = clip(body.leadTime, 160) || clip(body.supplierLeadTime, 160) || clip(body.buyerTimeline, 160);
+    const certifications = clip(body.certifications, 500) || clip(body.supplierCertifications, 500);
+    if (name.length < 2 || country.length < 2 || statement.length < 5 || offer.length < 20 || !capacity || !category || !leadTime) {
+      send(res, 400, { code: "missing_fields", error: "Required membership fields are missing." });
+      return;
+    }
+    const entityType = body.entityType === "individual" ? "individual" : "entity";
+    const listingType = body.listingType === "service" ? "service" : "product";
+    const interest = { role, intents: parseIntents(body.interestIntents, role), statement };
+    const segment = {
+      category,
+      listingType,
+      originCountry: clip(body.originCountry, 100),
+      targetCountry: clip(body.targetCountry, 100),
+    };
+    const capabilities = { offer, capacity, certifications, leadTime };
     const now = new Date().toISOString();
     const previous = index >= 0 ? members[index] : null;
     const publicKey = previous?.publicKey || `axa-${Math.random().toString(36).slice(2, 10)}`;
-    const membershipId = previous?.membershipId || `AXA-${new Date().getFullYear()}-${String(members.length + 1).padStart(4, "0")}`;
+    const membershipId =
+      previous?.membershipId || `AXA-${new Date().getFullYear()}-${String(members.length + 1).padStart(4, "0")}`;
     const member = {
-      ...previous,
-      ...body,
-      email,
-      publicContact: body.publicContact === "on" || body.publicContact === "true" || body.publicContact === true,
-      publishConsent: true,
-      membershipConsent: true,
+      id: previous?.id || publicKey,
       publicKey,
       membershipId,
-      id: previous?.id || publicKey,
+      authProvider,
+      role,
+      entityType,
+      name,
+      organization: entityType === "entity" ? clip(body.organization, 160) : "",
+      country,
+      email,
+      phone: clip(body.phone, 40),
+      website: clip(body.website, 300),
+      title: statement.slice(0, 140),
+      description: offer,
+      quantity: capacity,
+      category,
+      listingType,
+      originCountry: segment.originCountry,
+      targetCountry: segment.targetCountry,
+      interest,
+      segment,
+      capabilities,
+      buyerPurpose: clip(body.buyerPurpose, 40),
+      buyerBudget: clip(body.buyerBudget, 150),
+      buyerCriteria: clip(body.buyerCriteria, 1000),
+      supplierBusinessType: clip(body.supplierBusinessType, 40),
+      supplierMOQ: clip(body.supplierMOQ, 150),
+      supplierExperience: clip(body.supplierExperience, 40),
+      publicContact: flag(body.publicContact),
+      publishConsent: true,
+      membershipConsent: true,
       createdAt: previous?.createdAt || now,
       updatedAt: now,
     };
     if (index >= 0) members[index] = member;
     else members.push(member);
     writeMembers(members);
+    if (authPath === "manual" && sessionMail !== email) setSession(res, email, "manual");
     send(res, 200, {
       saved: true,
       membershipId,
       profilePath: `/anggota/${publicKey}`,
+      email,
+      authProvider,
     });
     return;
   }

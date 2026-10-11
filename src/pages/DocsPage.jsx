@@ -150,9 +150,9 @@ export default function DocsPage({ mode }) {
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>
               <p>
                 {t(
-                  "GET /api/listings returns up to 25 public profiles and a cursor. Pass cursor to read the next page. CSV export returns the full public directory. Private buyer and supplier fields are never included.",
-                  "GET /api/listings mengembalikan hingga 25 profil publik dan cursor. Kirim cursor untuk halaman berikutnya. Ekspor CSV memuat seluruh direktori publik. Isian privat buyer dan supplier tidak pernah disertakan.",
-                  "GET /api/listings renvoie jusqu’à 25 profils publics et un curseur. Passez le curseur pour la page suivante. L’export CSV contient tout l’annuaire public. Les champs privés ne sont jamais inclus.",
+                  "GET /api/listings returns up to 25 public profiles and a cursor. Interest, segment, and capabilities are included. Email and phone are included only when the member opted in. Buyer budget and private supplier notes are never included.",
+                  "GET /api/listings mengembalikan hingga 25 profil publik dan cursor. Minat, segmen, dan kapabilitas disertakan. Email dan telepon hanya ada jika anggota memilih publik. Anggaran buyer dan catatan privat supplier tidak pernah disertakan.",
+                  "GET /api/listings renvoie jusqu’à 25 profils publics et un curseur. Intérêt, segment et capacités sont inclus. E-mail et téléphone ne le sont que si le membre l’a choisi. Le budget acheteur et les notes privées du fournisseur ne sont jamais inclus.",
                 )}
               </p>
             </section>

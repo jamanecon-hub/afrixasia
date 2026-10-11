@@ -75,6 +75,10 @@ export function Footer() {
           {t("Data quality", "Kualitas data", "Qualité des données")}
         </Link>
         {" · "}
+        <Link to={contextSearch("/metodologi", context)}>
+          {t("Methodology", "Metodologi", "Méthodologie")}
+        </Link>
+        {" · "}
         <Link to={contextSearch("/api-docs", context)}>API</Link>
         {" · "}
         <Link to={contextSearch("/privasi", context)}>

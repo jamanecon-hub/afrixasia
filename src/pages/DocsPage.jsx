@@ -30,7 +30,9 @@ export default function DocsPage({ mode }) {
           <h1>
             {mode === "quality"
               ? t("Data quality & coverage", "Kualitas & cakupan data", "Qualité & couverture des données")
-              : t("Use the AfriXAsia data API", "Gunakan API data AfriXAsia", "Utilisez l’API de données AfriXAsia")}
+              : mode === "method"
+                ? t("Sources, methods & limits", "Sumber, metode & batas", "Sources, méthodes & limites")
+                : t("Use the AfriXAsia data API", "Gunakan API data AfriXAsia", "Utilisez l’API de données AfriXAsia")}
           </h1>
           <p>
             {t(
@@ -49,7 +51,35 @@ export default function DocsPage({ mode }) {
             {t("WDI updated", "WDI diperbarui", "WDI mis à jour")} {wdi.sourceUpdatedAt}
           </span>
         </div>
-        {mode === "quality" ? (
+        {mode === "method" ? (
+          <section className="method">
+            <h3>{t("Interpretation & updates", "Interpretasi & pembaruan", "Interprétation & mises à jour")}</h3>
+            <p>
+              {t(
+                "Annual WDI observations retain their source definitions, units and reporting years. Unlike active orders or inventories, they describe historical economic conditions. Do not add different units, percentages or overlapping trade aggregates. News refreshes do not update the statistical snapshot. Three-month planning is qualitative and is not a numerical sales forecast.",
+                "Observasi WDI tahunan mempertahankan definisi, satuan, dan tahun pelaporan sumber. Berbeda dari order atau stok aktif, angka ini menggambarkan kondisi ekonomi historis. Jangan menjumlahkan satuan, persentase, atau agregat perdagangan yang saling tumpang tindih. Pembaruan berita tidak memperbarui snapshot statistik. Perencanaan tiga bulan bersifat kualitatif dan bukan proyeksi penjualan numerik.",
+                "Les observations annuelles WDI conservent leurs définitions, unités et années de référence. Elles décrivent des conditions économiques historiques, pas des commandes ou des stocks actifs. N’additionnez pas des unités, des pourcentages ou des agrégats commerciaux qui se chevauchent. L’actualité ne met pas à jour l’instantané statistique. Le plan à trois mois est qualitatif, pas une prévision chiffrée des ventes.",
+              )}
+            </p>
+            <h3>{t("Attribution & licensing", "Atribusi & lisensi", "Attribution & licence")}</h3>
+            <p>
+              World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}.
+            </p>
+            <a href={wdi.licenseUrl} target="_blank" rel="noreferrer">
+              World Bank {t("terms", "terms", "conditions")} ↗
+            </a>
+            <p>
+              {t(
+                "National, industry, news, Instagram and member content remain subject to their own terms. AfriXAsia is independent and does not claim affiliation with World Bank or a licensed Bloomberg feed.",
+                "Konten nasional, industri, berita, Instagram, dan anggota tetap tunduk pada ketentuannya sendiri. AfriXAsia independen dan tidak mengklaim afiliasi dengan World Bank atau feed Bloomberg berlisensi.",
+                "Les contenus nationaux, sectoriels, d’actualité, Instagram et des membres restent soumis à leurs propres conditions. AfriXAsia est indépendant et ne revendique aucune affiliation avec la Banque mondiale ni un flux Bloomberg sous licence.",
+              )}
+            </p>
+            <p>
+              SHA-256: <code style={{ overflowWrap: "anywhere" }}>{wdi.checksum}</code>
+            </p>
+          </section>
+        ) : mode === "quality" ? (
           <>
             <div className="country-fact-grid">
               {[

@@ -125,6 +125,17 @@ export function useResearch() {
   return [value.context, value.setContext];
 }
 
+export function useApplyResearchContext(key, fields) {
+  const [, setContext] = useResearch();
+  const serialized = JSON.stringify(fields || null);
+  useEffect(() => {
+    if (!key || serialized === "null") return undefined;
+    const next = JSON.parse(serialized);
+    const timer = window.setTimeout(() => setContext(normalizeContext(next)), 0);
+    return () => window.clearTimeout(timer);
+  }, [key, serialized, setContext]);
+}
+
 export function ResearchBar({ scope }) {
   const { t } = useLanguage();
   const [context] = useResearch();

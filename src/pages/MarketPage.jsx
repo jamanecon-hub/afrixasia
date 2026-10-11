@@ -119,8 +119,10 @@ export default function MarketPage() {
                     </small>
                   </td>
                   <td>
-                    <b>{sector(row.category)}</b>
-                    <small>{row.product}</small>
+                    <Link to={`/data-pasar/${row.id}`}>
+                      <b>{sector(row.category)}</b>
+                      <small>{row.product}</small>
+                    </Link>
                   </td>
                   <td>
                     {row.side === "demand"

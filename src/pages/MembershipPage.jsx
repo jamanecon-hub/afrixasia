@@ -158,7 +158,9 @@ export default function MembershipPage() {
               {providers.slice(0, shown).map((row) => (
                 <tr key={row.id}>
                   <td>
-                    <b>{row.name}</b>
+                    <b>
+                      <Link to={`/penyedia/${row.id}`}>{row.name}</Link>
+                    </b>
                     <small>{row.description}</small>
                   </td>
                   <td>

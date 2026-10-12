@@ -7,7 +7,7 @@ import { useLanguage } from "../i18n.jsx";
 import { contextSearch, registerSearch, ResearchBar, useResearch } from "../research.jsx";
 
 export default function AnalysisPage() {
-  const { t, formatValue, sector } = useLanguage();
+  const { t, formatValue, sector, language } = useLanguage();
   const [context, setContext] = useResearch();
   const country = findCountry(context.country || "") || wdi.countries.find((item) => item.iso3 === "IDN");
   const compareCode =
@@ -21,6 +21,19 @@ export default function AnalysisPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const previous = document.title;
+    document.title =
+      language === "id"
+        ? "AfriXAsia | Analisis Ekonomi"
+        : language === "fr"
+          ? "AfriXAsia | Analyse économique"
+          : "AfriXAsia | Economic Analysis";
+    return () => {
+      document.title = previous;
+    };
+  }, [language]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,7 +80,7 @@ export default function AnalysisPage() {
         <ResearchBar scope="analysis" />
         <div className="reference-hero">
           <span className="eyebrow">ECONOMIC INTELLIGENCE · OPEN REFERENCE</span>
-          <h1>{t("Economic & Market Analysis", "Analisis Ekonomi & Market", "Analyse économique & marchés")}</h1>
+          <h1>{t("Economic Analysis", "Analisis Ekonomi", "Analyse économique")}</h1>
           <p>
             {t(
               "Understand market scale, economic direction and sector context. Compare official annual data, inspect source definitions and frame the next three months with explicit evidence limits.",

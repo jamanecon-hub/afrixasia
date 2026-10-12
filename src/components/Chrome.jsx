@@ -20,9 +20,9 @@ const NAV = [
   ["/data-pasar", "Markets & Globe", "Pasar & Globe", "Marchés & Globe", ["Explore", "Data pasar"]],
   [
     "/open-data",
-    "Economic & Market Analysis",
-    "Analisis Ekonomi & Market",
-    "Analyse économique & marchés",
+    "Economic Analysis",
+    "Analisis Ekonomi",
+    "Analyse économique",
     ["Open data", "Proyeksi"],
   ],
   ["/daily-brief", "Media Brief", "Media Brief", "Media Brief", ["Daily brief"]],
@@ -68,7 +68,7 @@ export function Footer() {
       </div>
       <div>
         <Link to={contextSearch("/open-data", context)}>
-          {t("Economic & Market Analysis", "Analisis Ekonomi & Market", "Analyse économique & marchés")}
+          {t("Economic Analysis", "Analisis Ekonomi", "Analyse économique")}
         </Link>
         {" · "}
         <Link to={contextSearch("/kualitas-data", context)}>

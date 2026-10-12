@@ -79,10 +79,10 @@ export default function MembershipPage() {
             </p>
             <div className="form-actions">
               <Link className="circle-gold-btn" to={registerSearch(context, "buyer")}>
-                {t("Become a buyer member", "Daftar sebagai buyer", "Adhérer comme acheteur")} ↗
+                AFRIXASIA MEMBER ↗
               </Link>
               <Link className="btn" to={registerSearch(context, "supplier")}>
-                {t("Become a supplier member", "Daftar sebagai supplier", "Adhérer comme fournisseur")} ↗
+                {t("Join as a supplier", "Gabung sebagai supplier", "Rejoindre comme fournisseur")} ↗
               </Link>
             </div>
             <p className="small">
@@ -241,7 +241,7 @@ export default function MembershipPage() {
                 )}
               </p>
               <Link className="circle-gold-btn" to={registerSearch(context)}>
-                {t("Start your membership", "Mulai membership Anda", "Commencer votre adhésion")} ↗
+                AFRIXASIA MEMBER ↗
               </Link>
             </div>
           )}

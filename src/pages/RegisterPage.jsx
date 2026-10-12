@@ -485,7 +485,73 @@ export default function RegisterPage() {
           </div>
         </div>
       )}
-      <main className="member-application">
+      <main>
+        <section className="circle-landing">
+          <section className="circle-hero">
+            <div className="circle-hero-copy">
+              <span className="circle-overline">AFRIXASIA CIRCLE · MEMBERSHIP</span>
+              <h1>{t("Your ambition.\nA wider circle.", "Ambisi Anda.\nKoneksi lebih luas.", "Votre ambition.\nUn cercle plus vaste.")}</h1>
+              <p>
+                {t(
+                  "A community for individuals and organizations building business across Asia and Africa. Start with your membership, then introduce what you need or what you offer.",
+                  "Komunitas individu dan organisasi yang membangun bisnis lintas Asia–Afrika. Daftar membership, lalu perkenalkan kebutuhan atau penawaran Anda.",
+                  "Une communauté de particuliers et d’organisations développant leurs activités entre l’Asie et l’Afrique. Adhérez, puis présentez vos besoins ou votre offre.",
+                )}
+              </p>
+              <button className="circle-gold-btn" type="button" onClick={() => document.getElementById("join-circle")?.scrollIntoView({ behavior: "smooth" })}>
+                AFRIXASIA MEMBER ↗
+              </button>
+              <p className="circle-hero-foot">
+                <span>
+                  {t(
+                    "Google or a manual form • Buyer and supplier roles",
+                    "Google atau form manual • Peran buyer dan supplier",
+                    "Google ou formulaire manuel • Rôles acheteur et fournisseur",
+                  )}
+                </span>
+                <span>
+                  {t(
+                    "Email and phone stay private unless you opt in",
+                    "Email dan telepon tetap privat kecuali Anda memilih sebaliknya",
+                    "E-mail et téléphone privés sauf accord",
+                  )}
+                </span>
+              </p>
+            </div>
+            <div className="circle-art" aria-hidden="true">
+              <span className="orbit orbit-one" />
+              <span className="orbit orbit-two" />
+              <span className="orbit orbit-three" />
+              <div className="membership-card">
+                <div className="membership-card-top">
+                  <Wordmark />
+                  <span>THE CIRCLE</span>
+                </div>
+                <div className="card-emblem">
+                  <Wordmark symbol />
+                </div>
+                <div className="membership-card-bottom">
+                  <b>{t("Your next chapter starts here.", "Bab berikutnya dimulai di sini.", "Votre prochain chapitre commence ici.")}</b>
+                  <span>ASIA · AFRICA</span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="circle-benefits">
+            {[
+              [t("Your member identity", "Identitas anggota", "Votre identité membre"), t("Receive a digital membership ID after your profile is saved successfully.", "Dapatkan ID membership digital setelah profil berhasil disimpan.", "Recevez un identifiant numérique après l’enregistrement réussi de votre profil.")],
+              [t("A purposeful introduction", "Perkenalan yang bermakna", "Une présentation utile"), t("Publish your need or capability with sector and country context.", "Publikasikan kebutuhan atau kemampuan dengan konteks sektor dan negara.", "Publiez votre besoin ou votre offre avec son secteur et ses pays.")],
+              [t("Your visibility, your choice", "Visibilitas sesuai pilihan", "Votre visibilité, votre choix"), t("Keep contact details private or choose to publish them. Edit or delete your profile anytime.", "Simpan kontak privat atau pilih untuk dipublikasikan. Ubah atau hapus profil kapan saja.", "Gardez vos coordonnées privées ou publiez-les. Modifiez ou supprimez votre profil à tout moment.")],
+            ].map(([title, copy], index) => (
+              <div key={title}>
+                <span>0{index + 1}</span>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </div>
+            ))}
+          </section>
+        </section>
+        <div className="member-application membership-path" id="join-circle">
         <Link to="/marketplace">← AfriXAsia Circle</Link>
         <div className="application-heading">
           <span className="eyebrow">AFRIXASIA CIRCLE · MEMBERSHIP</span>
@@ -993,6 +1059,7 @@ export default function RegisterPage() {
             </aside>
           </div>
         )}
+        </div>
         <Footer />
       </main>
     </>

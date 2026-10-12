@@ -46,7 +46,7 @@ export function Header({ active = "" }) {
       </nav>
       <LanguageSelect />
       <Link className="btn primary register-cta" to={registerSearch(context)}>
-        {t("Join the Circle", "Gabung Circle", "Rejoindre le Circle")} ↗
+        AFRIXASIA MEMBER ↗
       </Link>
     </header>
   );

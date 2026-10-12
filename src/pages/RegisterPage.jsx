@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { categories, findCountry, wdi } from "../../shared/reference.mjs";
-import { localGoogleProfiles } from "../../shared/google-local.mjs";
 import { Footer, Header, Wordmark } from "../components/Chrome.jsx";
+import CircleDirectory from "../components/CircleDirectory.jsx";
 import { INTEREST_INTENTS, MemberMapping, intentLabel } from "../components/MemberMapping.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { useResearch } from "../research.jsx";
@@ -43,17 +43,6 @@ function Field({ id, label, hint, className = "", children }) {
       <small>{hint}</small>
       {children}
     </label>
-  );
-}
-
-function GoogleGlyph() {
-  return (
-    <svg className="google-mark" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z" />
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z" />
-      <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
-      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.5 5.7-6.7 7.2l6.3 5.3C37.4 38.3 44 33 44 24c0-1.3-.1-2.7-.4-3.5z" />
-    </svg>
   );
 }
 
@@ -160,12 +149,7 @@ export default function RegisterPage() {
   const paramRole = params.get("role");
   const contextRole = context.role === "buyer" || context.role === "supplier" ? context.role : "";
   const [role, setRoleState] = useState(paramRole === "buyer" || paramRole === "supplier" ? paramRole : contextRole);
-  const [path, setPath] = useState("");
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const [auth, setAuth] = useState({ mode: "local", clientConfigured: false });
-  const [profiles, setProfiles] = useState(localGoogleProfiles);
-  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(null);
@@ -181,8 +165,6 @@ export default function RegisterPage() {
       .then((response) => response.json())
       .then((body) => {
         if (cancel) return;
-        setAuth(body.google || { mode: "local", clientConfigured: false });
-        if (Array.isArray(body.google?.profiles) && body.google.profiles.length) setProfiles(body.google.profiles);
         if (!body.email) {
           setSession({ email: "" });
           setForm((current) => (current.name || current.email ? current : withContext(current, contextRef.current)));
@@ -191,12 +173,10 @@ export default function RegisterPage() {
         setSession(body);
         if (body.member) {
           setRoleState(body.member.role === "supplier" ? "supplier" : "buyer");
-          setPath(body.provider === "manual" ? "manual" : "google");
           setForm(memberToForm(body.member));
           return;
         }
         if (body.provider === "google-local" || body.identity) {
-          setPath("google");
           const identity = body.identity || {};
           setForm((current) =>
             withContext(
@@ -213,7 +193,6 @@ export default function RegisterPage() {
           );
           return;
         }
-        setPath(body.provider === "manual" ? "manual" : "");
         setForm((current) => withContext({ ...current, email: current.email || body.email }, contextRef.current));
       })
       .catch(() => {
@@ -256,50 +235,17 @@ export default function RegisterPage() {
     });
   }
 
-  function go(next) {
-    setStep(next);
-    setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function validate(index) {
-    if (index === 0) {
-      if (path !== "google" && path !== "manual") {
-        setError(
-          t(
-            "Choose Continue with Google or the manual form.",
-            "Pilih Lanjutkan dengan Google atau form manual.",
-            "Choisissez Continuer avec Google ou le formulaire manuel.",
-          ),
-        );
-        return false;
-      }
-      if (path === "google" && !session?.email) {
-        setPickerOpen(true);
-        setError(
-          t(
-            "Choose a local Google profile to continue. This rebuild does not call Google.",
-            "Pilih profil Google lokal untuk lanjut. Rebuild ini tidak memanggil Google.",
-            "Choisissez un profil Google local pour continuer. Cette version n’appelle pas Google.",
-          ),
-        );
-        return false;
-      }
-      if (role !== "buyer" && role !== "supplier") {
-        setError(t("Choose buyer or supplier.", "Pilih buyer atau supplier.", "Choisissez acheteur ou fournisseur."));
-        return false;
-      }
+  function validate() {
+    if (role !== "buyer" && role !== "supplier") {
+      setError(t("Choose buyer or supplier.", "Pilih buyer atau supplier.", "Choisissez acheteur ou fournisseur."));
+      return false;
     }
-    const fields = formRef.current?.querySelectorAll(
-      `[data-step="${index}"] input, [data-step="${index}"] select, [data-step="${index}"] textarea`,
-    );
+    const fields = formRef.current?.querySelectorAll("input, select, textarea");
     for (const field of fields || []) {
+      if (field.disabled || field.type === "hidden") continue;
       if (!field.checkValidity()) {
-        setStep(index);
-        requestAnimationFrame(() => {
-          field.reportValidity();
-          field.focus();
-        });
+        field.reportValidity();
+        field.focus();
         return false;
       }
     }
@@ -316,76 +262,17 @@ export default function RegisterPage() {
     setSaved(null);
   }
 
-  async function choosePath(next) {
-    setError("");
-    if (next === "manual") {
-      setPickerOpen(false);
-      if (path !== "manual" && session?.provider === "google-local") {
-        await signOut();
-        setForm((current) => ({ ...current, email: "" }));
-      }
-      setPath("manual");
-      return;
-    }
-    setPath("google");
-    setPickerOpen(!(session?.provider === "google-local" && session?.email));
-  }
-
-  async function chooseProfile(profile) {
-    setError("");
-    setSaving(true);
-    try {
-      const response = await fetch("/api/session", {
-        method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ provider: "google-local", profileId: profile.id }),
-      });
-      const body = await response.json();
-      if (!response.ok) {
-        setError(registrationError(t, response.status, body));
-        return;
-      }
-      const next = await fetch("/api/session").then((item) => item.json());
-      setSession(next);
-      setAuth(next.google || auth);
-      setPath("google");
-      setPickerOpen(false);
-      if (next.member) {
-        setRoleState(next.member.role === "supplier" ? "supplier" : "buyer");
-        setForm(memberToForm(next.member));
-        return;
-      }
-      const identity = next.identity || profile;
-      setForm((current) => ({
-        ...current,
-        email: next.email || profile.email,
-        name: identity.name || profile.name,
-        country: identity.country || profile.country || current.country,
-        entityType: identity.entityType || profile.entityType || current.entityType,
-        organization: identity.organization || profile.organization || "",
-      }));
-    } catch {
-      setError(t("Local Google sign-in failed.", "Masuk Google lokal gagal.", "La connexion Google locale a échoué."));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function onSubmit(event) {
     event.preventDefault();
-    if (step < 2) {
-      if (validate(step)) go(step + 1);
-      return;
-    }
-    for (let index = 0; index < 3; index += 1) if (!validate(index)) return;
+    if (!validate()) return;
     setSaving(true);
     setError("");
     const data = new FormData(event.currentTarget);
-    data.set("authPath", path);
+    data.set("authPath", "manual");
     data.set("role", role);
     data.set("interestIntents", form.interestIntents.join(","));
     data.set("organization", form.entityType === "entity" ? form.organization : "");
-    data.set("email", path === "google" ? session?.email || form.email : form.email);
+    data.set("email", form.email);
     data.set("interestStatement", form.interestStatement);
     if (form.publicContact) data.set("publicContact", "on");
     if (form.publishConsent) data.set("publishConsent", "on");
@@ -450,18 +337,6 @@ export default function RegisterPage() {
       leadTime: form.leadTime,
     },
   };
-  const localNote = auth.clientConfigured
-    ? t(
-        "A Google client id is present on the server. This rebuild still uses local sign-in and does not call Google or use a client secret.",
-        "Client ID Google terdeteksi di server. Rebuild ini tetap memakai masuk lokal dan tidak memanggil Google atau memakai client secret.",
-        "Un identifiant client Google est présent sur le serveur. Cette version utilise quand même la connexion locale et n’appelle pas Google.",
-      )
-    : t(
-        "GOOGLE_CLIENT_ID is not set. Continue with Google still opens this local sign-in.",
-        "GOOGLE_CLIENT_ID belum diatur. Lanjutkan dengan Google tetap membuka masuk lokal ini.",
-        "GOOGLE_CLIENT_ID n’est pas défini. Continuer avec Google ouvre quand même cette connexion locale.",
-      );
-
   return (
     <>
       <Header active="daftar" />
@@ -503,11 +378,11 @@ export default function RegisterPage() {
               </button>
               <p className="circle-hero-foot">
                 <span>
-                  {t(
-                    "Google or a manual form • Buyer and supplier roles",
-                    "Google atau form manual • Peran buyer dan supplier",
-                    "Google ou formulaire manuel • Rôles acheteur et fournisseur",
-                  )}
+                {t(
+                  "One form • Buyer or supplier",
+                  "Satu form • Buyer atau supplier",
+                  "Un formulaire • Acheteur ou fournisseur",
+                )}
                 </span>
                 <span>
                   {t(
@@ -558,9 +433,9 @@ export default function RegisterPage() {
           <h1>{t("Join the Circle.", "Daftar membership Circle.", "Rejoindre le Circle.")}</h1>
           <p>
             {t(
-              "Continue with Google, or fill in the manual form. We ask for your identity, a contact email, and a map of your interest, segment, and capabilities.",
-              "Lanjutkan dengan Google, atau isi form manual. Kami meminta identitas, email kontak, serta pemetaan minat, segmen, dan kapabilitas Anda.",
-              "Continuez avec Google, ou remplissez le formulaire manuel. Nous demandons votre identité, un e-mail, puis votre intérêt, votre segment et vos capacités.",
+              "One form. Choose buyer or supplier, then add your identity, interest, segment, and capabilities.",
+              "Satu form. Pilih buyer atau supplier, lalu isi identitas, minat, segmen, dan kapabilitas.",
+              "Un seul formulaire. Choisissez acheteur ou fournisseur, puis votre identité, votre intérêt, votre segment et vos capacités.",
             )}
           </p>
         </div>
@@ -610,7 +485,7 @@ export default function RegisterPage() {
                 </div>
               )}
               <form ref={formRef} className="membership-form" onSubmit={onSubmit} noValidate>
-                <input type="hidden" name="authPath" value={path} />
+                <input type="hidden" name="authPath" value="manual" />
                 <input type="hidden" name="role" value={role} />
                 <input type="hidden" name="interestIntents" value={form.interestIntents.join(",")} />
                 <datalist id="reference-countries">
@@ -618,103 +493,13 @@ export default function RegisterPage() {
                     <option key={country.iso3} value={country.name} />
                   ))}
                 </datalist>
-                <div className="membership-stepper">
-                  {[
-                    t("Path", "Cara", "Voie"),
-                    t("Profile", "Profil", "Profil"),
-                    t("Consent", "Setuju", "Accord"),
-                  ].map((label, index) => (
-                    <div key={label} className={index === step ? "current" : index < step ? "complete" : ""} aria-current={index === step ? "step" : undefined}>
-                      <span>{index < step ? "✓" : index + 1}</span>
-                      <b>{label}</b>
-                    </div>
-                  ))}
-                </div>
                 {error && (
                   <div className="form-error" role="alert">
                     {error}
                   </div>
                 )}
-                <fieldset className="member-step" data-step="0" hidden={step !== 0} disabled={saving}>
-                  <legend>{t("How do you want to join?", "Bagaimana Anda ingin mendaftar?", "Comment souhaitez-vous adhérer ?")}</legend>
-                  <p className="step-intro">
-                    {t(
-                      "Two ways. Google sign-in on this rebuild is local: pick a sample profile and we prefill your name and email. The manual form needs no login.",
-                      "Dua cara. Masuk Google pada rebuild ini bersifat lokal: pilih profil contoh, lalu nama dan email terisi. Form manual tidak perlu login.",
-                      "Deux voies. La connexion Google de cette version est locale : choisissez un profil d’exemple pour préremplir le nom et l’e-mail. Le formulaire manuel ne demande pas de connexion.",
-                    )}
-                  </p>
-                  <div className="join-paths">
-                    <div className={`join-path ${path === "google" ? "selected" : ""}`}>
-                      <button className="google-btn" type="button" onClick={() => choosePath("google")}>
-                        <GoogleGlyph />
-                        {t("Continue with Google", "Lanjutkan dengan Google", "Continuer avec Google")}
-                      </button>
-                      <small>
-                        {t(
-                          "Local sign-in for this observatory rebuild. No call to Google, and no OAuth client secret.",
-                          "Masuk lokal untuk rebuild observatory ini. Tidak ada panggilan ke Google, dan tidak ada client secret OAuth.",
-                          "Connexion locale de cette version de l’observatoire. Aucun appel à Google, et aucun secret client OAuth.",
-                        )}
-                      </small>
-                    </div>
-                    <button className={`join-path ${path === "manual" ? "selected" : ""}`} type="button" onClick={() => choosePath("manual")}>
-                      <b>{t("Manual form", "Form manual", "Formulaire manuel")}</b>
-                      <small>
-                        {t(
-                          "No login. Enter your full name, contact email, interest, segment, and capabilities.",
-                          "Tanpa login. Isi nama lengkap, email kontak, minat, segmen, dan kapabilitas.",
-                          "Sans connexion. Indiquez votre nom, votre e-mail, votre intérêt, votre segment et vos capacités.",
-                        )}
-                      </small>
-                    </button>
-                  </div>
-                  <p className="local-auth-note">{localNote}</p>
-                  {path === "google" && (pickerOpen || !session?.email) && (
-                    <div className="google-picker" role="region" aria-label={t("Local Google profiles", "Profil Google lokal", "Profils Google locaux")}>
-                      <span className="eyebrow">LOCAL SIGN-IN · OBSERVATORY REBUILD</span>
-                      <h3>{t("Choose a sample Google profile", "Pilih profil Google contoh", "Choisissez un profil Google d’exemple")}</h3>
-                      <p>
-                        {t(
-                          "These accounts exist only in this dev observatory. Choosing one creates a session and prefills identity and email.",
-                          "Akun ini hanya ada di observatory pengembangan ini. Memilihnya membuat sesi dan mengisi identitas serta email.",
-                          "Ces comptes n’existent que dans cet observatoire de développement. Les choisir crée une session et préremplit l’identité et l’e-mail.",
-                        )}
-                      </p>
-                      {profiles.map((profile) => (
-                        <button className="google-profile" type="button" key={profile.id} onClick={() => chooseProfile(profile)} disabled={saving}>
-                          <b>{profile.name}</b>
-                          <span>{profile.email}</span>
-                          <small>
-                            {profile.country}
-                            {profile.organization ? ` · ${profile.organization}` : ""}
-                            {" · "}
-                            {profile.entityType === "individual"
-                              ? t("Individual", "Individu", "Particulier")
-                              : t("Organization", "Organisasi", "Organisation")}
-                          </small>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {path === "google" && session?.email && (
-                    <p className="local-auth-note">
-                      {t("Signed in locally as", "Masuk lokal sebagai", "Connecté localement :")} {session.identity?.name || session.email}. {session.email}.{" "}
-                      {t("This email is saved on the membership.", "Email ini disimpan pada membership.", "Cet e-mail est enregistré sur l’adhésion.")}{" "}
-                      <button className="btn" type="button" onClick={() => setPickerOpen(true)}>
-                        {t("Choose another profile", "Pilih profil lain", "Choisir un autre profil")}
-                      </button>
-                    </p>
-                  )}
-                  {path === "manual" && (
-                    <p className="local-auth-note">
-                      {t(
-                        "No account is required. The contact email is stored with the membership and stays private unless you opt in on the last step.",
-                        "Akun tidak wajib. Email kontak disimpan bersama membership dan tetap privat kecuali Anda memilih publik di langkah terakhir.",
-                        "Aucun compte n’est requis. L’e-mail est enregistré avec l’adhésion et reste privé sauf publication à la dernière étape.",
-                      )}
-                    </p>
-                  )}
+                <fieldset className="member-step" disabled={saving}>
+                  <legend>{t("Buyer or supplier", "Buyer atau supplier", "Acheteur ou fournisseur")}</legend>
                   <div className="role-picks">
                     {[
                       ["buyer", t("Buyer", "Buyer", "Acheteur"), t("You want to buy, source, or commission.", "Anda ingin membeli, mencari pasokan, atau menugaskan.", "Vous voulez acheter, sourcer ou commander.")],
@@ -727,7 +512,7 @@ export default function RegisterPage() {
                     ))}
                   </div>
                 </fieldset>
-                <fieldset className="member-step" data-step="1" hidden={step !== 1} disabled={saving}>
+                <fieldset className="member-step" disabled={saving}>
                   <legend>
                     {t(
                       "Identity, interest, segment, and capabilities.",
@@ -771,26 +556,8 @@ export default function RegisterPage() {
                       <span>02 · {t("CONTACT", "KONTAK", "CONTACT")}</span>
                       <h3>{t("How partners may reach you", "Cara mitra menghubungi Anda", "Comment les partenaires peuvent vous joindre")}</h3>
                     </div>
-                    <Field
-                      id="member-email"
-                      label={t("Contact email", "Email kontak", "E-mail de contact")}
-                      hint={
-                        path === "google" && session?.email
-                          ? `${priv} · ${t("From local Google sign-in", "Dari masuk Google lokal", "Issu de la connexion Google locale")}`
-                          : `${priv} · ${required}`
-                      }
-                    >
-                      <input
-                        id="member-email"
-                        name="email"
-                        type="email"
-                        required
-                        maxLength={200}
-                        autoComplete="email"
-                        readOnly={path === "google" && Boolean(session?.email)}
-                        value={path === "google" && session?.email ? session.email : form.email}
-                        onChange={(event) => set("email", event.target.value)}
-                      />
+                    <Field id="member-email" label={t("Contact email", "Email kontak", "E-mail de contact")} hint={`${priv} · ${required}`}>
+                      <input id="member-email" name="email" type="email" required maxLength={200} autoComplete="email" value={form.email} onChange={(event) => set("email", event.target.value)} />
                     </Field>
                     <Field id="member-phone" label={t("Phone / WhatsApp", "Telepon / WhatsApp", "Téléphone / WhatsApp")} hint={`${optional} · ${priv}`}>
                       <input id="member-phone" name="phone" type="tel" maxLength={40} autoComplete="tel" value={form.phone} onChange={(event) => set("phone", event.target.value)} />
@@ -945,25 +712,9 @@ export default function RegisterPage() {
                     )}
                   </p>
                 </fieldset>
-                <fieldset className="member-step" data-step="2" hidden={step !== 2} disabled={saving}>
-                  <legend>{t("Review and consent.", "Tinjau dan setujui.", "Vérifiez et consentez.")}</legend>
-                  <div className="membership-review">
-                    <span className="circle-member-badge">
-                      {role ? role.toUpperCase() : "MEMBER"} · {path === "google" ? t("LOCAL GOOGLE", "GOOGLE LOKAL", "GOOGLE LOCAL") : t("MANUAL", "MANUAL", "MANUEL")}
-                    </span>
-                    <h3>{displayName || form.name}</h3>
-                    <p>
-                      {form.name}
-                      {form.entityType === "entity" && form.organization ? ` · ${form.organization}` : ""} · {form.country} · {sector(form.category)}
-                    </p>
-                    <p>
-                      {form.email} · {form.publicContact ? t("Contact will be public", "Kontak akan publik", "Contact public") : t("Contact stays private", "Kontak tetap privat", "Contact privé")}
-                    </p>
-                    <MemberMapping member={preview} />
-                    <button className="btn" type="button" onClick={() => go(1)}>
-                      {t("Edit details", "Ubah detail", "Modifier les détails")}
-                    </button>
-                  </div>
+                <fieldset className="member-step" disabled={saving}>
+                  <legend>{t("Consent", "Persetujuan", "Consentement")}</legend>
+                  <MemberMapping member={preview} />
                   <label className="check-row">
                     <input type="checkbox" checked={form.publicContact} onChange={(event) => set("publicContact", event.target.checked)} />
                     <span>
@@ -1001,28 +752,14 @@ export default function RegisterPage() {
                   </p>
                 </fieldset>
                 <div className="member-form-nav">
-                  {step > 0 ? (
-                    <button className="btn" type="button" disabled={saving} onClick={() => go(step - 1)}>
-                      ← {t("Back", "Kembali", "Retour")}
-                    </button>
-                  ) : (
-                    <Link to="/marketplace">{t("Back to the directory", "Kembali ke direktori", "Retour à l’annuaire")}</Link>
-                  )}
-                  <span>{step + 1} / 3</span>
-                  {step < 2 ? (
-                    <button className="circle-gold-btn" type="button" onClick={() => validate(step) && go(step + 1)}>
-                      {t("Continue", "Lanjutkan", "Continuer")} →
-                    </button>
-                  ) : (
-                    <button className="circle-gold-btn" disabled={saving} type="submit">
-                      {saving
-                        ? t("Saving…", "Menyimpan…", "Enregistrement…")
-                        : existing
-                          ? t("Save membership", "Simpan membership", "Enregistrer l’adhésion")
-                          : t("Activate my membership", "Aktifkan membership saya", "Activer mon adhésion")}{" "}
-                      ↗
-                    </button>
-                  )}
+                  <button className="circle-gold-btn" disabled={saving} type="submit">
+                    {saving
+                      ? t("Saving…", "Menyimpan…", "Enregistrement…")
+                      : existing
+                        ? t("Save membership", "Simpan membership", "Enregistrer l’adhésion")
+                        : "AFRIXASIA MEMBER"}{" "}
+                    ↗
+                  </button>
                 </div>
                 {existing && (
                   <div className="membership-manage">
@@ -1050,9 +787,9 @@ export default function RegisterPage() {
                 <h3>{t("A real introduction.", "Perkenalan yang nyata.", "Une véritable présentation.")}</h3>
                 <p>
                   {t(
-                    "Google sign-in here is the local observatory account picker. The manual form saves without a prior login. Membership does not certify identity or business capability.",
-                    "Masuk Google di sini adalah pemilih akun lokal observatory. Form manual tersimpan tanpa login sebelumnya. Membership bukan sertifikasi identitas atau kapabilitas bisnis.",
-                    "La connexion Google est ici le sélecteur de compte local de l’observatoire. Le formulaire manuel s’enregistre sans connexion préalable. L’adhésion ne certifie ni l’identité ni les capacités.",
+                    "One form saves your membership. It does not certify identity or business capability.",
+                    "Satu form menyimpan membership Anda. Ini bukan sertifikasi identitas atau kapabilitas bisnis.",
+                    "Un seul formulaire enregistre votre adhésion. Il ne certifie ni l’identité ni les capacités.",
                   )}
                 </p>
               </div>
@@ -1060,6 +797,7 @@ export default function RegisterPage() {
           </div>
         )}
         </div>
+        <CircleDirectory />
         <Footer />
       </main>
     </>

@@ -1,5 +1,6 @@
-import wdi from "../data/wdi.json" with { type: "json" };
-import market from "../data/market.json" with { type: "json" };
+import wdiBase from "../data/wdi.json" with { type: "json" };
+import marketBase from "../data/market.json" with { type: "json" };
+import collected from "../data/collected/client.json" with { type: "json" };
 
 export const categories = [
   "Food & agriculture",
@@ -16,7 +17,7 @@ export const sectorCopy = {
   "Food & agriculture": {
     focus: "Kualitas, kontinuitas pasokan, dan biaya sampai tujuan",
     contextOnly: false,
-    indicators: ["TM.VAL.FOOD.ZS.UN", "TX.VAL.FOOD.ZS.UN"],
+    indicators: ["AG.PRD.FOOD.XD", "TM.VAL.FOOD.ZS.UN", "TX.VAL.FOOD.ZS.UN"],
     questions: [
       "Tentukan produk, HS code, grade, sertifikasi pangan/halal dan umur simpan.",
       "Bandingkan landed cost, MOQ, musim panen, transportasi dan Incoterms.",
@@ -26,7 +27,7 @@ export const sectorCopy = {
   "Apparel & textiles": {
     focus: "Kapabilitas manufaktur dan kesiapan order",
     contextOnly: true,
-    indicators: ["NY.GDP.PCAP.CD", "SL.TLF.TOTL.IN"],
+    indicators: ["NV.MNF.TXTL.ZS.UN", "NY.GDP.PCAP.CD", "SL.TLF.TOTL.IN"],
     questions: [
       "Definisikan bahan, ukuran, standar kualitas dan kebutuhan private label.",
       "Verifikasi kapasitas pabrik, MOQ, kepatuhan tenaga kerja dan waktu produksi.",
@@ -36,7 +37,7 @@ export const sectorCopy = {
   "Business & IT services": {
     focus: "Kebutuhan digital dengan mandat proyek yang jelas",
     contextOnly: false,
-    indicators: ["BX.GSR.CCIS.CD", "IT.NET.USER.ZS"],
+    indicators: ["IT.CEL.SETS.P2", "BX.GSR.CCIS.CD", "IT.NET.USER.ZS"],
     questions: [
       "Tetapkan outcome, bahasa, integrasi, SLA dan batas akses data.",
       "Bandingkan portofolio, tim delivery, keamanan serta skema pembayaran.",
@@ -46,7 +47,7 @@ export const sectorCopy = {
   Workforce: {
     focus: "Keterampilan, akses penempatan, dan perlindungan pekerja",
     contextOnly: false,
-    indicators: ["SL.TLF.TOTL.IN", "SL.UEM.TOTL.ZS"],
+    indicators: ["SL.IND.EMPL.ZS", "SL.TLF.TOTL.IN", "SL.UEM.TOTL.ZS"],
     questions: [
       "Definisikan posisi, keterampilan, bahasa, upah dan lokasi kerja.",
       "Verifikasi lisensi agen, kontrak, visa serta pengakuan sertifikasi.",
@@ -56,7 +57,7 @@ export const sectorCopy = {
   "Education & courses": {
     focus: "Intake, relevansi kompetensi, dan kapasitas pelatihan",
     contextOnly: false,
-    indicators: ["SE.TER.ENRR", "SE.XPD.TOTL.GD.ZS"],
+    indicators: ["SE.SEC.ENRR", "SE.TER.ENRR", "SE.XPD.TOTL.GD.ZS"],
     questions: [
       "Tentukan peserta, kompetensi akhir, format, bahasa dan jadwal.",
       "Verifikasi akreditasi, pengajar, fasilitas, sertifikat dan biaya total.",
@@ -86,7 +87,7 @@ export const sectorCopy = {
   "Services (aggregate)": {
     focus: "Jenis layanan dan ketentuan lintas negara",
     contextOnly: false,
-    indicators: ["BM.GSR.NFSV.CD", "BX.GSR.NFSV.CD"],
+    indicators: ["BX.GSR.TRVL.ZS", "BM.GSR.NFSV.CD", "BX.GSR.NFSV.CD"],
     questions: [
       "Identifikasi jenis jasa, ruang lingkup, lokasi pelaksanaan dan lisensi.",
       "Bandingkan SLA, biaya, kurs, pajak serta aturan pembayaran.",
@@ -101,13 +102,94 @@ export function findCountry(value) {
   if (!value) return null;
   const needle = String(value).trim().toLowerCase();
   return (
-    wdi.countries.find((country) =>
+    wdiBase.countries.find((country) =>
       [country.iso2, country.iso3, country.name, country.sourceName].some(
         (item) => item.toLowerCase() === needle,
       ),
     ) || null
   );
 }
+
+function corridorKey(row) {
+  return [row.origin, row.target, row.hsCode, row.period].join("|").toLowerCase();
+}
+
+function promoteCorridor(row) {
+  const origin = findCountry(row.originIso3 || row.origin);
+  const target = findCountry(row.targetIso3 || row.target);
+  const category = row.category || "Food & agriculture";
+  return {
+    id: row.id || `CR-${origin?.iso3 || row.origin}-${target?.iso3 || row.target}-${row.hsCode}-${row.period}`,
+    datasetId: row.source === "UN Comtrade" ? "afrixasia-comtrade" : "afrixasia-market",
+    indicatorCode: null,
+    country: origin?.name || row.origin,
+    iso2: origin?.iso2 || "",
+    region: origin?.region || "",
+    category,
+    product: row.product,
+    side: "supply",
+    indicatorType: "bilateral_export",
+    value: row.valueUSD,
+    unit: "USD",
+    period: row.period,
+    origin: origin?.name || row.origin,
+    target: target?.name || row.target,
+    summary:
+      row.summary ||
+      `${row.origin} reported ${row.product} (HS ${row.hsCode}) exports to ${row.target} in ${row.period}. Historical merchandise trade, not available stock or an open order.`,
+    source: row.source || "World Bank WITS / UN Comtrade",
+    sourceUrl: row.sourceUrl,
+    checkedAt: row.checkedAt || marketBase.asOf,
+    hsCode: row.hsCode,
+    type: "product",
+  };
+}
+
+const indicatorCodes = new Set(wdiBase.indicators.map((item) => item.code));
+const recordIds = new Set(marketBase.records.map((item) => item.id));
+const knownCorridors = new Set(marketBase.corridors.map(corridorKey));
+const corridors = [
+  ...marketBase.corridors,
+  ...(collected.corridors || []).filter((row) => !knownCorridors.has(corridorKey(row))),
+];
+const records = [...marketBase.records];
+const recordKeys = new Set(records.filter((row) => row.hsCode).map(corridorKey));
+for (const row of collected.marketRecords || []) {
+  if (recordIds.has(row.id)) continue;
+  if (row.hsCode && recordKeys.has(corridorKey(row))) continue;
+  records.push(row);
+  recordIds.add(row.id);
+  if (row.hsCode) recordKeys.add(corridorKey(row));
+}
+for (const row of corridors) {
+  if (!row.hsCode || recordKeys.has(corridorKey(row))) continue;
+  const promoted = promoteCorridor(row);
+  records.push(promoted);
+  recordKeys.add(corridorKey(promoted));
+}
+
+const wdi = {
+  ...wdiBase,
+  indicators: [...wdiBase.indicators, ...(collected.indicators || []).filter((item) => !indicatorCodes.has(item.code))],
+  latest: [
+    ...wdiBase.latest,
+    ...(collected.latest || []).filter((item) => !indicatorCodes.has(item.indicator)),
+  ],
+  coverage: [
+    ...wdiBase.coverage,
+    ...(collected.coverage || []).filter((item) => !indicatorCodes.has(item.indicator)),
+  ],
+  observationCount: wdiBase.observationCount + (collected.observationCount || 0),
+  supplementRetrievedAt: collected.retrievedAt || null,
+  supplementSourceUpdatedAt: collected.sourceUpdatedAt || null,
+};
+
+const market = {
+  ...marketBase,
+  records,
+  corridors,
+  supplementRetrievedAt: collected.retrievedAt || null,
+};
 
 export function summary() {
   const available = wdi.coverage.filter((row) => row.status === "available");
@@ -124,6 +206,7 @@ export function summary() {
     curatedRecords: market.records.filter((row) => !row.datasetId).length,
     tradeRecords: market.records.length,
     providers: market.providers.length,
+    corridors: market.corridors.length,
   };
 }
 

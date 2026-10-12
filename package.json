@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "observatory:collect": "node scripts/collect-observatory.mjs",
+    "observatory:build": "node scripts/build-observatory-db.mjs",
+    "observatory:query": "node scripts/query-observatory.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

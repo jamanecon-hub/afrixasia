@@ -77,7 +77,9 @@ export default function AnalysisPage() {
           </p>
           <div className="reference-badges">
             <span>104 {t("economies", "ekonomi", "économies")}</span>
-            <span>17 {t("indicators", "indikator", "indicateurs")}</span>
+            <span>
+              {wdi.indicators.length} {t("indicators", "indikator", "indicateurs")}
+            </span>
             <span>2015–2025</span>
             <span>World Bank WDI</span>
           </div>

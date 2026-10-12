@@ -1,3 +1,5 @@
 node_modules
 dist
 .DS_Store
+data/collected/wdi-series.json
+data/collected/corridors-checkpoint.json

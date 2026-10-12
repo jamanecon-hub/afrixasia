@@ -89,9 +89,9 @@ export default function MarketPage() {
         </div>
         <p className="notice">
           {t(
-            "Snapshot: 10 October 2026. Original source titles and product descriptions are retained. Values are rounded for display; exact values remain in the API.",
-            "Snapshot: 10 Oktober 2026. Judul sumber dan deskripsi produk asli dipertahankan. Angka tampilan dibulatkan; nilai persis tersedia melalui API.",
-            "Instantané : 10 octobre 2026. Les titres et descriptions des sources sont conservés. Valeurs arrondies à l’écran ; précision originale dans l’API.",
+            `Core snapshot: 10 October 2026.${market.supplementRetrievedAt ? ` Sector series and Asia–Africa merchandise corridors were collected on ${market.supplementRetrievedAt.slice(0, 10)}.` : ""} Original source titles are retained. Values are rounded for display; exact values remain in the API.`,
+            `Snapshot inti: 10 Oktober 2026.${market.supplementRetrievedAt ? ` Seri sektor dan koridor barang Asia–Afrika dikumpulkan pada ${market.supplementRetrievedAt.slice(0, 10)}.` : ""} Judul sumber asli dipertahankan. Angka tampilan dibulatkan; nilai persis tersedia melalui API.`,
+            `Instantané de base : 10 octobre 2026.${market.supplementRetrievedAt ? ` Les séries sectorielles et les corridors de marchandises Asie–Afrique ont été collectés le ${market.supplementRetrievedAt.slice(0, 10)}.` : ""} Les titres des sources sont conservés. Valeurs arrondies à l’écran ; précision originale dans l’API.`,
           )}
         </p>
         <div className="table-wrap">

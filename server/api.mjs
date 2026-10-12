@@ -19,12 +19,28 @@ import { dossier } from "./dossier.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const membersPath = path.join(root, "data", "members.json");
+const seedMembersPath = path.join(root, "data", "members.json");
+const membersPath = process.env.MEMBERS_FILE
+  ? path.resolve(process.env.MEMBERS_FILE)
+  : process.env.RAILWAY_VOLUME_MOUNT_PATH
+    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "members.json")
+    : seedMembersPath;
 const indicatorByCode = new Map(wdi.indicators.map((item) => [item.code, item]));
 const countryByIso3 = new Map(wdi.countries.map((item) => [item.iso3, item]));
 
+function ensureMembersFile() {
+  if (fs.existsSync(membersPath)) return;
+  fs.mkdirSync(path.dirname(membersPath), { recursive: true });
+  if (membersPath !== seedMembersPath && fs.existsSync(seedMembersPath)) {
+    fs.copyFileSync(seedMembersPath, membersPath);
+    return;
+  }
+  fs.writeFileSync(membersPath, "[]\n");
+}
+
 function readMembers() {
   try {
+    ensureMembersFile();
     return JSON.parse(fs.readFileSync(membersPath, "utf8"));
   } catch {
     return [];
@@ -32,6 +48,7 @@ function readMembers() {
 }
 
 function writeMembers(members) {
+  ensureMembersFile();
   fs.writeFileSync(membersPath, `${JSON.stringify(members, null, 2)}\n`);
 }
 

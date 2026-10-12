@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { market } from "../../shared/reference.mjs";
+import { findCountry, market } from "../../shared/reference.mjs";
 import { Footer, Header } from "../components/Chrome.jsx";
+import CountryFlag from "../components/CountryFlag.jsx";
 import Filters from "../components/Filters.jsx";
 import Globe from "../components/Globe.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { contextSearch, patchContext, registerSearch, useResearch } from "../research.jsx";
+
+function CountryName({ name, iso2 }) {
+  return (
+    <span className="country-label">
+      <CountryFlag iso2={iso2 || findCountry(name)?.iso2} />
+      <span>{name}</span>
+    </span>
+  );
+}
 
 export default function MarketPage() {
   const { t, formatValue, sector } = useLanguage();
@@ -113,9 +123,13 @@ export default function MarketPage() {
               {rows.slice(0, shown).map((row) => (
                 <tr key={row.id}>
                   <td>
-                    <b>{row.country}</b>
-                    <small>
-                      {row.origin} → {row.target}
+                    <b>
+                      <CountryName name={row.country} iso2={row.iso2} />
+                    </b>
+                    <small className="country-route">
+                      <CountryName name={row.origin} />
+                      <span aria-hidden="true">→</span>
+                      <CountryName name={row.target} />
                     </small>
                   </td>
                   <td>

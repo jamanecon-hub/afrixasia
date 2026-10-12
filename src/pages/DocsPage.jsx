@@ -14,6 +14,9 @@ const examples = [
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
+  ["/api/db/summary", "SQLite observatory: snapshot counts plus collected trade and WDI supplements", "Observatorium SQLite: jumlah snapshot plus suplemen perdagangan dan WDI", "Observatoire SQLite : totaux de l’instantané et suppléments commerce / WDI"],
+  ["/api/db/series?country=KEN&indicator=TX.VAL.MRCH.CD.WT", "Collected merchandise-export series for Kenya", "Seri ekspor barang Kenya yang dikumpulkan", "Série collectée des exportations de marchandises du Kenya"],
+  ["/api/db/trade?hs=0902&origin=Kenya&year=2024", "Kenya tea export corridors at or above USD 1 million", "Koridor ekspor teh Kenya minimal USD 1 juta", "Corridors d’exportation de thé du Kenya d’au moins 1 million USD"],
 ];
 
 export default function DocsPage({ mode }) {

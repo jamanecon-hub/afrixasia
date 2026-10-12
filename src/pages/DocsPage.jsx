@@ -12,6 +12,8 @@ const examples = [
   ["/api/intelligence?country=BF&category=Film%20%26%20media", "Country–sector evidence and research questions", "Bukti dan pertanyaan riset negara–sektor", "Données et questions de recherche pays–secteur"],
   ["/api/coverage", "Coverage and missing data", "Cakupan dan data belum tersedia", "Couverture et données manquantes"],
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
+  ["/api/corridors?origin=Kenya&hs=0902", "Bilateral tea exports reported by Kenya", "Ekspor teh bilateral yang dilaporkan Kenya", "Exportations bilatérales de thé déclarées par le Kenya"],
+  ["/api/db", "SQLite observatory tables and row counts", "Tabel SQLite observatory dan jumlah baris", "Tables SQLite de l’observatory et nombres de lignes"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
 ];
@@ -122,7 +124,9 @@ export default function DocsPage({ mode }) {
                   {rows.map((row) => (
                     <tr key={row.iso3}>
                       <td>{row.country}</td>
-                      <td>{row.indicators}/17</td>
+                      <td>
+                        {row.indicators}/{wdi.indicators.length}
+                      </td>
                       {row.sectors.map((sectorRow) => (
                         <td key={sectorRow.category}>
                           <b>

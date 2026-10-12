@@ -17,6 +17,14 @@ import {
 } from "../shared/reference.mjs";
 import { dossier } from "./dossier.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
+import {
+  document,
+  observatoryStatus,
+  selectCorridors,
+  selectMarket,
+  selectObservations,
+  selectProviders,
+} from "./observatory-db.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const membersPath = path.join(root, "data", "members.json");
@@ -248,6 +256,32 @@ function enrichObservation(row) {
   };
 }
 
+function resolvedMarketQuery(url) {
+  const params = Object.fromEntries(url.searchParams);
+  return {
+    country: params.country ? findCountry(params.country)?.name || params.country : "",
+    origin: params.origin ? findCountry(params.origin)?.name || params.origin : "",
+    target: params.target ? findCountry(params.target)?.name || params.target : "",
+    region: params.region || "",
+    category: params.category || "",
+    side: params.side || "",
+    type: params.type || "",
+    q: params.q || "",
+  };
+}
+
+function filterCorridors(query) {
+  return market.corridors.filter((row) => {
+    if (query.origin && row.origin !== query.origin && row.originIso3 !== query.origin) return false;
+    if (query.target && row.target !== query.target && row.targetIso3 !== query.target) return false;
+    if (query.category && row.category !== query.category) return false;
+    if ((query.hs || query.hsCode) && row.hsCode !== (query.hs || query.hsCode)) return false;
+    if (query.period && row.period !== query.period) return false;
+    if (query.min && !(row.valueUSD >= Number(query.min))) return false;
+    return true;
+  });
+}
+
 function referencePayload(url) {
   const view = url.searchParams.get("view") || "series";
   const countryParam = url.searchParams.get("country");
@@ -285,6 +319,17 @@ function referencePayload(url) {
     if (view === "series" && (row.year < start || row.year > end)) return false;
     return true;
   });
+  const fromDb =
+    view === "metadata"
+      ? []
+      : selectObservations({
+          view,
+          countries,
+          indicators,
+          start,
+          end,
+        });
+  if (fromDb) rows = fromDb;
   if (view === "metadata") rows = [];
   const page = Math.max(1, Number(url.searchParams.get("page") || 1));
   const perPage = Math.min(20000, Math.max(1, Number(url.searchParams.get("per_page") || 500)));
@@ -338,11 +383,33 @@ export function attachApi(middlewares) {
 async function route(req, res, url) {
   const format = url.searchParams.get("format");
   if (url.pathname === "/api/catalog" && req.method === "GET") {
-    send(res, 200, catalog);
+    send(res, 200, document("catalog") || catalog);
+    return;
+  }
+  if (url.pathname === "/api/db" && req.method === "GET") {
+    const status = observatoryStatus();
+    send(res, status ? 200 : 503, status || { error: "Observatory database is not built. Run npm run observatory:build." });
     return;
   }
   if (url.pathname === "/api/brief" && req.method === "GET") {
-    send(res, 200, brief);
+    send(res, 200, document("brief") || brief);
+    return;
+  }
+  if (url.pathname === "/api/corridors" && req.method === "GET") {
+    const query = Object.fromEntries(url.searchParams);
+    if (query.origin) query.origin = findCountry(query.origin)?.name || query.origin;
+    if (query.target) query.target = findCountry(query.target)?.name || query.target;
+    const corridors = selectCorridors(query) || filterCorridors(query);
+    if (format === "csv") {
+      send(res, 200, toCsv(corridors), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, {
+      total: corridors.length,
+      minValueUsd: 1000000,
+      corridors,
+      note: "Bilateral merchandise exports. Values under USD 1 million are omitted from the collected set. A missing pair is not zero trade, and a reported export is not available stock.",
+    });
     return;
   }
   if (url.pathname === "/api/coverage" && req.method === "GET") {
@@ -369,11 +436,12 @@ async function route(req, res, url) {
   if (url.pathname === "/api/market" && req.method === "GET") {
     const id = url.searchParams.get("id");
     if (id) {
-      const row = market.records.find((item) => item.id === id);
+      const row = selectMarket({ id }) ?? market.records.find((item) => item.id === id);
       send(res, row ? 200 : 404, row || { error: "Record not found." });
       return;
     }
-    const records = filterMarket(Object.fromEntries(url.searchParams));
+    const params = resolvedMarketQuery(url);
+    const records = selectMarket(params) || filterMarket(Object.fromEntries(url.searchParams));
     if (format === "csv") {
       send(res, 200, toCsv(records), "text/csv; charset=utf-8");
       return;
@@ -383,7 +451,7 @@ async function route(req, res, url) {
       records,
       providers: market.providers,
       news: market.news,
-      corridors: market.corridors,
+      corridors: selectCorridors({}) || market.corridors,
       countries: market.countries,
       referenceVersion: market.referenceVersion,
       regionalEvidence: market.regionalEvidence,
@@ -400,11 +468,20 @@ async function route(req, res, url) {
   if (url.pathname === "/api/providers" && req.method === "GET") {
     const id = url.searchParams.get("id");
     if (id) {
-      const row = market.providers.find((item) => item.id === id);
+      const row = selectProviders({ id }) ?? market.providers.find((item) => item.id === id);
       send(res, row ? 200 : 404, row || { error: "Provider not found." });
       return;
     }
-    const providers = filterProviders(Object.fromEntries(url.searchParams));
+    const params = Object.fromEntries(url.searchParams);
+    const country = params.country ? findCountry(params.country) : null;
+    const providers =
+      selectProviders({
+        countryName: country?.name || "",
+        iso2: country?.iso2 || "",
+        region: params.region || "",
+        category: params.category || "",
+        q: params.q || "",
+      }) || filterProviders(params);
     if (format === "csv") {
       send(res, 200, toCsv(providers), "text/csv; charset=utf-8");
       return;

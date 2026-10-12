@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { findCountry, market, sectorCopy } from "../../shared/reference.mjs";
 import { Footer, Header } from "../components/Chrome.jsx";
+import CompanyLogo from "../components/CompanyLogo.jsx";
 import ResearchDesk from "../components/ResearchDesk.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { contextSearch, useApplyResearchContext } from "../research.jsx";
@@ -35,7 +36,10 @@ export default function ProviderPage() {
         <section className="detail-hero">
           <div>
             <span className="eyebrow">OFFICIAL-SOURCE ORGANIZATION PROFILE</span>
-            <h1>{provider.name}</h1>
+            <h1 className="company-name">
+              <CompanyLogo id={provider.id} name={provider.name} />
+              {provider.name}
+            </h1>
             <p>
               {provider.country} · {sector(provider.category)}
             </p>
@@ -116,7 +120,10 @@ export default function ProviderPage() {
               {peers.map((row) => (
                 <article className="card" key={row.id}>
                   <span className="badge">{row.country}</span>
-                  <h3>{row.name}</h3>
+                  <h3 className="company-name">
+                    <CompanyLogo id={row.id} name={row.name} />
+                    {row.name}
+                  </h3>
                   <p>{row.description}</p>
                   <Link to={`/penyedia/${row.id}`}>{t("Full profile", "Profil lengkap", "Profil complet")} →</Link>
                 </article>

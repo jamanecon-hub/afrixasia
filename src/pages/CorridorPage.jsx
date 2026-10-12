@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { categories, findCountry, inferType, market, sectorCopy, wdi } from "../../shared/reference.mjs";
 import { Footer, Header } from "../components/Chrome.jsx";
+import CompanyLogo from "../components/CompanyLogo.jsx";
 import { indicatorTitle } from "../components/ResearchDesk.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { contextSearch, normalizeContext, patchContext, registerSearch, useResearch } from "../research.jsx";
@@ -334,7 +335,10 @@ export default function CorridorPage() {
                   <>
                     {originProviders.map((row) => (
                       <div className="corridor-evidence" key={row.id}>
-                        <Link to={`/penyedia/${row.id}`}>{row.name} →</Link>
+                        <Link className="company-name" to={`/penyedia/${row.id}`}>
+                          <CompanyLogo id={row.id} name={row.name} />
+                          {row.name} →
+                        </Link>
                         <p>
                           {row.country} · {sector(row.category)}
                         </p>

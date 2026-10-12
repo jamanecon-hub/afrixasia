@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { findCountry, market } from "../../shared/reference.mjs";
+import CompanyLogo from "./CompanyLogo.jsx";
 import { MemberMapping } from "./MemberMapping.jsx";
 import Filters from "./Filters.jsx";
 import { useLanguage } from "../i18n.jsx";
@@ -105,10 +106,15 @@ export default function CircleDirectory() {
             {providers.slice(0, shown).map((row) => (
               <tr key={row.id}>
                 <td>
-                  <b>
-                    <Link to={`/penyedia/${row.id}`}>{row.name}</Link>
-                  </b>
-                  <small>{row.description}</small>
+                  <div className="company-name">
+                    <CompanyLogo id={row.id} name={row.name} />
+                    <div>
+                      <b>
+                        <Link to={`/penyedia/${row.id}`}>{row.name}</Link>
+                      </b>
+                      <small>{row.description}</small>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   {row.country}

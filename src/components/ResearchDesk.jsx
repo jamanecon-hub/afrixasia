@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { findCountry, market, sectorCopy, wdi } from "../../shared/reference.mjs";
+import CompanyLogo from "./CompanyLogo.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { contextSearch, registerSearch } from "../research.jsx";
 
@@ -89,7 +90,10 @@ export default function ResearchDesk({ countryName, category, contextFields = {}
           <h3>{t("Related providers in this country", "Penyedia negara terkait", "Organisations du pays")}</h3>
           {providerRows.map((row) => (
             <Link className="provider-link" key={row.id} to={`/penyedia/${row.id}`}>
-              <b>{row.name}</b>
+              <b className="company-name">
+                <CompanyLogo id={row.id} name={row.name} />
+                {row.name}
+              </b>
               <span>
                 {row.country} · {sector(row.category)}
               </span>

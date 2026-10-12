@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { market, wdi } from "../../shared/reference.mjs";
 import { Footer, Header } from "../components/Chrome.jsx";
+import CompanyLogo from "../components/CompanyLogo.jsx";
 import { indicatorTitle } from "../components/ResearchDesk.jsx";
 import TimeSeriesChart from "../components/TimeSeriesChart.jsx";
 import { useLanguage } from "../i18n.jsx";
@@ -255,7 +256,10 @@ export default function CountryPage() {
                 .filter((row) => row.country === dossier.country.name)
                 .map((row) => (
                   <article className="card" key={row.id}>
-                    <h3>{row.name}</h3>
+                    <h3 className="company-name">
+                      <CompanyLogo id={row.id} name={row.name} />
+                      {row.name}
+                    </h3>
                     <span className="badge">{sector(row.category)}</span>
                     <p>{row.description}</p>
                     <Link to={`/penyedia/${row.id}`}>{t("Full profile & source", "Profil lengkap & sumber", "Profil complet & source")} →</Link>

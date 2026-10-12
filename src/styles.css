@@ -30,3 +30,4 @@
 .member-mapping.compact p{font-size:12px}
 .membership-form input[readonly]{color:#3d5348;background:#f3f4eb}
 @media (max-width:560px){.join-paths,.role-picks{grid-template-columns:1fr}}
+.company-name{align-items:flex-start;gap:10px;display:flex}.company-logo{width:28px;height:28px;object-fit:contain;background:#fff;border:1px solid #e4e8df;border-radius:6px;flex:none}.company-logo-fallback{color:#f6f1e4;background:#16352f;justify-content:center;align-items:center;font:700 12px Manrope,sans-serif;display:inline-flex}

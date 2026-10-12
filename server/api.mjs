@@ -16,6 +16,21 @@ import {
   intelligence,
 } from "../shared/reference.mjs";
 import { dossier } from "./dossier.mjs";
+import {
+  countryBrief,
+  coverageRows,
+  findCountry as findCountryInDb,
+  indicatorSeries,
+  listCorridors,
+  listCountries,
+  listRegionalEvidence,
+  marketById,
+  providerById,
+  searchHeadlines,
+  searchMarket,
+  searchProviders,
+  summary as dbSummary,
+} from "./db.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -151,6 +166,14 @@ async function readForm(req) {
   if (type.includes("application/json")) return JSON.parse(raw || "{}");
   if (type.includes("multipart/form-data")) return parseMultipart(raw, type);
   return Object.fromEntries(new URLSearchParams(raw));
+}
+
+function replyDb(res, result) {
+  if (result && result.error) {
+    send(res, result.status || 400, { error: result.error });
+    return;
+  }
+  send(res, 200, result);
 }
 
 function send(res, status, body, type = "application/json; charset=utf-8") {
@@ -626,6 +649,108 @@ async function route(req, res, url) {
       authProvider,
     });
     return;
+  }
+  if (url.pathname.startsWith("/api/db/") && req.method === "GET") {
+    try {
+      if (url.pathname === "/api/db/summary") {
+        replyDb(res, dbSummary());
+        return;
+      }
+      if (url.pathname === "/api/db/country") {
+        const code =
+          url.searchParams.get("code") ||
+          url.searchParams.get("country") ||
+          url.searchParams.get("iso2") ||
+          url.searchParams.get("iso3") ||
+          url.searchParams.get("name");
+        if (!code) {
+          const countries = listCountries();
+          send(res, 200, { total: countries.length, countries });
+          return;
+        }
+        const country = findCountryInDb(code);
+        send(res, country ? 200 : 404, country || { error: "Country not found." });
+        return;
+      }
+      if (url.pathname === "/api/db/series") {
+        replyDb(
+          res,
+          indicatorSeries({
+            country: url.searchParams.get("country") || url.searchParams.get("code"),
+            indicator: url.searchParams.get("indicator"),
+            start: url.searchParams.get("start"),
+            end: url.searchParams.get("end"),
+          }),
+        );
+        return;
+      }
+      if (url.pathname === "/api/db/market") {
+        const id = url.searchParams.get("id");
+        if (id) {
+          const row = marketById(id);
+          send(res, row ? 200 : 404, row || { error: "Record not found." });
+          return;
+        }
+        replyDb(res, searchMarket(Object.fromEntries(url.searchParams)));
+        return;
+      }
+      if (url.pathname === "/api/db/providers") {
+        const id = url.searchParams.get("id");
+        if (id) {
+          const row = providerById(id);
+          send(res, row ? 200 : 404, row || { error: "Provider not found." });
+          return;
+        }
+        replyDb(res, searchProviders(Object.fromEntries(url.searchParams)));
+        return;
+      }
+      if (url.pathname === "/api/db/headlines") {
+        replyDb(res, searchHeadlines(Object.fromEntries(url.searchParams)));
+        return;
+      }
+      if (url.pathname === "/api/db/brief") {
+        const code = url.searchParams.get("country") || url.searchParams.get("code");
+        if (!code) {
+          const snapshot = dbSummary();
+          send(res, 200, {
+            date: snapshot.briefDate,
+            status: snapshot.briefStatus,
+            headlineCount: snapshot.tables.headlines,
+            note: "Pass country= to read one country media note. Headlines are at /api/db/headlines.",
+          });
+          return;
+        }
+        const row = countryBrief(code);
+        send(res, row ? 200 : 404, row || { error: "Country brief not found." });
+        return;
+      }
+      if (url.pathname === "/api/db/coverage") {
+        replyDb(
+          res,
+          coverageRows({
+            country: url.searchParams.get("country") || url.searchParams.get("code") || "",
+            indicator: url.searchParams.get("indicator") || "",
+          }),
+        );
+        return;
+      }
+      if (url.pathname === "/api/db/corridors") {
+        replyDb(res, listCorridors());
+        return;
+      }
+      if (url.pathname === "/api/db/regional") {
+        replyDb(res, listRegionalEvidence());
+        return;
+      }
+      send(res, 404, { error: "Unknown API route." });
+      return;
+    } catch (error) {
+      if (error.code === "DB_MISSING") {
+        send(res, 503, { error: error.message });
+        return;
+      }
+      throw error;
+    }
   }
   send(res, 404, { error: "Unknown API route." });
 }

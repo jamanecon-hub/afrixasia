@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,7 +17,9 @@ import {
   intelligence,
 } from "../shared/reference.mjs";
 import { dossier } from "./dossier.mjs";
+import { sendWelcomeEmail } from "./welcome-mail.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
+import { membershipCardPdf } from "../shared/card-pdf.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const seedMembersPath = path.join(root, "data", "members.json");
@@ -168,6 +171,21 @@ async function readForm(req) {
   if (type.includes("application/json")) return JSON.parse(raw || "{}");
   if (type.includes("multipart/form-data")) return parseMultipart(raw, type);
   return Object.fromEntries(new URLSearchParams(raw));
+}
+
+function issueCardToken(members, member) {
+  if (member.cardToken) return member.cardToken;
+  member.cardToken = randomBytes(18).toString("hex");
+  writeMembers(members);
+  return member.cardToken;
+}
+
+function sendPdf(res, pdf, filename) {
+  res.statusCode = 200;
+  res.setHeader("content-type", "application/pdf");
+  res.setHeader("content-disposition", `attachment; filename="${filename}"`);
+  res.setHeader("cache-control", "no-store");
+  res.end(Buffer.from(pdf));
 }
 
 function send(res, status, body, type = "application/json; charset=utf-8") {
@@ -474,7 +492,9 @@ async function route(req, res, url) {
   if (url.pathname === "/api/session" && req.method === "GET") {
     const email = sessionEmail(req);
     const provider = email ? sessionProvider(req) : "";
-    const member = email ? readMembers().find((item) => item.email === email) : null;
+    const members = readMembers();
+    const member = email ? members.find((item) => item.email === email) : null;
+    if (member) issueCardToken(members, member);
     send(res, 200, {
       email,
       provider,
@@ -513,6 +533,20 @@ async function route(req, res, url) {
     }
     setSession(res, email, "manual");
     send(res, 200, { email, provider: "manual" });
+    return;
+  }
+  if (url.pathname === "/api/membership-card" && req.method === "GET") {
+    const members = readMembers();
+    const token = url.searchParams.get("token") || "";
+    const email = sessionEmail(req);
+    const member = (token && members.find((item) => item.cardToken && item.cardToken === token)) || (email && members.find((item) => item.email === email));
+    if (!member) {
+      send(res, 404, { error: "Membership card not found." });
+      return;
+    }
+    issueCardToken(members, member);
+    const pdf = membershipCardPdf(member);
+    sendPdf(res, pdf, `AfriXAsia-${member.membershipId || "card"}.pdf`);
     return;
   }
   if (url.pathname === "/api/registration" && req.method === "POST") {
@@ -628,19 +662,29 @@ async function route(req, res, url) {
       publicContact: flag(body.publicContact),
       publishConsent: true,
       membershipConsent: true,
+      cardToken: previous?.cardToken || randomBytes(18).toString("hex"),
       createdAt: previous?.createdAt || now,
       updatedAt: now,
     };
     if (index >= 0) members[index] = member;
     else members.push(member);
     writeMembers(members);
+    let mail = { sent: false, reason: "mail_not_configured" };
+    try {
+      mail = await sendWelcomeEmail(member, membershipCardPdf(member));
+    } catch (error) {
+      console.error("welcome mail", error instanceof Error ? error.message : "failed");
+      mail = { sent: false, reason: "mail_failed" };
+    }
     if (authPath === "manual" && sessionMail !== email) setSession(res, email, "manual");
     send(res, 200, {
       saved: true,
       membershipId,
       profilePath: `/anggota/${publicKey}`,
       email,
+      cardToken: member.cardToken,
       authProvider,
+      mail,
     });
     return;
   }

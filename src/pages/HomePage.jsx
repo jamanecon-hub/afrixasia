@@ -246,8 +246,8 @@ export default function HomePage() {
             <a href="https://afrixasia.org" target="_blank" rel="noreferrer">
               Website <b>afrixasia.org ↗</b>
             </a>
-            <a href="https://www.instagram.com/afrixasia/" target="_blank" rel="noreferrer">
-              Telegram <b>{t("COL-LAB · link in Instagram bio", "COL-LAB · tautan di bio Instagram", "COL-LAB · lien dans la bio Instagram")} ↗</b>
+            <a href="https://t.me/afrixasia" target="_blank" rel="noreferrer">
+              Telegram <b>t.me/afrixasia ↗</b>
             </a>
           </div>
         </section>

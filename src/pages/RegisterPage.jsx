@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { categories, findCountry, wdi } from "../../shared/reference.mjs";
 import { Footer, Header, Wordmark } from "../components/Chrome.jsx";
 import CircleDirectory from "../components/CircleDirectory.jsx";
+import MemberWelcome from "../components/MemberWelcome.jsx";
 import { INTEREST_INTENTS, MemberMapping, intentLabel } from "../components/MemberMapping.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { useResearch } from "../research.jsx";
@@ -152,7 +153,7 @@ export default function RegisterPage() {
   const [session, setSession] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(null);
+  const [kit, setKit] = useState(null);
   const formRef = useRef(null);
   const contextRef = useRef(context);
   const [form, setForm] = useState(empty);
@@ -259,7 +260,7 @@ export default function RegisterPage() {
       body: JSON.stringify({ action: "signout" }),
     });
     setSession({ email: "" });
-    setSaved(null);
+    setKit(null);
   }
 
   async function onSubmit(event) {
@@ -283,7 +284,19 @@ export default function RegisterPage() {
       if (!response.ok) throw new Error(registrationError(t, response.status, body));
       const next = await fetch("/api/session").then((item) => item.json());
       setSession(next);
-      setSaved(body);
+      setKit({
+        member: {
+          ...form,
+          role,
+          membershipId: body.membershipId,
+          profilePath: body.profilePath,
+          cardToken: body.cardToken,
+          interest: preview.interest,
+          segment: preview.segment,
+          capabilities: preview.capabilities,
+        },
+        mail: body.mail,
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message);
@@ -439,39 +452,8 @@ export default function RegisterPage() {
             )}
           </p>
         </div>
-        {saved ? (
-          <div className="membership-welcome" role="status">
-            <span className="eyebrow">{t("YOUR MEMBERSHIP IS ACTIVE", "MEMBERSHIP ANDA AKTIF", "VOTRE ADHÉSION EST ACTIVE")}</span>
-            <h2>
-              {t("Welcome to the Circle", "Selamat datang di Circle", "Bienvenue dans le Circle")}, {displayName}.
-            </h2>
-            <p>
-              {t(
-                "Your profile was saved. Interest, segment, and capabilities are now in the public directory. Email and phone stay private unless you opted in.",
-                "Profil berhasil disimpan. Minat, segmen, dan kapabilitas kini ada di direktori publik. Email dan telepon tetap privat kecuali Anda memilih untuk mempublikasikannya.",
-                "Votre profil est enregistré. Intérêt, segment et capacités figurent dans l’annuaire public. E-mail et téléphone restent privés sauf accord.",
-              )}
-            </p>
-            <div className="mini-membership-card">
-              <Wordmark />
-              <h3>{displayName}</h3>
-              <p>
-                {role.toUpperCase()} · {form.country}
-              </p>
-              <b>{saved.membershipId}</b>
-            </div>
-            <div className="form-actions">
-              <Link className="circle-gold-btn" to={saved.profilePath}>
-                {t("View my profile", "Lihat profil saya", "Voir mon profil")} ↗
-              </Link>
-              <button className="btn" type="button" onClick={() => setSaved(null)}>
-                {t("Manage membership", "Kelola membership", "Gérer mon adhésion")}
-              </button>
-              <Link className="btn" to="/marketplace">
-                {t("Member directory", "Direktori anggota", "Annuaire des membres")}
-              </Link>
-            </div>
-          </div>
+        {kit ? (
+          <MemberWelcome member={kit.member} mail={kit.mail} onManage={() => setKit(null)} />
         ) : (
           <div className="member-application-grid">
             <section>
@@ -764,6 +746,15 @@ export default function RegisterPage() {
                 {existing && (
                   <div className="membership-manage">
                     <span>{existing.membershipId}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setKit({ member: { ...existing, profilePath: existing.profilePath || `/anggota/${existing.publicKey}` }, mail: null });
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      {t("Open membership kit", "Buka kit membership", "Ouvrir le kit d’adhésion")}
+                    </button>
                     <button type="button" disabled={saving} onClick={remove}>
                       {t("Delete membership & profile", "Hapus membership & profil", "Supprimer l’adhésion et le profil")}
                     </button>

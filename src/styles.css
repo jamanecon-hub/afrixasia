@@ -32,3 +32,22 @@
 @media (max-width:560px){.join-paths,.role-picks{grid-template-columns:1fr}}
 .company-name{align-items:flex-start;gap:10px;display:flex}.company-logo{width:28px;height:28px;object-fit:contain;background:#fff;border:1px solid #e4e8df;border-radius:6px;flex:none}.company-logo-fallback{color:#f6f1e4;background:#16352f;justify-content:center;align-items:center;font:700 12px Manrope,sans-serif;display:inline-flex}
 .country-label{align-items:center;gap:8px;display:inline-flex}.country-flag{width:22px;height:16px;object-fit:cover;background:#fff;border:1px solid #d7ddd4;border-radius:2px;flex:none}.table-wrap td small.country-route{align-items:center;gap:6px;flex-wrap:wrap;display:flex}.table-wrap td small.country-route .country-flag{width:16px;height:12px}.channel-feed{margin:28px 0 8px}.channel-cards{align-items:stretch}.channel-card{display:flex;flex-direction:column;gap:10px}.channel-cover{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;background:#101a28}.channel-card p{line-height:1.55}.channel-card time{color:#66706a;font-size:12px}
+.crm-kit h3{font-size:20px;font-weight:600}
+.crm-details{grid-template-columns:180px minmax(0,1fr);gap:10px 18px;margin:8px 0 28px;font-size:13px;display:grid}
+.crm-details dt{color:#667790}
+.crm-details dd{overflow-wrap:anywhere;margin:0}
+.virtual-cards{grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 18px;display:grid}
+.vcard{border-radius:14px;min-height:230px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.vcard-front{color:#fff;background:linear-gradient(125deg,#111b31,#080b0a 60%,#18261b);border:1px solid #5e78d85e}
+.vcard-front .brand-wordmark{width:150px;height:26px}
+.vcard-front p,.vcard-front span{color:#d5deee}
+.vcard-back{color:#17212d;background:#f7f9fd;border:1px solid #d5deee}
+.vcard-back a{color:#2843bd}
+.vcard h3{font-size:26px;line-height:1.25}
+.vcard-kicker{letter-spacing:1.6px;font-size:10px;display:block;margin-top:10px}
+.crm-invites{grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;display:grid}
+.crm-invite{background:#fff;border:1px solid #d9dfee;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.crm-invite span{letter-spacing:1.4px;color:#2843bd;font-size:10px;text-transform:uppercase}
+.crm-invite b{font-size:18px;font-weight:600}
+.crm-invite small{color:#667790}
+@media (max-width:760px){.crm-details,.virtual-cards,.crm-invites{grid-template-columns:1fr}.crm-details{grid-template-columns:1fr}.crm-details dd{margin-bottom:8px}}

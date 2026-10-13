@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import channel from "../../data/channel.json" with { type: "json" };
 import { findCountry, wdi } from "../../shared/reference.mjs";
 import { Footer, Header } from "../components/Chrome.jsx";
 import { useLanguage } from "../i18n.jsx";
@@ -107,11 +108,74 @@ function Spotlight({ brief, country, onSelect }) {
   );
 }
 
+function ChannelFeed({ context, shown, onMore }) {
+  const { t } = useLanguage();
+  const posts = (channel.posts || []).filter((post) => channelMatches(post, context));
+  return (
+    <section className="channel-feed">
+      <div className="sectionhead">
+        <h2>{t("AfriXAsia channel brief", "Brief kanal AfriXAsia", "Brief du canal AfriXAsia")}</h2>
+        <a href="https://www.instagram.com/afrixasia/" target="_blank" rel="noreferrer">
+          @afrixasia ↗
+        </a>
+      </div>
+      <p className="notice">
+        {t(
+          "Cover image and original caption from the AfriXAsia feed, published here as part of the media brief.",
+          "Gambar sampul dan caption asli dari feed AfriXAsia, ditayangkan di sini sebagai bagian dari media brief.",
+          "Image de couverture et légende originale du fil AfriXAsia, publiées ici dans le media brief.",
+        )}
+      </p>
+      <div className="cards channel-cards">
+        {posts.slice(0, shown).map((post) => (
+          <article className="card channel-card" key={post.id}>
+            {post.image && <img className="channel-cover" src={post.image} alt="" />}
+            <span className="eyebrow">AfriXAsia · @afrixasia</span>
+            <h3>{post.title}</h3>
+            {post.caption.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
+            <time dateTime={post.publishedAt}>{post.publishedAt.slice(0, 10)}</time>
+          </article>
+        ))}
+      </div>
+      {!posts.length && (
+        <p className="notice">
+          {t(
+            "No channel caption matches this selection.",
+            "Tidak ada caption kanal untuk pilihan ini.",
+            "Aucune légende du canal ne correspond à cette sélection.",
+          )}
+        </p>
+      )}
+      {shown < posts.length && (
+        <button className="btn" onClick={onMore}>
+          {t("Show more channel posts", "Tampilkan posting kanal lainnya", "Voir plus de publications")}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function channelMatches(post, context) {
+  const haystack = [post.title, ...(post.caption || [])].join(" ").toLowerCase();
+  if (context.q && !haystack.includes(context.q.toLowerCase())) return false;
+  if (context.country && !(post.countries || []).includes(context.country) && !haystack.includes(context.country.toLowerCase())) return false;
+  if (context.region) {
+    const regions = new Set(
+      (post.countries || []).map((name) => findCountry(name)?.region).filter(Boolean),
+    );
+    if (regions.size && !regions.has(context.region)) return false;
+  }
+  return true;
+}
+
 export default function MediaPage() {
   const { t } = useLanguage();
   const [context, setContext] = useResearch();
   const [brief, setBrief] = useState(null);
   const [failed, setFailed] = useState(false);
+  const [channelShown, setChannelShown] = useState(8);
   useEffect(() => {
     fetch("/api/brief")
       .then((response) => {
@@ -162,13 +226,14 @@ export default function MediaPage() {
             </a>
             <p className="small muted">
               {t(
-                "Direct Instagram retrieval is unavailable. Post images and captions are not mirrored here. The image shown is the brand asset supplied by AfriXAsia.",
-                "Pengambilan langsung Instagram belum tersedia. Gambar dan caption posting belum disalin di sini. Gambar yang ditampilkan adalah aset brand dari AfriXAsia.",
-                "La récupération directe d’Instagram est indisponible. Les images et légendes des publications ne sont pas reproduites ici. Le visuel présenté est fourni par AfriXAsia.",
+                "The channel brief below republishes the AfriXAsia feed: the cover image and the original caption.",
+                "Brief kanal di bawah menayangkan feed AfriXAsia: gambar sampul dan caption aslinya.",
+                "Le brief ci-dessous reprend le fil AfriXAsia : l’image de couverture et la légende originale.",
               )}
             </p>
           </div>
         </section>
+        <ChannelFeed context={context} shown={channelShown} onMore={() => setChannelShown((count) => count + 8)} />
         {failed && <div className="form-error">Media brief could not be loaded.</div>}
         {brief && (
           <>

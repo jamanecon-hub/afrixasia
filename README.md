@@ -21,7 +21,7 @@ npm run preview
 - Pages: `/`, `/data-pasar`, `/open-data`, `/daily-brief`, `/marketplace`, `/daftar`, `/kualitas-data`, `/api-docs`, `/privasi`, `/anggota/:id`
 - English, Indonesian, and French copy, with the language stored in the browser
 - Research filters carried across pages in the URL (`ctx=1`) and session storage
-- World Bank WDI snapshot (2015–2025, 104 economies, 17 indicators, release 8 October 2026, rechecked 14 October 2026) and market references refreshed 14 October 2026 from UN Comtrade where 2025 is published
+- World Bank WDI snapshot (2015–2025, 104 economies, 17 indicators, release 8 October 2026, rechecked 14 October 2026), 949 market references including additional 2025 UN Comtrade HS lines, and 86 official organization profiles
 - Public JSON/CSV endpoints under `/api/*`
 - Circle membership on `/daftar` accepts a local Google sign-in (sample profiles, no Google API and no client secret) or a manual identity form. Interest, segment, and capabilities are stored on the member and shown publicly. Email and phone stay private unless the member opts in.
 
@@ -48,8 +48,8 @@ Circle members are not loaded. `POST /api/registration` writes `data/members.jso
 | `observations` | Reported annual values for 2015–2025. Nulls stay NULL. Missing country–indicator–years are omitted, not filled with zero |
 | `coverage` | Pair status plus `missing_years` for those gaps |
 | `latest_observations` | Most recent reported value per country–indicator, as stored in the WDI snapshot |
-| `market_records` | 818 historical demand/supply references: origin, target, category, side, value, unit, period, source |
-| `providers` | 78 official-source organization profiles, not members |
+| `market_records` | 949 historical demand/supply references: origin, target, category, side, value, unit, period, source |
+| `providers` | 86 official-source organization profiles, not members |
 | `headlines` | Media-brief RSS headlines, with `headline_countries` for the country names on each item |
 | `country_briefs` | Per-country media notes from the brief |
 | `market_news` | Short curated market headlines shipped in `market.json` |

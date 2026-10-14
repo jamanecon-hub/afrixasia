@@ -130,9 +130,9 @@ export default function MembershipPage() {
         </div>
         <p className="notice">
           {t(
-            "78 profiles sourced from official public websites. 67 sites responded on 14 October 2026; 11 kept their 10 October check date because the site blocked or failed the recheck. These organizations are reference listings, not registered members or endorsed partners. Inventory and commercial availability are not verified.",
-            "78 profil dari situs publik resmi. 67 situs merespons pada 14 Oktober 2026; 11 tetap bertanggal 10 Oktober karena situs menolak atau gagal saat pengecekan ulang. Perusahaan ini adalah referensi, bukan anggota terdaftar atau mitra terverifikasi. Stok dan ketersediaan komersial belum diverifikasi.",
-            "78 profils issus de sites officiels publics. 67 sites ont répondu le 14 octobre 2026 ; 11 conservent la date du 10 octobre car le site a bloqué ou échoué lors de la revérification. Ce sont des références, pas des membres inscrits ni des partenaires agréés. Stocks et disponibilité commerciale non vérifiés.",
+            `${market.providers.length} profiles sourced from official public websites, extended on 14 October 2026 with additional organizations whose public pages describe their activity. These organizations are reference listings, not registered members or endorsed partners. Inventory and commercial availability are not verified.`,
+            `${market.providers.length} profil dari situs publik resmi, ditambah pada 14 Oktober 2026 dengan organisasi yang halaman resminya menjelaskan kegiatannya. Perusahaan ini adalah referensi, bukan anggota terdaftar atau mitra terverifikasi. Stok dan ketersediaan komersial belum diverifikasi.`,
+            `${market.providers.length} profils issus de sites officiels publics, complétés le 14 octobre 2026 par des organisations dont la page publique décrit l’activité. Ce sont des références, pas des membres inscrits ni des partenaires agréés. Stocks et disponibilité commerciale non vérifiés.`,
           )}
         </p>
         <Filters

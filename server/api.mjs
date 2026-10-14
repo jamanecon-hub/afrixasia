@@ -427,6 +427,21 @@ async function route(req, res, url) {
     send(res, body.error ? 400 : 200, body);
     return;
   }
+  if (url.pathname === "/api/observatory" && req.method === "GET") {
+    const { queryObservatory } = await import("../scripts/observatory/read.mjs");
+    const result = queryObservatory(Object.fromEntries(url.searchParams));
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      const rows = result.body.rows || result.body.countries || result.body.datasets || [result.body.counts];
+      send(res, 200, toCsv(rows), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
+    return;
+  }
   if (url.pathname === "/api/reference" && req.method === "GET") {
     const result = referencePayload(url);
     if (result.status !== 200) {

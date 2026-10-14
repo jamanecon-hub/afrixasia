@@ -89,9 +89,9 @@ export default function MarketPage() {
         </div>
         <p className="notice">
           {t(
-            "Snapshot: 10 October 2026. Original source titles and product descriptions are retained. Values are rounded for display; exact values remain in the API.",
-            "Snapshot: 10 Oktober 2026. Judul sumber dan deskripsi produk asli dipertahankan. Angka tampilan dibulatkan; nilai persis tersedia melalui API.",
-            "Instantané : 10 octobre 2026. Les titres et descriptions des sources sont conservés. Valeurs arrondies à l’écran ; précision originale dans l’API.",
+            "Snapshot refreshed 14 October 2026. UN Comtrade references now use 2025 where that year is published; other rows stay on their last reported year. WDI proxies remain the 10 October extract. Values are rounded for display; exact values remain in the API.",
+            "Snapshot diperbarui 14 Oktober 2026. Referensi UN Comtrade memakai 2025 bila tahun itu sudah terbit; baris lain tetap pada tahun terakhir yang dilaporkan. Proksi WDI tetap ekstrak 10 Oktober. Angka tampilan dibulatkan; nilai persis tersedia melalui API.",
+            "Instantané actualisé le 14 octobre 2026. Les références UN Comtrade passent à 2025 lorsque cette année est publiée ; les autres lignes restent sur leur dernière année. Les proxys WDI datent de l’extrait du 10 octobre. Valeurs arrondies à l’écran ; précision originale dans l’API.",
           )}
         </p>
         <div className="table-wrap">

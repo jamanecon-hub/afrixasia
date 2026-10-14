@@ -130,9 +130,9 @@ export default function MembershipPage() {
         </div>
         <p className="notice">
           {t(
-            "78 profiles sourced from official public websites, checked on 10 October 2026. These organizations are reference listings, not registered members or endorsed partners. Inventory and commercial availability are not verified.",
-            "78 profil dari situs publik resmi, diperiksa 10 Oktober 2026. Perusahaan ini adalah referensi, bukan anggota terdaftar atau mitra terverifikasi. Stok dan ketersediaan komersial belum diverifikasi.",
-            "78 profils issus de sites officiels publics, consultés le 10 octobre 2026. Ce sont des références, pas des membres inscrits ni des partenaires agréés. Stocks et disponibilité commerciale non vérifiés.",
+            "78 profiles sourced from official public websites. 67 sites responded on 14 October 2026; 11 kept their 10 October check date because the site blocked or failed the recheck. These organizations are reference listings, not registered members or endorsed partners. Inventory and commercial availability are not verified.",
+            "78 profil dari situs publik resmi. 67 situs merespons pada 14 Oktober 2026; 11 tetap bertanggal 10 Oktober karena situs menolak atau gagal saat pengecekan ulang. Perusahaan ini adalah referensi, bukan anggota terdaftar atau mitra terverifikasi. Stok dan ketersediaan komersial belum diverifikasi.",
+            "78 profils issus de sites officiels publics. 67 sites ont répondu le 14 octobre 2026 ; 11 conservent la date du 10 octobre car le site a bloqué ou échoué lors de la revérification. Ce sont des références, pas des membres inscrits ni des partenaires agréés. Stocks et disponibilité commerciale non vérifiés.",
           )}
         </p>
         <Filters

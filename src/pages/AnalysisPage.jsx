@@ -83,7 +83,13 @@ export default function AnalysisPage() {
           </div>
         </div>
         <div className="dataset-strip">
-          <span>{t("Retrieved", "Diambil", "Collecté")} · 10 October 2026</span>
+          <span>
+            {t(
+              "Retrieved · 10 October 2026 · rechecked 14 October 2026, no newer WDI release",
+              "Diambil · 10 Oktober 2026 · dicek ulang 14 Oktober 2026, belum ada rilis WDI yang lebih baru",
+              "Collecté · 10 octobre 2026 · revérifié le 14 octobre 2026, pas de publication WDI plus récente",
+            )}
+          </span>
           <span>
             {t("Source updated", "Sumber diperbarui", "Source mise à jour")} · {wdi.sourceUpdatedAt}
           </span>

@@ -30,6 +30,6 @@ Market figures are historical references, not live inventory or orders. Preserve
 
 ## Agent Working Style & Context
 
-Mondo recommends Fajar's agent read `PROJECT_CONTEXT.md`, inspect relevant code and Git changes, and challenge unsupported premises. Reuse existing code and platform features; make the smallest correct change. Avoid speculative abstractions and dependencies. Preserve concurrent work. Verify affected behavior. Report edited, tested, committed, merged, and deployed states separately; never claim an unrun check.
+Mondo recommends Fajar's agent inspect `PROJECT_CONTEXT.md`, code, and Git changes; challenge unsupported premises. Preserve concurrent work. Verify behavior. Report edited, tested, committed, merged, and deployed states separately. Never claim unrun checks.
 
-Ponytail's useful principle is captured above; installation is optional. Caveman is only for requested terse replies. `ask-matt` is user-invoked. Do not run `setup-matt-pocock-skills` by default. Use `project-context` when available and explicitly asked to update `PROJECT_CONTEXT.md`; otherwise use repository evidence and Fajar's decisions.
+Apply Ponytail to coding tasks if available. Read the flow; reuse code, standard libraries, or platform features before adding dependencies or abstractions. Make the smallest correct change without skipping validation, error handling, accessibility, or verification. If unavailable, follow these rules. Caveman and `ask-matt` are request-only; skip `setup-matt-pocock-skills` by default. Use `project-context` only when asked to update `PROJECT_CONTEXT.md`; otherwise use repository evidence and Fajar's decisions.

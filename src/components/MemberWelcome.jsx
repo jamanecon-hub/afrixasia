@@ -32,7 +32,10 @@ export default function MemberWelcome({ member, mail, onManage }) {
   const role = member.role === "supplier" ? t("Supplier", "Supplier", "Fournisseur") : t("Buyer", "Buyer", "Acheteur");
   const intents = (member.interest?.intents || []).map((id) => intentLabel(t, id)).join(" · ");
   const mailSent = mail?.sent === true;
-  const mailSkipped = mail && mail.sent === false;
+  const mailFailed = mail?.sent === false && mail?.reason === "mail_failed";
+  const mailSkipped = mail?.sent === false && !mailFailed;
+  const mailDetail = String(mail?.detail || "").replace(/\s+/g, " ").trim();
+  const safeDetail = /sk_|pk_|bearer|api[_-]?key/i.test(mailDetail) ? "" : mailDetail.slice(0, 140);
   return (
     <section className="membership-welcome crm-kit" id="membership-kit">
       <span className="eyebrow">01 · {t("GREETING", "SAPAAN", "ACCUEIL")}</span>
@@ -61,6 +64,15 @@ export default function MemberWelcome({ member, mail, onManage }) {
             `Your greeting is ready here. Outbound email is not connected yet, so a copy was not sent to ${member.email}.`,
             `Sapaan Anda siap di halaman ini. Email keluar belum terhubung, jadi salinan belum terkirim ke ${member.email}.`,
             `Votre accueil est prêt ici. L’envoi d’e-mail n’est pas encore connecté, donc aucune copie n’a été envoyée à ${member.email}.`,
+          )}
+        </p>
+      )}
+      {mailFailed && (
+        <p className="notice">
+          {t(
+            `The greeting could not be emailed to ${member.email}. Your kit on this page is complete.${safeDetail ? ` ${safeDetail}` : ""}`,
+            `Email sapaan belum terkirim ke ${member.email}. Kit di halaman ini tetap lengkap.${safeDetail ? ` ${safeDetail}` : ""}`,
+            `L’e-mail d’accueil n’a pas pu être envoyé à ${member.email}. Votre kit sur cette page est complet.${safeDetail ? ` ${safeDetail}` : ""}`,
           )}
         </p>
       )}

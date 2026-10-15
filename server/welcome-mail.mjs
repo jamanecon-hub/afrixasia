@@ -67,6 +67,60 @@ function message(member) {
   return { text, html };
 }
 
+function plunkBase() {
+  const raw = String(process.env.PLUNK_API_URL || "https://next-api.useplunk.com").replace(/\/+$/, "");
+  return raw.endsWith("/v1") ? raw.slice(0, -3) : raw;
+}
+
+function parseFrom(value) {
+  const raw = String(value || "").trim();
+  const match = /^(.*)<([^>]+)>$/.exec(raw);
+  if (!match) return raw;
+  const name = match[1].trim().replace(/^"|"$/g, "");
+  const email = match[2].trim();
+  return name ? { name, email } : email;
+}
+
+function mailFailure(detail) {
+  const text = String(detail || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  return text ? { sent: false, reason: "mail_failed", detail: text } : { sent: false, reason: "mail_failed" };
+}
+
+async function sendWithPlunk(member, pdf, mail) {
+  const response = await fetch(`${plunkBase()}/v1/send`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${process.env.PLUNK_SECRET_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      to: { email: member.email, name: member.name },
+      subject: `Selamat datang di AfriXAsia Circle, ${member.name}`,
+      body: mail.html,
+      from: parseFrom(process.env.MAIL_FROM || "AfriXAsia Circle <membership@afrixasia.org>"),
+      attachments: [
+        {
+          filename: `AfriXAsia-${member.membershipId || "card"}.pdf`,
+          content: Buffer.from(pdf).toString("base64"),
+          contentType: "application/pdf",
+        },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = body?.error?.message || body?.message || "";
+    } catch {
+      detail = "";
+    }
+    console.error("plunk mail", response.status, detail);
+    return mailFailure(detail);
+  }
+  return { sent: true, channel: "plunk" };
+}
+
 async function sendWithResend(member, pdf, mail) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -119,6 +173,7 @@ async function sendWithSmtp(member, pdf, mail) {
 
 export async function sendWelcomeEmail(member, pdf) {
   const mail = message(member);
+  if (process.env.PLUNK_SECRET_KEY) return sendWithPlunk(member, pdf, mail);
   if (process.env.RESEND_API_KEY) return sendWithResend(member, pdf, mail);
   if (process.env.SMTP_HOST) return sendWithSmtp(member, pdf, mail);
   return { sent: false, reason: "mail_not_configured" };

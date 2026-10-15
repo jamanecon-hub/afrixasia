@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-`src/App.jsx` defines routes; `src/pages/` holds pages, `src/components/` holds reusable UI, and `src/styles.css` contains site styles. `server/api.mjs` handles API requests in Vite and the production server (`server/prod.mjs`). Shared helpers live in `shared/`, reference snapshots in `data/`, and static assets in `public/`.
+`src/App.jsx` defines routes; `src/pages/` holds pages, `src/components/` holds reusable UI, and `src/styles.css` contains site styles. `server/api.mjs` handles API requests in Vite and the production server (`server/prod.mjs`). Helpers live in `shared/`, snapshots in `data/`, and assets in `public/`.
 
 ## Build, Test, and Development Commands
 
@@ -22,12 +22,14 @@ No automated test framework, lint script, or coverage target is configured. Run 
 
 ## Commit & Pull Request Guidelines
 
-The short Git history has descriptive commit subjects but no established format. Use a concise imperative subject. In pull requests, explain the behavior changed, list checks actually run, and include screenshots for visible UI changes. For data changes, identify the source and snapshot date.
+Git history has descriptive subjects but no established format. Use a concise imperative subject. In pull requests, explain the change, list checks actually run, and include screenshots for UI changes. For data changes, identify the source and snapshot date.
 
 ## Data & Configuration Safety
 
 Market figures are historical references, not live inventory or orders. Preserve provenance and missing-data distinctions. The Google sign-in flow uses local sample profiles, not production OAuth. Do not add real member personal data or secrets to tracked JSON files.
 
-## Agent Skills & Project Context
+## Agent Working Style & Context
 
-Mondo recommends `setup-matt-pocock-skills` before the first engineering workflow in this repo, if the skill is available. Check for existing project-local setup; if absent, explain to Fajar that it configures the issue tracker, triage labels, and domain docs, then ask before running it or changing setup files. `ask-matt` is user-invoked only. Read `PROJECT_CONTEXT.md` for durable project state. Use the `project-context` skill when explicitly asked to update that document; separate implementation evidence from human decisions.
+Mondo recommends Fajar's agent read `PROJECT_CONTEXT.md`, inspect relevant code and Git changes, and challenge unsupported premises. Reuse existing code and platform features; make the smallest correct change. Avoid speculative abstractions and dependencies. Preserve concurrent work. Verify affected behavior. Report edited, tested, committed, merged, and deployed states separately; never claim an unrun check.
+
+Ponytail's useful principle is captured above; installation is optional. Caveman is only for requested terse replies. `ask-matt` is user-invoked. Do not run `setup-matt-pocock-skills` by default. Use `project-context` when available and explicitly asked to update `PROJECT_CONTEXT.md`; otherwise use repository evidence and Fajar's decisions.

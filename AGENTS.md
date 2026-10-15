@@ -2,14 +2,15 @@
 
 ## Project Structure & Module Organization
 
-`src/App.jsx` defines routes; `src/pages/` holds pages, `src/components/` holds reusable UI, and `src/styles.css` contains site styles. `server/api.mjs` attaches API handlers to Vite development and preview servers. Shared helpers live in `shared/`, reference snapshots in `data/`, and static assets in `public/`.
+`src/App.jsx` defines routes; `src/pages/` holds pages, `src/components/` holds reusable UI, and `src/styles.css` contains site styles. `server/api.mjs` handles API requests in Vite and the production server (`server/prod.mjs`). Shared helpers live in `shared/`, reference snapshots in `data/`, and static assets in `public/`.
 
 ## Build, Test, and Development Commands
 
-- `npm ci` installs the versions recorded in `package-lock.json`.
+- Use Node.js 22 or newer; `npm ci` installs the versions recorded in `package-lock.json`.
 - `npm run dev` starts the Vite development server at `http://localhost:3000`, including `/api/*` routes.
 - `npm run build` creates the production bundle in `dist/`.
 - `npm run preview` serves the built bundle on port 3000 with the local API attached.
+- `npm start` serves the built site and API through `server/prod.mjs`.
 
 ## Coding Style & Naming Conventions
 

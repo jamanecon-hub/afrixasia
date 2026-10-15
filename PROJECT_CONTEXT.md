@@ -6,13 +6,14 @@ AfriXAsia Market Observatory is a market-intelligence site spanning Africa and A
 
 ## Current State
 
-The repository has page routes in [src/App.jsx](src/App.jsx) and local API handlers in [server/api.mjs](server/api.mjs), attached to Vite development and preview by [vite.config.js](vite.config.js). No automated test or lint scripts are configured in [package.json](package.json). On 15 October 2026, a direct HTTPS check of `afrixasia.org` returned 200 with a Railway request header through Cloudflare; `www.afrixasia.org` returned a 301 to the apex. This checks routing, not feature quality or human acceptance.
+The repository has page routes in [src/App.jsx](src/App.jsx) and API handlers in [server/api.mjs](server/api.mjs), attached to Vite development and preview by [vite.config.js](vite.config.js) and to the production server by [server/prod.mjs](server/prod.mjs). [package.json](package.json) requires Node.js 22 or newer and has no automated test or lint scripts. On 15 October 2026, a direct HTTPS check of `afrixasia.org` returned 200 with a Railway request header through Cloudflare; `www.afrixasia.org` returned a 301 to the apex. This checks routing, not feature quality or human acceptance.
 
 ## Major Capabilities
 
 - Pages cover market data, evidence, country and corridor views, open data, media, membership, methodology, privacy, and API documentation ([src/App.jsx](src/App.jsx)).
 - The UI offers English, Indonesian, and French copy ([src/i18n.jsx](src/i18n.jsx)); research filters persist in the URL and session storage ([src/research.jsx](src/research.jsx)).
 - JSON/CSV API responses draw on reference snapshots and shared data helpers ([server/api.mjs](server/api.mjs), [shared/reference.mjs](shared/reference.mjs), [data/](data/)).
+- Registration generates a membership card PDF and attempts a welcome email through a configured provider; source behavior does not establish successful delivery ([server/api.mjs](server/api.mjs), [server/welcome-mail.mjs](server/welcome-mail.mjs)).
 
 ## Decisions
 
@@ -22,11 +23,11 @@ The repository has page routes in [src/App.jsx](src/App.jsx) and local API handl
 
 ## Constraints
 
-The checked-in WDI and market datasets are snapshots, not live feeds. The API reads and writes member records in [data/members.json](data/members.json); persistence and backup behavior on Railway are not documented here. Jaman had Railway project access during the domain handoff; repository access alone does not grant it. Do not treat local sample sign-in as production authentication or commit real member personal data.
+The checked-in WDI and market datasets are snapshots, not live feeds. The API seeds member records from [data/members.json](data/members.json) and writes to `MEMBERS_FILE`, a Railway volume path, or the seed file, in that order ([server/api.mjs](server/api.mjs)). Whether a volume is attached and backed up in Railway remains unverified. Jaman had Railway project access during the domain handoff; repository access alone does not grant it. Do not treat local sample sign-in as production authentication or commit real member personal data.
 
 ## Open Questions
 
-- How are member registrations persisted and backed up in production?
+- Is a Railway volume attached for member registrations, and how is it backed up?
 - What deployment checks and data-quality review are required before accepting future releases?
 
 ## Important References

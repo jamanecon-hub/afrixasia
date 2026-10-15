@@ -67,9 +67,42 @@ function message(member) {
   return { text, html };
 }
 
+const DEFAULT_FROM = "AfriXAsia Secretariat <secretariat@afrixasia.org>";
+
 function plunkBase() {
   const raw = String(process.env.PLUNK_API_URL || "https://next-api.useplunk.com").replace(/\/+$/, "");
   return raw.endsWith("/v1") ? raw.slice(0, -3) : raw;
+}
+
+function fromHeader() {
+  return process.env.MAIL_FROM || DEFAULT_FROM;
+}
+
+function addressOnly(value) {
+  const parsed = parseFrom(value);
+  return typeof parsed === "string" ? parsed : parsed.email;
+}
+
+function replyAddress() {
+  return String(process.env.MAIL_REPLY || addressOnly(fromHeader())).trim();
+}
+
+function copyAddress() {
+  if (process.env.MAIL_COPY === "") return "";
+  return String(process.env.MAIL_COPY || addressOnly(fromHeader())).trim();
+}
+
+function sameAddress(left, right) {
+  return String(left || "").trim().toLowerCase() === String(right || "").trim().toLowerCase();
+}
+
+function publicDetail(detail) {
+  return String(detail || "")
+    .replace(/sk_[A-Za-z0-9._-]+/g, "sk_redacted")
+    .replace(/pk_[A-Za-z0-9._-]+/g, "pk_redacted")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
 }
 
 function parseFrom(value) {
@@ -82,11 +115,11 @@ function parseFrom(value) {
 }
 
 function mailFailure(detail) {
-  const text = String(detail || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  const text = publicDetail(detail);
   return text ? { sent: false, reason: "mail_failed", detail: text } : { sent: false, reason: "mail_failed" };
 }
 
-async function sendWithPlunk(member, pdf, mail) {
+async function plunkSend({ to, subject, html, pdf, filename, reply }) {
   const response = await fetch(`${plunkBase()}/v1/send`, {
     method: "POST",
     headers: {
@@ -94,31 +127,56 @@ async function sendWithPlunk(member, pdf, mail) {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      to: { email: member.email, name: member.name },
-      subject: `Selamat datang di AfriXAsia Circle, ${member.name}`,
-      body: mail.html,
-      from: parseFrom(process.env.MAIL_FROM || "AfriXAsia Circle <membership@afrixasia.org>"),
+      to,
+      subject,
+      body: html,
+      from: parseFrom(fromHeader()),
+      reply,
       attachments: [
         {
-          filename: `AfriXAsia-${member.membershipId || "card"}.pdf`,
+          filename,
           content: Buffer.from(pdf).toString("base64"),
           contentType: "application/pdf",
         },
       ],
     }),
   });
-  if (!response.ok) {
-    let detail = "";
-    try {
-      const body = await response.json();
-      detail = body?.error?.message || body?.message || "";
-    } catch {
-      detail = "";
-    }
-    console.error("plunk mail", response.status, detail);
-    return mailFailure(detail);
+  if (response.ok) return { ok: true };
+  let detail = "";
+  try {
+    const body = await response.json();
+    detail = body?.error?.message || body?.message || "";
+  } catch {
+    detail = "";
   }
-  return { sent: true, channel: "plunk" };
+  console.error("plunk mail", response.status, publicDetail(detail));
+  return { ok: false, detail };
+}
+
+async function sendWithPlunk(member, pdf, mail) {
+  const filename = `AfriXAsia-${member.membershipId || "card"}.pdf`;
+  const subject = `Selamat datang di AfriXAsia Circle, ${member.name}`;
+  const sent = await plunkSend({
+    to: { email: member.email, name: member.name },
+    subject,
+    html: mail.html,
+    pdf,
+    filename,
+    reply: replyAddress(),
+  });
+  if (!sent.ok) return mailFailure(sent.detail);
+  const copy = copyAddress();
+  if (!copy || sameAddress(copy, member.email)) return { sent: true, channel: "plunk", copy: false };
+  const copied = await plunkSend({
+    to: copy,
+    subject: `[Salinan] ${subject}`,
+    html: `<p>Salinan otomatis email yang dikirim website ke ${escapeHtml(member.email)}. Balas pesan ini untuk menulis kepada anggota.</p>${mail.html}`,
+    pdf,
+    filename,
+    reply: member.email,
+  });
+  if (!copied.ok) return { sent: true, channel: "plunk", copy: false };
+  return { sent: true, channel: "plunk", copy: true };
 }
 
 async function sendWithResend(member, pdf, mail) {
@@ -129,8 +187,10 @@ async function sendWithResend(member, pdf, mail) {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.MAIL_FROM || "AfriXAsia Circle <membership@afrixasia.org>",
+      from: fromHeader(),
       to: [member.email],
+      reply_to: replyAddress(),
+      bcc: copyAddress() && !sameAddress(copyAddress(), member.email) ? [copyAddress()] : undefined,
       subject: `Selamat datang di AfriXAsia Circle, ${member.name}`,
       text: mail.text,
       html: mail.html,
@@ -155,8 +215,10 @@ async function sendWithSmtp(member, pdf, mail) {
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS || "" } : undefined,
   });
   await transport.sendMail({
-    from: process.env.MAIL_FROM || "AfriXAsia Circle <membership@afrixasia.org>",
+    from: fromHeader(),
     to: member.email,
+    replyTo: replyAddress(),
+    bcc: copyAddress() && !sameAddress(copyAddress(), member.email) ? copyAddress() : undefined,
     subject: `Selamat datang di AfriXAsia Circle, ${member.name}`,
     text: mail.text,
     html: mail.html,

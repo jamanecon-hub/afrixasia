@@ -15,6 +15,7 @@ const examples = [
   ["/api/observatory?view=trade&reporter=KEN&partner=PAK&hs=0902&year=2024", "Kenya tea exports to Pakistan, 2024", "Ekspor teh Kenya ke Pakistan, 2024", "Exportations de thé du Kenya vers le Pakistan, 2024"],
   ["/api/observatory?view=production&country=KEN&item=667&element=5510", "Kenya tea-leaf production", "Produksi daun teh Kenya", "Production de feuilles de thé au Kenya"],
   ["/api/observatory?view=prices&series=Tea,%20Mombasa&limit=3", "Latest Mombasa tea auction benchmarks", "Patokan lelang teh Mombasa terbaru", "Derniers prix de référence du thé de Mombasa"],
+  ["/api/observatory?view=trade&hs=120740&year=2024", "Sesame-seed exports of at least USD 1 million, 2024", "Ekspor biji wijen minimal USD 1 juta, 2024", "Exportations de graines de sésame d’au moins 1 million USD, 2024"],
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
@@ -68,8 +69,9 @@ export default function DocsPage({ mode }) {
             <h3>{t("Attribution & licensing", "Atribusi & lisensi", "Attribution & licence")}</h3>
             <p>
               World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}. UN Comtrade
-              public preview for Africa–Asia product flows. World Bank Pink Sheet for monthly commodity benchmarks.
-              FAO. 2025. FAOSTAT: Crops and livestock products. Licence: CC-BY-4.0.
+              public preview for Africa–Asia product flows, including sesame, vanilla, cloves, and pepper. World Bank
+              Pink Sheet for monthly commodity benchmarks. FAO. 2025. FAOSTAT: Crops and livestock products. Licence:
+              CC-BY-4.0.
             </p>
             <a href={wdi.licenseUrl} target="_blank" rel="noreferrer">
               World Bank {t("terms", "terms", "conditions")} ↗

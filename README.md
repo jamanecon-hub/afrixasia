@@ -18,7 +18,7 @@ npm run preview
 
 ## Observatory database
 
-`data/observatory.sqlite` is the queryable copy of the market observatory: the published WDI snapshot, extra annual sector indicators, Africa–Asia export flows, monthly commodity benchmarks, and FAO crop production.
+`data/observatory.sqlite` is the queryable copy of the market observatory: the published WDI snapshot, extra annual sector indicators, Africa–Asia export flows (including sesame, vanilla, cloves, and pepper), monthly commodity benchmarks, and FAO crop production.
 
 ```bash
 npm run observatory:collect

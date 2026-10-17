@@ -15,6 +15,7 @@ export const paths = {
   wdiExtra: path.join(root, "data", "collected", "wdi-extra.json"),
   tradeFlows: path.join(root, "data", "collected", "trade-flows.json"),
   tradeHorticulture: path.join(root, "data", "collected", "trade-horticulture.json"),
+  tradeSpecialty: path.join(root, "data", "collected", "trade-specialty.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -24,6 +25,7 @@ export const snapshotDatasetId = "afrixasia-wdi";
 export const extraDatasetId = "worldbank-wdi-extra";
 export const tradeDatasetId = "un-comtrade-africa-asia";
 export const horticultureDatasetId = "un-comtrade-horticulture";
+export const specialtyDatasetId = "un-comtrade-specialty";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const marketDatasetId = "afrixasia-market";
@@ -222,6 +224,14 @@ export const horticultureProducts = [
   { hs: "080510", name: "Oranges, fresh or dried", category: "Food & agriculture", observatoryProduct: "Jeruk" },
 ];
 
+export const specialtyProducts = [
+  { hs: "120740", name: "Sesame seeds", category: "Food & agriculture", observatoryProduct: "Wijen" },
+  { hs: "0905", name: "Vanilla", category: "Food & agriculture", observatoryProduct: "Vanila" },
+  { hs: "0907", name: "Cloves", category: "Food & agriculture", observatoryProduct: "Cengkeh" },
+  { hs: "090411", name: "Pepper, neither crushed nor ground", category: "Food & agriculture", observatoryProduct: "Lada" },
+  { hs: "090412", name: "Pepper, crushed or ground", category: "Food & agriculture", observatoryProduct: "Lada" },
+];
+
 export const productionItems = [
   {
     itemCode: "656",
@@ -305,7 +315,28 @@ export const productionItems = [
     name: "Sesame seed",
     category: "Food & agriculture",
     observatoryProduct: "Wijen",
-    detail: "Sesame is a large Africa–Asia crop. It is not in the curated trade list.",
+    detail: "Sesame seed. Not HS 120740 exports.",
+  },
+  {
+    itemCode: "687",
+    name: "Pepper (piper spp.)",
+    category: "Food & agriculture",
+    observatoryProduct: "Lada",
+    detail: "Piper pepper. Not Capsicum, and not HS 090411 or 090412 exports.",
+  },
+  {
+    itemCode: "692",
+    name: "Vanilla",
+    category: "Food & agriculture",
+    observatoryProduct: "Vanila",
+    detail: "Vanilla beans. Not HS 0905 exports.",
+  },
+  {
+    itemCode: "698",
+    name: "Cloves",
+    category: "Food & agriculture",
+    observatoryProduct: "Cengkeh",
+    detail: "Cloves. Not HS 0907 exports.",
   },
 ];
 

@@ -6,6 +6,7 @@ import zipfile
 ELEMENTS = {"5312", "5412", "5510"}
 DATA_NAME = "Production_Crops_Livestock_E_All_Data_(Normalized).csv"
 AREA_NAME = "Production_Crops_Livestock_E_AreaCodes.csv"
+ITEM_NAME = "Production_Crops_Livestock_E_ItemCodes.csv"
 
 # Observatory name -> FAO area name, when the published names differ.
 ALIASES = {
@@ -58,6 +59,20 @@ def main():
             iso_by_area_code[area_code] = country["iso3"]
         if missing:
             raise SystemExit("FAO area name missing for: " + ", ".join(missing))
+        item_names = {}
+        if ITEM_NAME in archive.namelist():
+            # Columns are Item Code, CPC Code, Item. CPC values look like '01656 and are not quoted CSV.
+            item_text = archive.read(ITEM_NAME).decode("utf-8-sig")
+            for line in item_text.splitlines()[1:]:
+                parts = line.split(",", 2)
+                if len(parts) < 3:
+                    continue
+                item_names[parts[0].strip()] = parts[2].strip().strip('"')
+            unknown = sorted(code for code in item_codes if code not in item_names)
+            if unknown:
+                raise SystemExit("FAO item code missing: " + ", ".join(unknown))
+            for code in sorted(item_codes, key=int):
+                print(f"FAO item {code} {item_names[code]}", file=sys.stderr)
         rows = []
         units = {}
         with archive.open(DATA_NAME) as raw:

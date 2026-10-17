@@ -63,6 +63,11 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'KEN' AND partner_iso3 = 'PAK' AND hs_code = '0902' AND year = 2024 AND flow = 'export'
   `).get();
+  const sesame = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'CHN' AND hs_code = '120740' AND year = 2024 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -79,6 +84,7 @@ function status(db) {
     `).all(),
     collectionQueries: queries,
     kenyaTeaExportsToPakistan2024: tea || null,
+    nigeriaSesameExportsToChina2024: sesame || null,
     note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock.",
     datasets,
   };

@@ -6,6 +6,8 @@ import {
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
+  specialtyDatasetId,
+  specialtyProducts,
   paths,
   priceDatasetId,
   productionDatasetId,
@@ -49,6 +51,7 @@ export function buildDatabase() {
   const extra = fs.existsSync(paths.wdiExtra) ? readJson(paths.wdiExtra) : null;
   const trade = fs.existsSync(paths.tradeFlows) ? readJson(paths.tradeFlows) : null;
   const horticulture = fs.existsSync(paths.tradeHorticulture) ? readJson(paths.tradeHorticulture) : null;
+  const specialty = fs.existsSync(paths.tradeSpecialty) ? readJson(paths.tradeSpecialty) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
 
@@ -132,6 +135,20 @@ export function buildDatabase() {
       note: horticulture.note,
     });
   }
+  if (specialty) {
+    insertDataset(db, {
+      id: specialty.datasetId || specialtyDatasetId,
+      title: specialty.title,
+      source: specialty.source,
+      sourceUrl: specialty.sourceUrl,
+      license: specialty.license,
+      licenseUrl: specialty.licenseUrl,
+      frequency: specialty.frequency,
+      updatedAt: specialty.retrievedAt,
+      retrievedAt: specialty.retrievedAt,
+      note: specialty.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -212,7 +229,8 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  for (const product of [...tradeProducts, ...horticultureProducts]) {
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts];
+  for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
 
@@ -221,7 +239,7 @@ export function buildDatabase() {
       reporter_iso3, partner_iso3, hs_code, year, flow, trade_value_usd, net_weight_kg, qty, qty_unit_code, query_key, dataset_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  const knownHs = new Set([...tradeProducts, ...horticultureProducts].map((product) => product.hs));
+  const knownHs = new Set(productList.map((product) => product.hs));
   function insertFlows(source, fallbackDatasetId) {
     for (const flow of source?.flows || []) {
       if (!countryIds.has(flow.reporterIso3) || !countryIds.has(flow.partnerIso3) || !knownHs.has(flow.hsCode)) continue;
@@ -243,6 +261,7 @@ export function buildDatabase() {
   db.exec("BEGIN");
   insertFlows(trade, tradeDatasetId);
   insertFlows(horticulture, horticultureDatasetId);
+  insertFlows(specialty, specialtyDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -268,6 +287,7 @@ export function buildDatabase() {
   }
   insertQueries(trade, tradeDatasetId);
   insertQueries(horticulture, horticultureDatasetId);
+  insertQueries(specialty, specialtyDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -371,6 +391,21 @@ export function buildDatabase() {
       corridor.reporter,
       corridor.sourceUrl,
     );
+  }
+
+  const sesameQuery = specialty?.completedQueries?.["NGA:2024"];
+  if (sesameQuery?.status === "ok") {
+    const sesame = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'CHN' AND hs_code = '120740' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!sesame) throw new Error("Nigeria 2024 sesame export to China is missing from the database.");
+    if (Math.abs(sesame.trade_value_usd - 144016173.881) > 1) {
+      throw new Error(`Nigeria sesame value ${sesame.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (sesame.net_weight_kg !== 115969260) {
+      throw new Error(`Nigeria sesame quantity ${sesame.net_weight_kg} does not match the Comtrade preview.`);
+    }
   }
 
   const tea = db.prepare(`

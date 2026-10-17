@@ -12,6 +12,8 @@ import {
   fetchText,
   horticultureDatasetId,
   horticultureProducts,
+  specialtyDatasetId,
+  specialtyProducts,
   minTradeUsd,
   paths,
   pinkSheetUrl,
@@ -31,6 +33,7 @@ const reporterReferenceUrl = "https://comtradeapi.un.org/files/v1/app/reference/
 const partnerReferenceUrl = "https://comtradeapi.un.org/files/v1/app/reference/partnerAreas.json";
 const tradeCollectionVersion = 2;
 const horticultureCollectionVersion = 1;
+const specialtyCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
 const faostatScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "faostat.py");
@@ -435,10 +438,15 @@ export async function collectProduction() {
     frequency: "Annual",
     sourceUpdatedAt: table.sourceFileDate,
     retrievedAt: stamp(),
-    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. A missing country-year is not zero production. Macao has no rows for these items.",
+    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. Pepper is Piper, not Capsicum. A missing country-year is not zero production. Macao has no rows for these items.",
     items: productionItems,
     rows: table.rows,
   };
+  const present = new Set(table.rows.map((row) => row.itemCode));
+  const absent = productionItems.filter((item) => !present.has(item.itemCode));
+  if (absent.length) {
+    throw new Error(`FAOSTAT returned no rows for ${absent.map((item) => `${item.itemCode} ${item.name}`).join(", ")}`);
+  }
   writeJson(paths.production, payload);
   console.log(`Production ${table.rows.length} rows, FAOSTAT file ${table.sourceFileDate}`);
   return payload;
@@ -464,6 +472,16 @@ const horticultureOptions = {
   useClient: false,
 };
 
+const specialtyOptions = {
+  datasetId: specialtyDatasetId,
+  title: "Africa–Asia sesame, vanilla, clove, and pepper exports",
+  note: "Sesame seeds (HS 120740), vanilla (HS 0905), cloves (HS 0907), and pepper (HS 090411 and 090412). Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Pepper is Piper, not Capsicum.",
+  products: specialtyProducts,
+  collectionVersion: specialtyCollectionVersion,
+  statePath: paths.tradeSpecialty,
+  useClient: false,
+};
+
 export async function collectObservatory() {
   fs.mkdirSync(paths.collected, { recursive: true });
   const wdi = readJson(paths.wdi);
@@ -474,6 +492,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, tradeOptions);
   buildDatabase();
   await collectTrade(wdi.countries, horticultureOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, specialtyOptions);
   buildDatabase();
 }
 

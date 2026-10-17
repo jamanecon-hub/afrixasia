@@ -11,6 +11,11 @@ const examples = [
   ["/api/providers?country=JP&category=Workforce", "Public organization references, Japan workforce sector", "Referensi perusahaan publik sektor tenaga kerja Jepang", "Références publiques, secteur de la main-d’œuvre au Japon"],
   ["/api/intelligence?country=BF&category=Film%20%26%20media", "Country–sector evidence and research questions", "Bukti dan pertanyaan riset negara–sektor", "Données et questions de recherche pays–secteur"],
   ["/api/coverage", "Coverage and missing data", "Cakupan dan data belum tersedia", "Couverture et données manquantes"],
+  ["/api/observatory?view=status", "Observatory database: coverage, sources, and the Kenya checks", "Basis data observatorium: cakupan, sumber, dan cek Kenya", "Base observatoire : couverture, sources et contrôles Kenya"],
+  ["/api/observatory?view=trade&reporter=KEN&partner=PAK&hs=0902&year=2024", "Kenya tea exports to Pakistan, 2024", "Ekspor teh Kenya ke Pakistan, 2024", "Exportations de thé du Kenya vers le Pakistan, 2024"],
+  ["/api/observatory?view=production&country=KEN&item=667&element=5510", "Kenya tea-leaf production", "Produksi daun teh Kenya", "Production de feuilles de thé au Kenya"],
+  ["/api/observatory?view=prices&series=Tea,%20Mombasa&limit=3", "Latest Mombasa tea auction benchmarks", "Patokan lelang teh Mombasa terbaru", "Derniers prix de référence du thé de Mombasa"],
+  ["/api/observatory?view=trade&hs=120740&year=2024", "Sesame-seed exports of at least USD 1 million, 2024", "Ekspor biji wijen minimal USD 1 juta, 2024", "Exportations de graines de sésame d’au moins 1 million USD, 2024"],
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
@@ -63,7 +68,10 @@ export default function DocsPage({ mode }) {
             </p>
             <h3>{t("Attribution & licensing", "Atribusi & lisensi", "Attribution & licence")}</h3>
             <p>
-              World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}.
+              World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}. UN Comtrade
+              public preview for Africa–Asia product flows, including sesame, vanilla, cloves, and pepper. World Bank
+              Pink Sheet for monthly commodity benchmarks. FAO. 2025. FAOSTAT: Crops and livestock products. Licence:
+              CC-BY-4.0.
             </p>
             <a href={wdi.licenseUrl} target="_blank" rel="noreferrer">
               World Bank {t("terms", "terms", "conditions")} ↗
@@ -175,6 +183,17 @@ export default function DocsPage({ mode }) {
                   "Reference CSV includes all filtered results. Invalid countries, indicators or ranges return HTTP 400. Latest values may refer to different reporting years. Missing years are omitted, not estimated.",
                   "CSV reference memuat seluruh hasil filter. Negara, indikator, atau rentang tidak valid menerima HTTP 400. Nilai terakhir dapat memiliki tahun berbeda. Tahun kosong tidak diestimasi.",
                   "Le CSV reference inclut tous les résultats filtrés. Pays, indicateurs ou plages invalides renvoient HTTP 400. Les dernières valeurs peuvent avoir des années différentes. Les années absentes ne sont pas estimées.",
+                )}
+              </p>
+              <h3>{t("Observatory database", "Basis data observatorium", "Base de l’observatoire")}</h3>
+              <p>
+                <code>view=status|countries|indicators|series|trade|corridors|prices|production · country · reporter · partner · indicator · hs · product · series · item · element · year · start · end · limit · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "SQLite file data/observatory.sqlite. Series requires country and indicator. Trade requires reporter, partner, hs, or year. Prices require product or series. Production requires country, item, or product. Flows below USD 1 million are omitted, and a missing pair is not zero trade. A missing production year is not zero output.",
+                  "Berkas SQLite data/observatory.sqlite. Series memerlukan negara dan indikator. Trade memerlukan reporter, partner, hs, atau year. Prices memerlukan product atau series. Production memerlukan country, item, atau product. Arus di bawah USD 1 juta tidak dimuat, dan pasangan yang tidak ada bukan nol perdagangan. Tahun produksi yang kosong bukan nol hasil.",
+                  "Fichier SQLite data/observatory.sqlite. Series exige un pays et un indicateur. Trade exige reporter, partner, hs ou year. Prices exige product ou series. Production exige country, item ou product. Les flux inférieurs à 1 million USD sont omis, et une paire absente n’est pas un commerce nul. Une année de production absente n’est pas une production nulle.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

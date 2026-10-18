@@ -1,3 +1,6 @@
 node_modules
 dist
 .DS_Store
+data/collected/client.json
+data/collected/*.tmp
+__pycache__/

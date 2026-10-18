@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Footer, Header } from "../components/Chrome.jsx";
+import { AreaGlyph, CorridorDiagram } from "../components/ServiceVisuals.jsx";
 import { useLanguage } from "../i18n.jsx";
 import { contextSearch, registerSearch, useResearch } from "../research.jsx";
 
@@ -25,6 +26,7 @@ export default function ServicesPage() {
   );
   const offers = [
     {
+      area: "research",
       line: research,
       name: t("Corridor and sector evidence", "Bukti koridor dan sektor", "Preuves de corridor et de secteur"),
       who: clients,
@@ -42,6 +44,7 @@ export default function ServicesPage() {
       link: t("Open a corridor", "Buka koridor", "Ouvrir un corridor"),
     },
     {
+      area: "research",
       line: research,
       name: t("Country economic reading", "Pembacaan ekonomi negara", "Lecture économique d’un pays"),
       who: clients,
@@ -59,6 +62,7 @@ export default function ServicesPage() {
       link: t("Open the economic desk", "Buka meja ekonomi", "Ouvrir le bureau économique"),
     },
     {
+      area: "advisory",
       line: advisory,
       name: t("Market-entry advisory", "Advisory masuk pasar", "Conseil d’entrée sur un marché"),
       who: clients,
@@ -76,6 +80,7 @@ export default function ServicesPage() {
       link: t("Start from the Circle", "Mulai dari Circle", "Commencer par le Circle"),
     },
     {
+      area: "advisory",
       line: advisory,
       name: t("Segment and counterparty map", "Peta segmen dan lawan transaksi", "Carte du segment et des contreparties"),
       who: t(
@@ -97,6 +102,7 @@ export default function ServicesPage() {
       link: t("Open the directory", "Buka direktori", "Ouvrir l’annuaire"),
     },
     {
+      area: "education",
       line: education,
       name: t("Team education", "Pendidikan tim", "Formation d’équipe"),
       who: t(
@@ -118,6 +124,7 @@ export default function ServicesPage() {
       link: t("Read the method", "Baca metode", "Lire la méthode"),
     },
     {
+      area: "education",
       line: education,
       name: t("Decision consulting", "Konsultasi keputusan", "Conseil de décision"),
       who: clients,
@@ -135,6 +142,7 @@ export default function ServicesPage() {
       link: t("Publish a profile", "Terbitkan profil", "Publier un profil"),
     },
     {
+      area: "technology",
       line: technology,
       name: t("Working desk", "Meja kerja yang bisa diulang", "Bureau de travail réutilisable"),
       who: t(
@@ -156,6 +164,7 @@ export default function ServicesPage() {
       link: t("Read the API", "Baca API", "Lire l’API"),
     },
     {
+      area: "technology",
       line: technology,
       name: t("Capability scale-up", "Peningkatan kapabilitas", "Montée en capacité"),
       who: t(
@@ -182,18 +191,16 @@ export default function ServicesPage() {
     <>
       <Header active="Layanan" />
       <main className="about-home">
-        <section className="about-intro">
-          <div>
+        <section className="about-hero service-hero">
+          <div className="about-copy">
             <span className="eyebrow">{t("SERVICES", "LAYANAN", "SERVICES")}</span>
-            <h2>
+            <h1>
               {t(
                 "Research, advice,\nand a desk the team keeps.",
                 "Riset, saran,\ndan meja yang tetap dipakai tim.",
                 "Recherche, conseil,\net un bureau que l’équipe garde.",
               )}
-            </h2>
-          </div>
-          <div>
+            </h1>
             <p className="about-lead">
               {t(
                 "The work is data-driven research, market-entry advisory for governments, investors and businesses, education and consulting, and technology implementation that scales the client’s own capability.",
@@ -209,6 +216,20 @@ export default function ServicesPage() {
               )}
             </p>
           </div>
+          <CorridorDiagram
+            label={t(
+              "Schematic of an Africa–Asia series with a missing year left open",
+              "Skema seri Afrika–Asia dengan tahun yang kosong dibiarkan terbuka",
+              "Schéma d’une série Afrique–Asie dont une année manquante reste ouverte",
+            )}
+            caption={t(
+              "Diagram of the method. Not a published series.",
+              "Diagram metode. Bukan seri yang terbit.",
+              "Schéma de la méthode. Pas une série publiée.",
+            )}
+            africaLabel={t("Africa", "Afrika", "Afrique")}
+            asiaLabel={t("Asia", "Asia", "Asie")}
+          />
         </section>
 
         <section className="about-process">
@@ -264,6 +285,58 @@ export default function ServicesPage() {
           </div>
         </section>
 
+        <section className="service-areas" aria-label={t("Four service areas", "Empat bidang layanan", "Quatre domaines de service")}>
+          {[
+            [
+              "research",
+              "#offer-0",
+              research,
+              t(
+                "Corridor, sector, and country series, with a blank year left blank.",
+                "Koridor, sektor, dan seri negara, dengan tahun kosong yang tetap kosong.",
+                "Corridor, secteur et séries nationales, une année vide restant vide.",
+              ),
+            ],
+            [
+              "advisory",
+              "#offer-2",
+              advisory,
+              t(
+                "What a government, an investor, or a business can decide from the evidence.",
+                "Apa yang dapat diputuskan pemerintah, investor, atau bisnis dari bukti itu.",
+                "Ce qu’un gouvernement, un investisseur ou une entreprise peut décider à partir des preuves.",
+              ),
+            ],
+            [
+              "education",
+              "#offer-4",
+              education,
+              t(
+                "The method taught to the team, then applied to one decision.",
+                "Metode diajarkan ke tim, lalu dipakai untuk satu keputusan.",
+                "La méthode transmise à l’équipe, puis appliquée à une décision.",
+              ),
+            ],
+            [
+              "technology",
+              "#offer-6",
+              technology,
+              t(
+                "The repeated question implemented so the team can run it again.",
+                "Pertanyaan yang berulang diimplementasikan supaya tim dapat menjalankannya lagi.",
+                "La question répétée mise en œuvre pour que l’équipe puisse la relancer.",
+              ),
+            ],
+          ].map(([type, href, title, copy]) => (
+            <article className={`service-area service-area-${type}`} key={type}>
+              <AreaGlyph type={type} />
+              <h3>{title}</h3>
+              <p>{copy}</p>
+              <a href={href}>{t("See the outputs", "Lihat hasilnya", "Voir les résultats")} ↓</a>
+            </article>
+          ))}
+        </section>
+
         <section className="about-services" id="service-list">
           <div className="sectionhead">
             <div>
@@ -278,7 +351,7 @@ export default function ServicesPage() {
             </div>
           </div>
           {offers.map((offer, index) => (
-            <article className="about-service service-offer" key={offer.name}>
+            <article className="about-service service-offer" id={`offer-${index}`} data-line={offer.area} key={offer.name}>
               <span className="about-service-number">0{index + 1}</span>
               <h3>{offer.name}</h3>
               <div>

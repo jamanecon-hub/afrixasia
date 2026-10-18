@@ -130,9 +130,9 @@ export default function MembershipPage() {
         </div>
         <p className="notice">
           {t(
-            `${market.providers.length} profiles sourced from official public websites, extended on 14 October 2026 with additional organizations whose public pages describe their activity. These organizations are reference listings, not registered members or endorsed partners. Inventory and commercial availability are not verified.`,
-            `${market.providers.length} profil dari situs publik resmi, ditambah pada 14 Oktober 2026 dengan organisasi yang halaman resminya menjelaskan kegiatannya. Perusahaan ini adalah referensi, bukan anggota terdaftar atau mitra terverifikasi. Stok dan ketersediaan komersial belum diverifikasi.`,
-            `${market.providers.length} profils issus de sites officiels publics, complétés le 14 octobre 2026 par des organisations dont la page publique décrit l’activité. Ce sont des références, pas des membres inscrits ni des partenaires agréés. Stocks et disponibilité commerciale non vérifiés.`,
+            `${market.providers.length} profiles sourced from official public pages and directories, extended on 18 October 2026. Asia Trade Directory, Gloseg, African Industrial Exchange, and Global Sources were checked. Listed firms are directory or official-page references, not verified members or stock. Inventory, price, and partnership are not verified.`,
+            `${market.providers.length} profil dari halaman publik resmi dan direktori, ditambah pada 18 Oktober 2026. Asia Trade Directory, Gloseg, African Industrial Exchange, dan Global Sources sudah diperiksa. Perusahaan yang tercantum adalah referensi direktori atau halaman resmi, bukan anggota terverifikasi atau stok. Inventori, harga, dan kemitraan belum diverifikasi.`,
+            `${market.providers.length} profils issus de pages publiques officielles et d’annuaires, complétés le 18 octobre 2026. Asia Trade Directory, Gloseg, African Industrial Exchange et Global Sources ont été consultés. Les entreprises listées sont des références d’annuaire ou de page officielle, pas des membres vérifiés ni un stock. Inventaire, prix et partenariat non vérifiés.`,
           )}
         </p>
         <Filters

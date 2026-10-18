@@ -89,9 +89,9 @@ export default function MarketPage() {
         </div>
         <p className="notice">
           {t(
-            "Snapshot refreshed 14 October 2026. Added UN Comtrade HS lines for food and apparel, including Africa–Asia bilateral flows, using 2025 where published. WDI proxies remain the 10 October extract. Values are rounded for display; exact values remain in the API.",
-            "Snapshot diperbarui 14 Oktober 2026. Ditambah baris HS UN Comtrade untuk pangan dan pakaian, termasuk arus bilateral Afrika–Asia, memakai 2025 bila sudah terbit. Proksi WDI tetap ekstrak 10 Oktober. Angka tampilan dibulatkan; nilai persis tersedia melalui API.",
-            "Instantané actualisé le 14 octobre 2026. Lignes SH UN Comtrade ajoutées pour l’alimentation et l’habillement, y compris les flux bilatéraux Afrique–Asie, en 2025 lorsque l’année est publiée. Les proxys WDI datent de l’extrait du 10 octobre. Valeurs arrondies à l’écran ; précision originale dans l’API.",
+            "Snapshot refreshed 18 October 2026. Added UN Comtrade HS lines for sesame, maize, soy, shrimp, natural rubber, footwear, and cotton fabric, including Africa–Asia bilateral flows, using the latest published year. WDI proxies remain the 10 October extract. Natural rubber (HS 4001) is an agricultural commodity, not a food product. Values are rounded for display; exact values remain in the API.",
+            "Snapshot diperbarui 18 Oktober 2026. Ditambah baris HS UN Comtrade untuk wijen, jagung, kedelai, udang, karet alam, alas kaki, dan kain kapas, termasuk arus bilateral Afrika–Asia, memakai tahun terbit terakhir. Proksi WDI tetap ekstrak 10 Oktober. Karet alam (HS 4001) adalah komoditas pertanian, bukan produk pangan. Angka tampilan dibulatkan; nilai persis tersedia melalui API.",
+            "Instantané actualisé le 18 octobre 2026. Lignes SH UN Comtrade ajoutées pour le sésame, le maïs, le soja, les crevettes, le caoutchouc naturel, les chaussures et le tissu de coton, y compris les flux bilatéraux Afrique–Asie, sur la dernière année publiée. Les proxys WDI restent ceux de l’extrait du 10 octobre. Le caoutchouc naturel (SH 4001) est une matière agricole, pas un produit alimentaire. Valeurs arrondies à l’écran ; précision originale dans l’API.",
           )}
         </p>
         <div className="table-wrap">

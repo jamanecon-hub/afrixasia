@@ -13,6 +13,7 @@ import PrivacyPage from "./pages/PrivacyPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ProviderPage from "./pages/ProviderPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import ServicesPage from "./pages/ServicesPage.jsx";
 
 export default function App() {
   return (
@@ -24,6 +25,8 @@ export default function App() {
       <Route path="/open-data" element={<AnalysisPage />} />
       <Route path="/proyeksi" element={<AnalysisPage />} />
       <Route path="/daily-brief" element={<MediaPage />} />
+      <Route path="/layanan" element={<ServicesPage />} />
+      <Route path="/services" element={<ServicesPage />} />
       <Route path="/marketplace" element={<MembershipPage />} />
       <Route path="/penyedia" element={<MembershipPage />} />
       <Route path="/penyedia/:id" element={<ProviderPage />} />

@@ -6,77 +6,82 @@ import { contextSearch, registerSearch, useResearch } from "../research.jsx";
 export default function ServicesPage() {
   const { t } = useLanguage();
   const [context] = useResearch();
+  const research = t("Data-driven research", "Riset berbasis data", "Recherche fondée sur les données");
+  const advisory = t(
+    "Market entry and advisory",
+    "Masuk pasar dan advisory",
+    "Entrée sur le marché et conseil",
+  );
+  const education = t("Education and consulting", "Pendidikan dan konsultasi", "Formation et conseil");
+  const technology = t(
+    "Technology implementation",
+    "Implementasi teknologi",
+    "Mise en œuvre technologique",
+  );
+  const clients = t(
+    "A government, an investor, or a business.",
+    "Pemerintah, investor, atau bisnis.",
+    "Un gouvernement, un investisseur ou une entreprise.",
+  );
   const offers = [
     {
-      line: t("Market & industry research", "Riset pasar & industri", "Recherche sur les marchés & industries"),
-      name: t("Corridor evidence note", "Catatan bukti koridor", "Note de preuves sur un corridor"),
-      who: t(
-        "A buyer, supplier, or public agency with one origin, one destination, and one product.",
-        "Buyer, supplier, atau lembaga publik dengan satu asal, satu tujuan, dan satu produk.",
-        "Un acheteur, un fournisseur ou un organisme public avec une origine, une destination et un produit.",
-      ),
+      line: research,
+      name: t("Corridor and sector evidence", "Bukti koridor dan sektor", "Preuves de corridor et de secteur"),
+      who: clients,
       receive: t(
-        "A reading of the published UN Comtrade rows: year, HS code, direction, and value. A missing year stays blank.",
-        "Pembacaan baris UN Comtrade yang sudah terbit: tahun, kode HS, arah, dan nilai. Tahun yang tidak ada tetap kosong.",
-        "Une lecture des lignes UN Comtrade publiées : année, code SH, sens et valeur. Une année manquante reste vide.",
+        "A research note on one Africa–Asia corridor and one published sector: UN Comtrade year, HS code, direction, and value, next to the sector questions on quality, capacity, and standards.",
+        "Catatan riset untuk satu koridor Afrika–Asia dan satu sektor yang terbit: tahun UN Comtrade, kode HS, arah, dan nilai, di samping pertanyaan sektor tentang kualitas, kapasitas, dan standar.",
+        "Une note de recherche sur un corridor Afrique–Asie et un secteur publié : année UN Comtrade, code SH, sens et valeur, à côté des questions de qualité, de capacité et de normes.",
       ),
       limit: t(
-        "A historical reference. It is not a price, a live order, or proof of trade between two countries when only a world total is published.",
-        "Referensi historis. Bukan harga, order hidup, atau bukti perdagangan antara dua negara bila yang terbit hanya total dunia.",
-        "Une référence historique. Ni un prix, ni une commande en cours, ni la preuve d’un échange entre deux pays lorsque seul un total mondial est publié.",
+        "The figures are historical. A missing year stays blank. Oil and gas stay outside. A directory profile is a reference, not verified stock.",
+        "Angkanya historis. Tahun yang tidak ada tetap kosong. Minyak bumi dan gas tetap di luar. Profil direktori adalah referensi, bukan stok yang diverifikasi.",
+        "Les chiffres sont historiques. Une année manquante reste vide. Le pétrole et le gaz restent exclus. Un profil d’annuaire est une référence, pas un stock vérifié.",
       ),
       href: "/koridor",
       link: t("Open a corridor", "Buka koridor", "Ouvrir un corridor"),
     },
     {
-      line: t("Market & industry research", "Riset pasar & industri", "Recherche sur les marchés & industries"),
-      name: t("Country economic note", "Catatan ekonomi negara", "Note économique pays"),
-      who: t(
-        "Someone comparing an African or Asian economy before a market decision.",
-        "Pihak yang membandingkan ekonomi Afrika atau Asia sebelum keputusan pasar.",
-        "Une personne qui compare une économie africaine ou asiatique avant une décision de marché.",
-      ),
+      line: research,
+      name: t("Country economic reading", "Pembacaan ekonomi negara", "Lecture économique d’un pays"),
+      who: clients,
       receive: t(
-        "The World Bank series already in the observatory, with the release date on the page.",
-        "Seri World Bank yang sudah ada di observatory, dengan tanggal rilis di halaman.",
-        "Les séries de la Banque mondiale déjà dans l’observatoire, avec la date de publication sur la page.",
+        "The World Bank series already in the observatory for an African or Asian economy, with the release date on the note.",
+        "Seri World Bank yang sudah ada di observatory untuk satu ekonomi Afrika atau Asia, dengan tanggal rilis pada catatan.",
+        "Les séries de la Banque mondiale déjà dans l’observatoire pour une économie africaine ou asiatique, avec la date de publication sur la note.",
       ),
       limit: t(
-        "Rechecked on 18 October 2026; the World Bank release was still 8 October 2026. A blank year is not a zero, and the note is not a forecast.",
-        "Dicek ulang 18 Oktober 2026; rilis World Bank masih 8 Oktober 2026. Tahun kosong bukan nol, dan catatan ini bukan prakiraan.",
-        "Revérifié le 18 octobre 2026 ; la publication de la Banque mondiale datait toujours du 8 octobre 2026. Une année vide n’est pas un zéro, et la note n’est pas une prévision.",
+        "Rechecked on 18 October 2026; the World Bank release was still 8 October 2026. A blank year is not a zero, and the reading is not a forecast.",
+        "Dicek ulang 18 Oktober 2026; rilis World Bank masih 8 Oktober 2026. Tahun kosong bukan nol, dan pembacaan ini bukan prakiraan.",
+        "Revérifié le 18 octobre 2026 ; la publication de la Banque mondiale datait toujours du 8 octobre 2026. Une année vide n’est pas un zéro, et la lecture n’est pas une prévision.",
       ),
       href: "/open-data",
       link: t("Open the economic desk", "Buka meja ekonomi", "Ouvrir le bureau économique"),
     },
     {
-      line: t("Market & industry research", "Riset pasar & industri", "Recherche sur les marchés & industries"),
-      name: t("Sector reading", "Pembacaan sektor", "Lecture sectorielle"),
-      who: t(
-        "A question inside one of the eight published sectors, most often food and agriculture or apparel and textiles.",
-        "Pertanyaan di salah satu dari delapan sektor yang terbit, paling sering pangan dan agrikultur atau pakaian dan tekstil.",
-        "Une question dans l’un des huit secteurs publiés, le plus souvent l’alimentation et l’agriculture ou l’habillement et les textiles.",
-      ),
+      line: advisory,
+      name: t("Market-entry advisory", "Advisory masuk pasar", "Conseil d’entrée sur un marché"),
+      who: clients,
       receive: t(
-        "The sector questions already used on the desk — quality, capacity, standards — set next to the published figures.",
-        "Pertanyaan sektor yang sudah dipakai meja ini — kualitas, kapasitas, standar — diletakkan di samping angka yang terbit.",
-        "Les questions sectorielles déjà utilisées — qualité, capacité, normes — placées à côté des chiffres publiés.",
+        "An advisory note on whether a corridor is visible in the published data, what a government, an investor, or a business can decide from it, and what still has to be checked on the ground.",
+        "Catatan advisory tentang apakah suatu koridor terlihat dalam data yang terbit, apa yang dapat diputuskan pemerintah, investor, atau bisnis dari data itu, dan apa yang masih harus dicek di lapangan.",
+        "Une note de conseil sur la visibilité d’un corridor dans les données publiées, sur ce qu’un gouvernement, un investisseur ou une entreprise peut en décider, et sur ce qui doit encore être vérifié sur le terrain.",
       ),
       limit: t(
-        "Oil and gas stay outside this offer. A directory profile is a reference, not verified stock.",
-        "Minyak bumi dan gas tetap di luar tawaran ini. Profil direktori adalah referensi, bukan stok yang diverifikasi.",
-        "Le pétrole et le gaz restent hors de cette offre. Un profil d’annuaire est une référence, pas un stock vérifié.",
+        "The advice does not size a market beyond the published figures. It is not a valuation, an investment memorandum, a financing plan, or a public budget.",
+        "Saran ini tidak mengukur pasar di luar angka yang terbit. Bukan valuasi, memorandum investasi, rencana pembiayaan, atau anggaran publik.",
+        "Le conseil ne mesure pas un marché au-delà des chiffres publiés. Ce n’est ni une valorisation, ni un mémorandum d’investissement, ni un plan de financement, ni un budget public.",
       ),
-      href: "/data-pasar",
-      link: t("Open markets", "Buka pasar", "Ouvrir les marchés"),
+      href: "/daftar",
+      link: t("Start from the Circle", "Mulai dari Circle", "Commencer par le Circle"),
     },
     {
-      line: t("Capital & market access", "Akses modal & pasar", "Accès au capital & aux marchés"),
-      name: t("Counterparty map", "Peta lawan transaksi", "Carte des contreparties"),
+      line: advisory,
+      name: t("Segment and counterparty map", "Peta segmen dan lawan transaksi", "Carte du segment et des contreparties"),
       who: t(
-        "A Circle member who has named a role, a product, and an origin or destination.",
-        "Anggota Circle yang sudah menyebut peran, produk, serta asal atau tujuan.",
-        "Un membre du Circle qui a indiqué un rôle, un produit et une origine ou une destination.",
+        "A government agency, an investor, or a business that has named a product and an origin or destination.",
+        "Lembaga pemerintah, investor, atau bisnis yang sudah menyebut produk serta asal atau tujuan.",
+        "Une administration, un investisseur ou une entreprise qui a indiqué un produit et une origine ou une destination.",
       ),
       receive: t(
         "Public member profiles and organization references that match that segment, in either direction between Africa and Asia.",
@@ -84,96 +89,92 @@ export default function ServicesPage() {
         "Les profils publics et les références d’organisations qui correspondent à ce segment, dans les deux sens entre l’Afrique et l’Asie.",
       ),
       limit: t(
-        "Email and phone appear only with an opt-in. Membership is not vetting, certification, or a guarantee. This site does not take payment or hold escrow.",
-        "Email dan telepon hanya muncul jika dipilih untuk dipublikasikan. Keanggotaan bukan pemeriksaan, sertifikasi, atau jaminan. Situs ini tidak menerima pembayaran atau menahan escrow.",
-        "L’e-mail et le téléphone n’apparaissent qu’avec un accord. L’adhésion n’est ni un contrôle, ni une certification, ni une garantie. Ce site n’encaisse pas et ne séquestre pas de fonds.",
+        "Email and phone appear only with an opt-in. The map is not vetting, certification, or a transaction. This site does not take payment or hold escrow.",
+        "Email dan telepon hanya muncul jika dipilih untuk dipublikasikan. Peta ini bukan pemeriksaan, sertifikasi, atau transaksi. Situs ini tidak menerima pembayaran atau menahan escrow.",
+        "L’e-mail et le téléphone n’apparaissent qu’avec un accord. La carte n’est ni un contrôle, ni une certification, ni une transaction. Ce site n’encaisse pas et ne séquestre pas de fonds.",
       ),
       href: "/marketplace",
       link: t("Open the directory", "Buka direktori", "Ouvrir l’annuaire"),
     },
     {
-      line: t("Capital & market access", "Akses modal & pasar", "Accès au capital & aux marchés"),
-      name: t("Market-entry question", "Pertanyaan masuk pasar", "Question d’entrée sur un marché"),
+      line: education,
+      name: t("Team education", "Pendidikan tim", "Formation d’équipe"),
       who: t(
-        "A firm deciding whether a corridor is even visible in the published data.",
-        "Perusahaan yang sedang memutuskan apakah suatu koridor terlihat dalam data yang terbit.",
-        "Une entreprise qui cherche à savoir si un corridor est visible dans les données publiées.",
+        "A team in government, an investment office, or a business that will keep reading the corridor after the session.",
+        "Tim di pemerintah, kantor investasi, atau bisnis yang akan terus membaca koridor setelah sesi.",
+        "Une équipe publique, un bureau d’investissement ou une entreprise qui continuera à lire le corridor après la séance.",
       ),
       receive: t(
-        "A scoped session that separates what the observatory can show from what still has to be checked on the ground: samples, capacity, and compliance.",
-        "Sesi berlingkup yang memisahkan apa yang observatory bisa tunjukkan dari apa yang masih harus dicek di lapangan: sampel, kapasitas, dan kepatuhan.",
-        "Une séance cadrée qui sépare ce que l’observatoire peut montrer de ce qui doit encore être vérifié sur le terrain : échantillons, capacité et conformité.",
+        "A teaching session on how to read a corridor, a series, and a blank year, using the method already published on the desk.",
+        "Sesi pengajaran tentang cara membaca koridor, seri, dan tahun yang kosong, dengan metode yang sudah terbit di meja ini.",
+        "Une séance pour apprendre à lire un corridor, une série et une année vide, avec la méthode déjà publiée sur ce bureau.",
       ),
       limit: t(
-        "The session does not size a market beyond the published figures, and it does not produce a valuation, an investment memorandum, or a financing plan.",
-        "Sesi ini tidak mengukur pasar di luar angka yang terbit, dan tidak menyusun valuasi, memorandum investasi, atau rencana pembiayaan.",
-        "La séance ne mesure pas un marché au-delà des chiffres publiés, et elle ne produit ni valorisation, ni mémorandum d’investissement, ni plan de financement.",
+        "Education transfers the method. It does not certify the team, award a scholarship, or select participants.",
+        "Pendidikan memindahkan metodenya. Ia tidak menyertifikasi tim, memberi beasiswa, atau memilih peserta.",
+        "La formation transmet la méthode. Elle ne certifie pas l’équipe, n’accorde pas de bourse et ne sélectionne pas de participants.",
       ),
-      href: "/daftar",
-      link: t("Start from the Circle", "Mulai dari Circle", "Commencer par le Circle"),
+      href: "/metodologi",
+      link: t("Read the method", "Baca metode", "Lire la méthode"),
     },
     {
-      line: t("Talent & knowledge exchange", "Pertukaran talenta & pengetahuan", "Échanges de talents & de connaissances"),
-      name: t("Knowledge introduction", "Pengantar pengetahuan", "Mise en relation de connaissances"),
-      who: t(
-        "Members who marked research or partnership and published a fitting profile.",
-        "Anggota yang menandai riset atau kemitraan dan menerbitkan profil yang sesuai.",
-        "Des membres qui ont indiqué la recherche ou le partenariat et publié un profil correspondant.",
-      ),
+      line: education,
+      name: t("Decision consulting", "Konsultasi keputusan", "Conseil de décision"),
+      who: clients,
       receive: t(
-        "An introduction across the two regions when both sides can be read from the public directory.",
-        "Pengantar lintas dua kawasan bila kedua pihak dapat dibaca dari direktori publik.",
-        "Une mise en relation entre les deux régions lorsque les deux parties sont lisibles dans l’annuaire public.",
+        "A consulting note for one decision: what the evidence supports, what it does not, and the next check the client still owns.",
+        "Catatan konsultasi untuk satu keputusan: apa yang didukung bukti, apa yang tidak, dan pemeriksaan berikutnya yang tetap di tangan klien.",
+        "Une note de conseil pour une décision : ce que les preuves soutiennent, ce qu’elles ne soutiennent pas, et la vérification suivante qui reste au client.",
       ),
       limit: t(
-        "A scholarship, a placement, or a funded program is agreed outside this page. The observatory does not select recipients and does not open an application.",
-        "Beasiswa, penempatan, atau program berdana disepakati di luar halaman ini. Observatory tidak memilih penerima dan tidak membuka lamaran.",
-        "Une bourse, un placement ou un programme financé se conviennent en dehors de cette page. L’observatoire ne sélectionne pas de bénéficiaires et n’ouvre pas de candidature.",
+        "Consulting does not take over the decision, the budget, or the transaction. A resident team is not placed inside a ministry.",
+        "Konsultasi tidak mengambil alih keputusan, anggaran, atau transaksi. Tim tidak ditempatkan di dalam kementerian.",
+        "Le conseil ne reprend ni la décision, ni le budget, ni la transaction. Aucune équipe n’est placée dans un ministère.",
       ),
       href: "/daftar",
       link: t("Publish a profile", "Terbitkan profil", "Publier un profil"),
     },
     {
-      line: t("Technology on the desk", "Teknologi di meja kerja", "La technologie sur le bureau"),
-      name: t("Observatory extract", "Ekstrak observatory", "Extrait de l’observatoire"),
+      line: technology,
+      name: t("Working desk", "Meja kerja yang bisa diulang", "Bureau de travail réutilisable"),
       who: t(
-        "An analyst who wants the published rows in their own sheet.",
-        "Analis yang ingin membawa baris yang terbit ke lembar kerjanya sendiri.",
-        "Un analyste qui veut les lignes publiées dans son propre tableau.",
+        "A team that will ask the same corridor question more than once.",
+        "Tim yang akan mengajukan pertanyaan koridor yang sama lebih dari sekali.",
+        "Une équipe qui posera plus d’une fois la même question de corridor.",
       ),
       receive: t(
-        "CSV or JSON for market rows, economic series, or public providers, using the same filters as the site.",
-        "CSV atau JSON untuk baris pasar, seri ekonomi, atau penyedia publik, dengan filter yang sama seperti di situs.",
-        "CSV ou JSON pour les lignes de marché, les séries économiques ou les fournisseurs publics, avec les mêmes filtres que le site.",
+        "The question implemented as filters, a brief, and a CSV or JSON extract the team can run again.",
+        "Pertanyaan itu diimplementasikan sebagai filter, brief, serta ekstrak CSV atau JSON yang dapat dijalankan lagi oleh tim.",
+        "La question mise en œuvre comme filtres, brief et extrait CSV ou JSON que l’équipe peut relancer.",
       ),
       limit: t(
-        "The file is the snapshot, not a feed of live inventory. Republishing it as a newer release than the date on the file misstates the source.",
-        "Berkas itu adalah snapshot, bukan umpan stok hidup. Menerbitkannya lagi sebagai rilis yang lebih baru daripada tanggal berkas menyesatkan sumbernya.",
-        "Le fichier est l’instantané, pas un flux de stock en direct. Le republier comme une édition plus récente que la date du fichier dénature la source.",
+        "The desk serves the published snapshot. It is not a feed of live inventory.",
+        "Meja ini melayani snapshot yang terbit. Bukan umpan stok hidup.",
+        "Le bureau sert l’instantané publié. Ce n’est pas un flux de stock en direct.",
       ),
       href: "/api-docs",
       link: t("Read the API", "Baca API", "Lire l’API"),
     },
     {
-      line: t("Community & media", "Komunitas & media", "Communauté & médias"),
-      name: t("Public news scan", "Pindaian berita publik", "Veille d’actualités publiques"),
+      line: technology,
+      name: t("Capability scale-up", "Peningkatan kapabilitas", "Montée en capacité"),
       who: t(
-        "A corridor or country that needs the headlines already held in the media brief.",
-        "Koridor atau negara yang membutuhkan headline yang sudah ada di media brief.",
-        "Un corridor ou un pays qui a besoin des titres déjà conservés dans le brief médias.",
+        "A government unit, an investor team, or a firm that needs the method to stay after the engagement.",
+        "Unit pemerintah, tim investor, atau perusahaan yang membutuhkan metode itu tetap ada setelah penugasan.",
+        "Une unité publique, une équipe d’investisseurs ou une entreprise qui a besoin que la méthode reste après la mission.",
       ),
       receive: t(
-        "The public items, with source, date, and the countries named.",
-        "Item publik, dengan sumber, tanggal, dan negara yang disebut.",
-        "Les éléments publics, avec la source, la date et les pays cités.",
+        "The research and advisory workflow implemented on the observatory, with the team shown how to run the next question itself.",
+        "Alur riset dan advisory diimplementasikan di observatory, dan tim ditunjukkan cara menjalankan pertanyaan berikutnya sendiri.",
+        "Le flux de recherche et de conseil mis en œuvre dans l’observatoire, l’équipe apprenant à poser elle-même la question suivante.",
       ),
       limit: t(
-        "Instagram captions are not part of the scan while that account requires a login. Oil and gas items stay out.",
-        "Caption Instagram tidak masuk ke pindaian ini selama akun itu meminta login. Item minyak bumi dan gas tetap di luar.",
-        "Les légendes Instagram ne font pas partie de cette veille tant que le compte exige une connexion. Le pétrole et le gaz restent exclus.",
+        "Implementation is this desk and the agreed workflow. It is not a payment system, a national digital-government rebuild, or an embedded unit.",
+        "Implementasi adalah meja ini dan alur yang disepakati. Bukan sistem pembayaran, pembangunan ulang pemerintahan digital nasional, atau unit yang ditempatkan di dalam lembaga.",
+        "La mise en œuvre est ce bureau et le flux convenu. Ce n’est ni un système de paiement, ni une refonte numérique de l’État, ni une unité installée.",
       ),
-      href: "/daily-brief",
-      link: t("Open the brief", "Buka brief", "Ouvrir le brief"),
+      href: "/api-docs",
+      link: t("Open the desk", "Buka meja", "Ouvrir le bureau"),
     },
   ];
 
@@ -186,25 +187,25 @@ export default function ServicesPage() {
             <span className="eyebrow">{t("SERVICES", "LAYANAN", "SERVICES")}</span>
             <h2>
               {t(
-                "Work you can ask for,\ninside the corridor.",
-                "Pekerjaan yang bisa diminta,\ndi dalam koridor.",
-                "Un travail que vous pouvez demander,\ndans le corridor.",
+                "Research, advice,\nand a desk the team keeps.",
+                "Riset, saran,\ndan meja yang tetap dipakai tim.",
+                "Recherche, conseil,\net un bureau que l’équipe garde.",
               )}
             </h2>
           </div>
           <div>
             <p className="about-lead">
               {t(
-                "AfriXAsia keeps eight offers under the five lines already on the home page. Each one starts from the observatory or the Circle.",
-                "AfriXAsia menaruh delapan tawaran di bawah lima lini yang sudah ada di beranda. Masing-masing berangkat dari observatory atau Circle.",
-                "AfriXAsia place huit offres sous les cinq lignes déjà présentes sur l’accueil. Chacune part de l’observatoire ou du Circle.",
+                "The work is data-driven research, market-entry advisory for governments, investors and businesses, education and consulting, and technology implementation that scales the client’s own capability.",
+                "Pekerjaannya adalah riset berbasis data, advisory masuk pasar untuk pemerintah, investor, dan bisnis, pendidikan dan konsultasi, serta implementasi teknologi yang meningkatkan kapabilitas klien sendiri.",
+                "Le travail couvre la recherche fondée sur les données, le conseil d’entrée sur un marché pour les gouvernements, les investisseurs et les entreprises, la formation et le conseil, et une mise en œuvre technologique qui accroît la capacité propre du client.",
               )}
             </p>
             <p>
               {t(
-                "The sequence is one used by advisory institutes: name the question, choose a practical output, and agree how far the work goes. Here the subject stays Africa and Asia, in both directions.",
-                "Urutannya sama dengan yang dipakai lembaga penasihat: sebutkan pertanyaannya, pilih hasil yang praktis, dan sepakati sejauh mana pekerjaannya. Di sini subjeknya tetap Afrika dan Asia, di kedua arah.",
-                "L’ordre est celui des instituts de conseil : nommer la question, choisir un résultat pratique, et convenir de la portée. Ici le sujet reste l’Afrique et l’Asie, dans les deux sens.",
+                "The subject stays the Africa–Asia corridor, in both directions. A recommendation names the figure, the date, and the gap.",
+                "Subjeknya tetap koridor Afrika–Asia, di kedua arah. Sebuah saran menyebut angkanya, tanggalnya, dan celahnya.",
+                "Le sujet reste le corridor Afrique–Asie, dans les deux sens. Une recommandation nomme le chiffre, la date et la lacune.",
               )}
             </p>
           </div>
@@ -214,43 +215,43 @@ export default function ServicesPage() {
           <span className="eyebrow">{t("HOW A REQUEST MOVES", "CARA PERMINTAAN BERJALAN", "COMMENT UNE DEMANDE AVANCE")}</span>
           <h2>
             {t(
-              "From a question to a bounded output.",
-              "Dari pertanyaan menuju hasil yang berbatas.",
-              "D’une question à un résultat borné.",
+              "From the figures to a capability.",
+              "Dari angka menuju kapabilitas.",
+              "Des chiffres vers une capacité.",
             )}
           </h2>
           <div>
             {[
               [
-                t("Name", "Sebutkan", "Nommer"),
+                t("Research", "Riset", "Recherche"),
                 t(
-                  "The corridor, the product, and the decision the note has to serve.",
-                  "Koridor, produk, dan keputusan yang harus dilayani catatan itu.",
-                  "Le corridor, le produit et la décision que la note doit servir.",
+                  "Read the published corridor, sector, and country series. Missing years stay blank.",
+                  "Baca koridor, sektor, dan seri negara yang terbit. Tahun yang hilang tetap kosong.",
+                  "Lire le corridor, le secteur et les séries nationales publiés. Les années manquantes restent vides.",
                 ),
               ],
               [
-                t("Choose", "Pilih", "Choisir"),
+                t("Advise", "Sarankan", "Conseiller"),
                 t(
-                  "One output from the list below. The open desks already hold the published figures.",
-                  "Satu hasil dari daftar di bawah. Meja yang terbuka sudah menyimpan angka yang terbit.",
-                  "Un résultat dans la liste ci-dessous. Les bureaux ouverts tiennent déjà les chiffres publiés.",
+                  "Say what a government, an investor, or a business can decide, and what the data cannot settle.",
+                  "Sebutkan apa yang dapat diputuskan pemerintah, investor, atau bisnis, dan apa yang tidak bisa diselesaikan data.",
+                  "Dire ce qu’un gouvernement, un investisseur ou une entreprise peut décider, et ce que les données ne peuvent pas trancher.",
                 ),
               ],
               [
-                t("Limit", "Batasi", "Limiter"),
+                t("Teach", "Ajarkan", "Former"),
                 t(
-                  "Say what the snapshot cannot answer. Missing years stay blank.",
-                  "Sebutkan apa yang tidak bisa dijawab snapshot. Tahun yang hilang tetap kosong.",
-                  "Dire ce que l’instantané ne peut pas répondre. Les années manquantes restent vides.",
+                  "Leave the team able to read the next question with the same method.",
+                  "Tinggalkan tim yang mampu membaca pertanyaan berikutnya dengan metode yang sama.",
+                  "Laisser l’équipe capable de lire la question suivante avec la même méthode.",
                 ),
               ],
               [
-                t("Next", "Lanjut", "Ensuite"),
+                t("Implement", "Implementasikan", "Mettre en œuvre"),
                 t(
-                  "Use the open desk, or enter the Circle when the work needs a published profile.",
-                  "Pakai meja yang terbuka, atau masuk Circle bila pekerjaan membutuhkan profil yang terbit.",
-                  "Utiliser le bureau ouvert, ou entrer dans le Circle lorsque le travail exige un profil publié.",
+                  "Put the repeated question on a working desk so the capability stays.",
+                  "Taruh pertanyaan yang berulang di meja kerja supaya kapabilitasnya tetap ada.",
+                  "Placer la question répétée sur un bureau de travail pour que la capacité demeure.",
                 ),
               ],
             ].map(([title, copy], index) => (
@@ -269,9 +270,9 @@ export default function ServicesPage() {
               <span className="eyebrow">{t("THE LIST", "DAFTAR", "LA LISTE")}</span>
               <h2>
                 {t(
-                  "Eight offers. Five lines.",
-                  "Delapan tawaran. Lima lini.",
-                  "Huit offres. Cinq lignes.",
+                  "Four areas. Eight outputs.",
+                  "Empat bidang. Delapan hasil.",
+                  "Quatre domaines. Huit résultats.",
                 )}
               </h2>
             </div>
@@ -302,46 +303,46 @@ export default function ServicesPage() {
 
         <section className="about-principles">
           <div>
-            <span className="eyebrow">{t("WHAT STAYS OURS", "YANG TETAP KHAS", "CE QUI RESTE LE NÔTRE")}</span>
+            <span className="eyebrow">{t("WHO IT IS FOR", "UNTUK SIAPA", "POUR QUI")}</span>
             <h2>
               {t(
-                "The same sequence.\nA different mandate.",
-                "Urutan yang sama.\nMandat yang berbeda.",
-                "Le même ordre.\nUn mandat différent.",
+                "Three clients.\nOne corridor.",
+                "Tiga klien.\nSatu koridor.",
+                "Trois clients.\nUn corridor.",
               )}
             </h2>
             <p>
               {t(
-                "Tony Blair Institute describes its work as strategy, policy, and delivery, with technology as the enabler, often beside a government. ITC and Afreximbank’s trade-information desks add country briefs, sector briefs, and custom market questions. AfriXAsia uses that order and stops at the corridor.",
-                "Tony Blair Institute menggambarkan kerjanya sebagai strategi, kebijakan, dan pelaksanaan, dengan teknologi sebagai penggerak, sering di samping pemerintah. Meja informasi perdagangan ITC dan Afreximbank menambahkan catatan negara, catatan sektor, dan pertanyaan pasar yang disusun khusus. AfriXAsia memakai urutan itu dan berhenti di koridor.",
-                "Le Tony Blair Institute décrit son travail comme stratégie, politique et mise en œuvre, la technologie servant de levier, souvent aux côtés d’un gouvernement. Les bureaux d’information commerciale de l’ITC et d’Afreximbank ajoutent des notes pays, des notes sectorielles et des questions de marché sur mesure. AfriXAsia suit cet ordre et s’arrête au corridor.",
+                "Governments, investors, and businesses can ask for the same four areas. Tony Blair Institute packages strategy, policy, and delivery for political leaders. ITC and Afreximbank add market intelligence and custom questions. AfriXAsia keeps the work on Africa–Asia evidence, then teaches it and implements it so the client’s team can run it again.",
+                "Pemerintah, investor, dan bisnis dapat meminta empat bidang yang sama. Tony Blair Institute mengemas strategi, kebijakan, dan pelaksanaan untuk pemimpin politik. ITC dan Afreximbank menambahkan intelijen pasar dan pertanyaan khusus. AfriXAsia menahan pekerjaannya pada bukti Afrika–Asia, lalu mengajarkannya dan mengimplementasikannya supaya tim klien dapat menjalankannya lagi.",
+                "Gouvernements, investisseurs et entreprises peuvent demander les mêmes quatre domaines. Le Tony Blair Institute assemble stratégie, politique et mise en œuvre pour des dirigeants politiques. L’ITC et Afreximbank ajoutent l’intelligence de marché et des questions sur mesure. AfriXAsia maintient le travail sur les preuves Afrique–Asie, puis le transmet et le met en œuvre pour que l’équipe du client puisse le relancer.",
               )}
             </p>
           </div>
           <div className="about-values">
             {[
               [
-                t("No embedded government team", "Tanpa tim di dalam pemerintah", "Pas d’équipe installée au gouvernement"),
+                t("Government", "Pemerintah", "Gouvernement"),
                 t(
-                  "A session uses the observatory. It does not place staff inside a ministry.",
-                  "Sesi memakai observatory. Ia tidak menempatkan staf di dalam kementerian.",
-                  "Une séance utilise l’observatoire. Elle ne place pas de personnel dans un ministère.",
+                  "A market-entry and evidence note for a public decision. The ministry keeps the decision.",
+                  "Catatan masuk pasar dan bukti untuk keputusan publik. Kementerian tetap memegang keputusan.",
+                  "Une note d’entrée et de preuves pour une décision publique. Le ministère garde la décision.",
                 ),
               ],
               [
-                t("No financing mandate", "Tanpa mandat pembiayaan", "Pas de mandat de financement"),
+                t("Investors", "Investor", "Investisseurs"),
                 t(
-                  "No privatization, debt, currency management, merger, valuation, or capital-markets mandate.",
-                  "Tidak ada mandat privatisasi, utang, pengelolaan mata uang, merger, valuasi, atau pasar modal.",
-                  "Pas de mandat de privatisation, de dette, de gestion de change, de fusion, de valorisation ou de marché de capitaux.",
+                  "A reading of the corridor and the visible segment. Not a valuation or a financing mandate.",
+                  "Pembacaan koridor dan segmen yang terlihat. Bukan valuasi atau mandat pembiayaan.",
+                  "Une lecture du corridor et du segment visible. Ni une valorisation ni un mandat de financement.",
                 ),
               ],
               [
-                t("No execution of the trade", "Tanpa pelaksanaan transaksi", "Pas d’exécution de l’échange"),
+                t("Businesses", "Bisnis", "Entreprises"),
                 t(
-                  "No due diligence certificate, payment rail, logistics booking, or escrow.",
-                  "Tidak ada sertifikat uji tuntas, jalur pembayaran, pemesanan logistik, atau escrow.",
-                  "Pas de certificat de diligence, de rail de paiement, de réservation logistique ni de séquestre.",
+                  "Research, consulting, and a desk the operating team can reuse.",
+                  "Riset, konsultasi, dan meja yang dapat dipakai lagi oleh tim operasional.",
+                  "Recherche, conseil et un bureau que l’équipe opérationnelle peut réutiliser.",
                 ),
               ],
             ].map(([title, copy]) => (
@@ -357,9 +358,9 @@ export default function ServicesPage() {
           <div>
             <h2>
               {t(
-                "Ask for one output,\nnot a blank engagement.",
-                "Minta satu hasil,\nbukan penugasan kosong.",
-                "Demandez un résultat,\npas une mission ouverte.",
+                "Ask for one area,\nfrom research to implementation.",
+                "Minta satu bidang,\ndari riset sampai implementasi.",
+                "Demandez un domaine,\nde la recherche à la mise en œuvre.",
               )}
             </h2>
             <div className="form-actions">
@@ -378,19 +379,19 @@ export default function ServicesPage() {
             <Link to={contextSearch("/open-data", context)}>
               {t("Economic desk", "Meja ekonomi", "Bureau économique")} <b>↗</b>
             </Link>
-            <Link to={contextSearch("/daily-brief", context)}>
-              {t("Media brief", "Media brief", "Brief médias")} <b>↗</b>
-            </Link>
             <Link to={contextSearch("/metodologi", context)}>
-              {t("Methodology", "Metodologi", "Méthodologie")} <b>↗</b>
+              {t("Method", "Metode", "Méthode")} <b>↗</b>
+            </Link>
+            <Link to={contextSearch("/api-docs", context)}>
+              API <b>↗</b>
             </Link>
           </div>
         </section>
         <p className="about-source">
           {t(
-            "Read on 18 October 2026 from the Tony Blair Institute pages “Helping governments deliver” and “Approach”, the Institute’s 2024 financial statements, ITC pages on MSME export development and market intelligence, and Afreximbank’s Trade Information & Advisory and Trade Intelligence Solutions pages. AfriXAsia does not reproduce those mandates.",
-            "Dibaca pada 18 Oktober 2026 dari halaman Tony Blair Institute “Helping governments deliver” dan “Approach”, laporan keuangan Institute tahun 2024, halaman ITC tentang pengembangan ekspor UMKM dan intelijen pasar, serta halaman Afreximbank Trade Information & Advisory dan Trade Intelligence Solutions. AfriXAsia tidak meniru mandat tersebut.",
-            "Lu le 18 octobre 2026 sur les pages du Tony Blair Institute « Helping governments deliver » et « Approach », les états financiers 2024 de l’Institute, les pages de l’ITC sur l’export des MPME et l’intelligence de marché, et les pages Afreximbank Trade Information & Advisory et Trade Intelligence Solutions. AfriXAsia ne reprend pas ces mandats.",
+            "Read on 18 October 2026 from the Tony Blair Institute pages “Helping governments deliver” and “Approach”, the Institute’s 2024 financial statements, ITC pages on MSME export development and market intelligence, and Afreximbank’s Trade Information & Advisory and Trade Intelligence Solutions pages. AfriXAsia uses that advisory shape for governments, investors, and businesses, and does not reproduce the financing or in-government delivery mandates.",
+            "Dibaca pada 18 Oktober 2026 dari halaman Tony Blair Institute “Helping governments deliver” dan “Approach”, laporan keuangan Institute tahun 2024, halaman ITC tentang pengembangan ekspor UMKM dan intelijen pasar, serta halaman Afreximbank Trade Information & Advisory dan Trade Intelligence Solutions. AfriXAsia memakai bentuk advisory itu untuk pemerintah, investor, dan bisnis, dan tidak meniru mandat pembiayaan atau pelaksanaan di dalam pemerintah.",
+            "Lu le 18 octobre 2026 sur les pages du Tony Blair Institute « Helping governments deliver » et « Approach », les états financiers 2024 de l’Institute, les pages de l’ITC sur l’export des MPME et l’intelligence de marché, et les pages Afreximbank Trade Information & Advisory et Trade Intelligence Solutions. AfriXAsia reprend cette forme de conseil pour les gouvernements, les investisseurs et les entreprises, sans reprendre les mandats de financement ou d’exécution au sein d’un gouvernement.",
           )}
         </p>
         <Footer />

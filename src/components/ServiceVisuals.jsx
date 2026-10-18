@@ -1,68 +1,67 @@
-export function CorridorDiagram({ label, caption, africaLabel, asiaLabel }) {
-  const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-  const africa = [168, 160, 154, 146, null, 136, 128, 122, 116, 108, 100];
-  const asia = [96, 104, 92, null, 108, 116, 110, 128, 120, 136, 128];
-  const x = (index) => 48 + index * 36;
-  const segments = (series, color) =>
-    series.slice(1).map((value, index) => {
-      const previous = series[index];
-      if (value == null || previous == null) return null;
-      return (
-        <line
-          key={`${color}-${years[index]}`}
-          x1={x(index)}
-          y1={previous}
-          x2={x(index + 1)}
-          y2={value}
-          stroke={color}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-      );
-    });
+export function CorridorDiagram({ label, caption, africaLabel, asiaLabel, axes }) {
+  const cx = 210;
+  const cy = 128;
+  const radius = 78;
+  const africa = [0.82, 0.64, 0.7, 0.56, 0.68, 0.86];
+  const asia = [0.58, 0.84, 0.74, 0.72, 0.5, 0.66];
+  const point = (index, scale) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / axes.length;
+    return [cx + Math.cos(angle) * radius * scale, cy + Math.sin(angle) * radius * scale];
+  };
+  const polygon = (values) =>
+    `${values
+      .map((value, index) => {
+        const [x, y] = point(index, value);
+        return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+      })
+      .join(" ")} Z`;
 
   return (
     <figure className="corridor-figure">
-      <svg viewBox="0 0 480 280" role="img" aria-label={label}>
+      <svg viewBox="0 0 420 300" role="img" aria-label={label}>
         <title>{label}</title>
-        <rect width="480" height="280" rx="12" fill="#0c1624" />
-        {Array.from({ length: 12 }, (_, index) => (
-          <line key={`v${index}`} x1={24 + index * 40} x2={24 + index * 40} y1="16" y2="248" stroke="#1a2940" />
+        <rect width="420" height="300" rx="12" fill="#0c1624" />
+        {[1, 0.75, 0.5, 0.25].map((level) => (
+          <polygon
+            key={level}
+            points={axes
+              .map((_, index) => point(index, level).map((value) => value.toFixed(1)).join(","))
+              .join(" ")}
+            fill="none"
+            stroke="#1d3148"
+          />
         ))}
-        {Array.from({ length: 7 }, (_, index) => (
-          <line key={`h${index}`} x1="20" x2="460" y1={28 + index * 36} y2={28 + index * 36} stroke="#1a2940" />
-        ))}
-        <line x1="48" x2="408" y1="214" y2="214" stroke="#31445d" />
-        {segments(africa, "#3dce4a")}
-        {segments(asia, "#2f5bff")}
-        {africa.map((value, index) =>
-          value == null ? (
-            <line key={`gap-a-${index}`} x1={x(index)} x2={x(index)} y1="206" y2="214" stroke="#8ea0b5" strokeDasharray="2 2" />
-          ) : (
-            <circle key={`a-${index}`} cx={x(index)} cy={value} r="3.5" fill="#3dce4a" />
-          ),
-        )}
-        {asia.map((value, index) =>
-          value == null ? (
-            <line key={`gap-s-${index}`} x1={x(index)} x2={x(index)} y1="206" y2="214" stroke="#8ea0b5" strokeDasharray="2 2" />
-          ) : (
-            <circle key={`s-${index}`} cx={x(index)} cy={value} r="3.5" fill="#2f5bff" />
-          ),
-        )}
-        <rect x="228" y="132" width="18" height="18" transform="rotate(45 237 141)" fill="#101820" stroke="#d7e2ea" strokeWidth="1.5" />
-        {years.map((year, index) =>
-          index % 2 === 0 ? (
-            <text key={year} x={x(index)} y="234" textAnchor="middle" fill="#8ea0b5" fontSize="10" fontFamily="DM Sans, sans-serif">
-              {year}
-            </text>
-          ) : null,
-        )}
-        <circle cx="52" cy="256" r="4" fill="#3dce4a" />
-        <text x="62" y="260" fill="#d5deea" fontSize="11" fontFamily="DM Sans, sans-serif">
+        {axes.map((axis, index) => {
+          const [x, y] = point(index, 1);
+          const [lx, ly] = point(index, 1.28);
+          const angle = -Math.PI / 2 + (index * 2 * Math.PI) / axes.length;
+          const anchor = Math.cos(angle) > 0.35 ? "start" : Math.cos(angle) < -0.35 ? "end" : "middle";
+          return (
+            <g key={axis}>
+              <line x1={cx} y1={cy} x2={x} y2={y} stroke="#31445d" />
+              <text x={lx} y={ly} textAnchor={anchor} dominantBaseline="middle" fill="#d5deea" fontSize="11" fontFamily="DM Sans, sans-serif">
+                {axis}
+              </text>
+            </g>
+          );
+        })}
+        <path d={polygon(asia)} fill="rgba(47,91,255,0.18)" stroke="#2f5bff" strokeWidth="2" />
+        <path d={polygon(africa)} fill="rgba(61,206,74,0.16)" stroke="#3dce4a" strokeWidth="2" />
+        {asia.map((value, index) => {
+          const [x, y] = point(index, value);
+          return <circle key={`asia-${axes[index]}`} cx={x} cy={y} r="3" fill="#2f5bff" />;
+        })}
+        {africa.map((value, index) => {
+          const [x, y] = point(index, value);
+          return <circle key={`africa-${axes[index]}`} cx={x} cy={y} r="3" fill="#3dce4a" />;
+        })}
+        <rect x={cx - 5} y={cy - 5} width="10" height="10" transform={`rotate(45 ${cx} ${cy})`} fill="#101820" stroke="#d7e2ea" />
+        <circle cx="24" cy="276" r="4" fill="#3dce4a" />
+        <text x="34" y="280" fill="#d5deea" fontSize="11" fontFamily="DM Sans, sans-serif">
           {africaLabel}
         </text>
-        <circle cx="128" cy="256" r="4" fill="#2f5bff" />
-        <text x="138" y="260" fill="#d5deea" fontSize="11" fontFamily="DM Sans, sans-serif">
+        <circle cx="118" cy="276" r="4" fill="#2f5bff" />
+        <text x="128" y="280" fill="#d5deea" fontSize="11" fontFamily="DM Sans, sans-serif">
           {asiaLabel}
         </text>
       </svg>

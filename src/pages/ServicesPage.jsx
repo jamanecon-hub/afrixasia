@@ -218,17 +218,25 @@ export default function ServicesPage() {
           </div>
           <CorridorDiagram
             label={t(
-              "Schematic of an Africa–Asia series with a missing year left open",
-              "Skema seri Afrika–Asia dengan tahun yang kosong dibiarkan terbuka",
-              "Schéma d’une série Afrique–Asie dont une année manquante reste ouverte",
+              "Spider diagram of the Africa–Asia method across six kinds of work",
+              "Diagram laba-laba metode Afrika–Asia pada enam jenis pekerjaan",
+              "Diagramme en toile de la méthode Afrique–Asie sur six types de travail",
             )}
             caption={t(
-              "Diagram of the method. Not a published series.",
-              "Diagram metode. Bukan seri yang terbit.",
-              "Schéma de la méthode. Pas une série publiée.",
+              "Spider diagram of the method. Not a score.",
+              "Diagram laba-laba metode. Bukan skor.",
+              "Diagramme en toile de la méthode. Pas un score.",
             )}
             africaLabel={t("Africa", "Afrika", "Afrique")}
             asiaLabel={t("Asia", "Asia", "Asie")}
+            axes={[
+              t("Research", "Riset", "Recherche"),
+              t("Entry", "Masuk", "Entrée"),
+              t("Advice", "Saran", "Avis"),
+              t("Education", "Didik", "Formation"),
+              t("Consult", "Konsultasi", "Conseil"),
+              t("Technology", "Teknologi", "Techno"),
+            ]}
           />
         </section>
 

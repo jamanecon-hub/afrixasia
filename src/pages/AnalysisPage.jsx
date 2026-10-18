@@ -85,9 +85,9 @@ export default function AnalysisPage() {
         <div className="dataset-strip">
           <span>
             {t(
-              "Retrieved · 10 October 2026 · rechecked 14 October 2026, no newer WDI release",
-              "Diambil · 10 Oktober 2026 · dicek ulang 14 Oktober 2026, belum ada rilis WDI yang lebih baru",
-              "Collecté · 10 octobre 2026 · revérifié le 14 octobre 2026, pas de publication WDI plus récente",
+              "Retrieved · 10 October 2026 · rechecked 18 October 2026, World Bank release still 8 October 2026",
+              "Diambil · 10 Oktober 2026 · dicek ulang 18 Oktober 2026, rilis World Bank masih 8 Oktober 2026",
+              "Collecté · 10 octobre 2026 · revérifié le 18 octobre 2026, publication Banque mondiale toujours du 8 octobre 2026",
             )}
           </span>
           <span>

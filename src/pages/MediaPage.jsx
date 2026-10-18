@@ -162,9 +162,9 @@ export default function MediaPage() {
             </a>
             <p className="small muted">
               {t(
-                "Direct Instagram retrieval is unavailable. Post images and captions are not mirrored here. The image shown is the brand asset supplied by AfriXAsia.",
-                "Pengambilan langsung Instagram belum tersedia. Gambar dan caption posting belum disalin di sini. Gambar yang ditampilkan adalah aset brand dari AfriXAsia.",
-                "La récupération directe d’Instagram est indisponible. Les images et légendes des publications ne sont pas reproduites ici. Le visuel présenté est fourni par AfriXAsia.",
+                "Checked again on 18 October 2026. Instagram and Threads still require a login, so post images and captions are not copied here. The image shown is the AfriXAsia brand asset. Headlines below are public news items, not Instagram posts.",
+                "Dicek lagi pada 18 Oktober 2026. Instagram dan Threads masih meminta login, jadi gambar dan caption posting tidak disalin di sini. Gambar yang tampil adalah aset brand AfriXAsia. Berita di bawah berasal dari kabar publik, bukan posting Instagram.",
+                "Nouvelle vérification le 18 octobre 2026. Instagram et Threads exigent toujours une connexion, donc les images et légendes ne sont pas copiées ici. Le visuel est l’identité AfriXAsia. Les titres ci-dessous viennent de sources publiques, pas d’Instagram.",
               )}
             </p>
           </div>

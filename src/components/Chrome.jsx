@@ -26,6 +26,7 @@ const NAV = [
     ["Open data", "Proyeksi"],
   ],
   ["/daily-brief", "Media Brief", "Media Brief", "Media Brief", ["Daily brief"]],
+  ["/layanan", "Services", "Layanan", "Services", ["Layanan", "Services"]],
   ["/marketplace", "Membership", "Keanggotaan", "Adhésion", ["Marketplace", "Penyedia", "daftar"]],
 ];
 
@@ -67,6 +68,10 @@ export function Footer() {
         )}
       </div>
       <div>
+        <Link to={contextSearch("/layanan", context)}>
+          {t("Services", "Layanan", "Services")}
+        </Link>
+        {" · "}
         <Link to={contextSearch("/open-data", context)}>
           {t("Economic Analysis", "Analisis Ekonomi", "Analyse économique")}
         </Link>

@@ -152,6 +152,7 @@ export default function HomePage() {
                 )}
               </h2>
             </div>
+            <Link to="/layanan">{t("Services you can request", "Layanan yang bisa diminta", "Services que vous pouvez demander")} ↗</Link>
           </div>
           {services.map(([title, copy, href], index) => (
             <article className="about-service" key={title}>

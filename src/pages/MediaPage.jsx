@@ -209,7 +209,7 @@ export default function MediaPage() {
         </div>
         <section className="media-brand-panel">
           <div className="media-brand-art">
-            <img src="/brand/afrixasia-wordmark-white.png" alt="AfriXAsia" />
+            <img src="/brand/afrixasia-wordmark-white.png" alt="AfriXAsia Institute" />
           </div>
           <div>
             <span className="eyebrow">INSTAGRAM · @AFRIXASIA</span>

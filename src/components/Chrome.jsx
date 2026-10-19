@@ -6,10 +6,10 @@ export function Wordmark({ symbol = false }) {
   return (
     <span className={symbol ? "brand-symbol" : "brand-wordmark"}>
       <img
-        src={symbol ? "/brand/afrixasia-symbol-color.png" : "/brand/afrixasia-wordmark-white.png"}
-        alt={symbol ? "" : "AfriXAsia"}
-        width={symbol ? 1254 : 2036}
-        height={symbol ? 1254 : 772}
+        src={symbol ? "/brand/afrixasia-mark-white.png" : "/brand/afrixasia-wordmark-white.png"}
+        alt={symbol ? "" : "AfriXAsia Institute"}
+        width={symbol ? 156 : 1342}
+        height={symbol ? 134 : 132}
       />
     </span>
   );
@@ -35,7 +35,7 @@ export function Header({ active = "" }) {
   const [context] = useResearch();
   return (
     <header className="site-header">
-      <Link className="brand" to={contextSearch("/", context)} aria-label="AfriXAsia">
+      <Link className="brand" to={contextSearch("/", context)} aria-label="AfriXAsia Institute">
         <Wordmark />
       </Link>
       <nav aria-label={t("Main navigation", "Navigasi utama", "Navigation principale")}>

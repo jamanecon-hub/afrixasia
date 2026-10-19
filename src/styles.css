@@ -74,3 +74,20 @@
 .service-offer[data-line="technology"] .about-service-number{color:#101d32}
 @media (max-width:1000px){.service-areas{grid-template-columns:repeat(2,1fr);padding:8px 15px 10px}}
 @media (max-width:680px){.service-areas{grid-template-columns:1fr;padding:8px 5px 10px}.service-hero .about-lead{font-size:16px}}
+
+.brand-wordmark{width:272px;height:27px;overflow:visible}
+.brand-wordmark img,.brand-symbol img{mix-blend-mode:normal;position:static;top:auto;left:auto;width:100%;max-width:100%;height:100%;transform:none;object-fit:contain;object-position:left center}
+.brand-symbol{overflow:visible}
+.site-header .brand-wordmark{width:272px;height:27px}
+.about-channel .brand-wordmark{width:320px;height:32px}
+.about-channel .brand-wordmark img{filter:brightness(0)}
+.membership-card .brand-wordmark{width:min(210px,62%);height:21px}
+.mini-membership-card .brand-wordmark{width:min(176px,70%);height:18px}
+.vcard-front .brand-wordmark{width:min(220px,100%);height:22px}
+.media-brand-art img{width:min(100%,680px);height:auto}
+@media (max-width:560px){
+.site-header .brand-wordmark{width:220px;height:22px}
+.membership-card .brand-wordmark{width:min(168px,68%);height:17px}
+.about-channel .brand-wordmark{width:240px;height:24px}
+.vcard-front .brand-wordmark{width:190px;height:19px}
+}

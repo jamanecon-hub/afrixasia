@@ -106,6 +106,20 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'SEN' AND partner_iso3 = 'CHN' AND hs_code = '1202' AND year = 2024 AND flow = 'export'
   `).get();
+  const maizePrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Maize' ORDER BY period DESC LIMIT 1
+  `).get();
+  const maizeOutput = db.prepare(`
+    SELECT value, unit, flag
+    FROM production
+    WHERE country_iso3 = 'ZAF' AND item_code = '56' AND element_code = '5510' AND year = 2023
+  `).get();
+  const maizeTrade = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'KOR' AND hs_code = '1005' AND year = 2023 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -131,7 +145,10 @@ function status(db) {
     groundnutsLatest: groundnutPrice || null,
     senegalGroundnuts2023: groundnutOutput || null,
     senegalGroundnutExportsToChina2024: groundnutTrade || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price.",
+    maizeLatest: maizePrice || null,
+    southAfricaMaize2023: maizeOutput || null,
+    southAfricaMaizeExportsToKorea2023: maizeTrade || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price.",
     datasets,
   };
 }

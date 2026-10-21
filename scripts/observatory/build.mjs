@@ -10,6 +10,8 @@ import {
   rubberProducts,
   groundnutDatasetId,
   groundnutProducts,
+  maizeDatasetId,
+  maizeProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -62,6 +64,7 @@ export function buildDatabase() {
   const fishery = fs.existsSync(paths.tradeFishery) ? readJson(paths.tradeFishery) : null;
   const rubber = fs.existsSync(paths.tradeRubber) ? readJson(paths.tradeRubber) : null;
   const groundnuts = fs.existsSync(paths.tradeGroundnuts) ? readJson(paths.tradeGroundnuts) : null;
+  const maize = fs.existsSync(paths.tradeMaize) ? readJson(paths.tradeMaize) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -202,6 +205,20 @@ export function buildDatabase() {
       note: groundnuts.note,
     });
   }
+  if (maize) {
+    insertDataset(db, {
+      id: maize.datasetId || maizeDatasetId,
+      title: maize.title,
+      source: maize.source,
+      sourceUrl: maize.sourceUrl,
+      license: maize.license,
+      licenseUrl: maize.licenseUrl,
+      frequency: maize.frequency,
+      updatedAt: maize.retrievedAt,
+      retrievedAt: maize.retrievedAt,
+      note: maize.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -296,7 +313,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -332,6 +349,7 @@ export function buildDatabase() {
   insertFlows(fishery, fisheryDatasetId);
   insertFlows(rubber, rubberDatasetId);
   insertFlows(groundnuts, groundnutDatasetId);
+  insertFlows(maize, maizeDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -361,6 +379,7 @@ export function buildDatabase() {
   insertQueries(fishery, fisheryDatasetId);
   insertQueries(rubber, rubberDatasetId);
   insertQueries(groundnuts, groundnutDatasetId);
+  insertQueries(maize, maizeDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -393,6 +412,15 @@ export function buildDatabase() {
     if (!groundnutPrice) throw new Error("September 2026 groundnut price is missing from the database.");
     if (Math.abs(groundnutPrice.price - 1563) > 0.001) {
       throw new Error(`Groundnut price ${groundnutPrice.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Maize")) {
+    const maizePrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Maize' AND period = '2026-09'
+    `).get();
+    if (!maizePrice) throw new Error("September 2026 maize price is missing from the database.");
+    if (Math.abs(maizePrice.price - 239.6) > 0.001) {
+      throw new Error(`Maize price ${maizePrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
   }
 
@@ -463,6 +491,14 @@ export function buildDatabase() {
     if (!groundnutOutput) throw new Error("Senegal 2023 groundnut production is missing from the database.");
     if (groundnutOutput.value !== 1675329 || groundnutOutput.unit !== "t" || groundnutOutput.flag !== "A") {
       throw new Error(`Senegal groundnuts ${groundnutOutput.value} ${groundnutOutput.unit} flag ${groundnutOutput.flag} does not match the FAOSTAT extract.`);
+    }
+    const maizeOutput = db.prepare(`
+      SELECT value, unit, flag FROM production
+      WHERE country_iso3 = 'ZAF' AND item_code = '56' AND element_code = '5510' AND year = 2023
+    `).get();
+    if (!maizeOutput) throw new Error("South Africa 2023 maize production is missing from the database.");
+    if (maizeOutput.value !== 16430000 || maizeOutput.unit !== "t" || maizeOutput.flag !== "A") {
+      throw new Error(`South Africa maize ${maizeOutput.value} ${maizeOutput.unit} flag ${maizeOutput.flag} does not match the FAOSTAT extract.`);
     }
   }
   if (fish) {
@@ -551,6 +587,21 @@ export function buildDatabase() {
     }
     if (groundnutTrade.net_weight_kg !== 101953500) {
       throw new Error(`Senegal groundnut quantity ${groundnutTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const maizeQuery = maize?.completedQueries?.["ZAF:2023"];
+  if (maizeQuery?.status === "ok") {
+    const maizeTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'KOR' AND hs_code = '1005' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!maizeTrade) throw new Error("South Africa 2023 maize export to Korea is missing from the database.");
+    if (Math.abs(maizeTrade.trade_value_usd - 160080574.428) > 1) {
+      throw new Error(`South Africa maize value ${maizeTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (maizeTrade.net_weight_kg !== 601540980) {
+      throw new Error(`South Africa maize quantity ${maizeTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

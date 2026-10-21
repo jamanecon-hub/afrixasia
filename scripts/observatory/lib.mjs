@@ -19,6 +19,7 @@ export const paths = {
   tradeFishery: path.join(root, "data", "collected", "trade-fishery.json"),
   tradeRubber: path.join(root, "data", "collected", "trade-rubber.json"),
   tradeGroundnuts: path.join(root, "data", "collected", "trade-groundnuts.json"),
+  tradeMaize: path.join(root, "data", "collected", "trade-maize.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -33,6 +34,7 @@ export const specialtyDatasetId = "un-comtrade-specialty";
 export const fisheryDatasetId = "un-comtrade-fishery";
 export const rubberDatasetId = "un-comtrade-rubber";
 export const groundnutDatasetId = "un-comtrade-groundnuts";
+export const maizeDatasetId = "un-comtrade-maize";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -254,6 +256,10 @@ export const groundnutProducts = [
   { hs: "1202", name: "Groundnuts, not roasted", category: "Food & agriculture", observatoryProduct: "Kacang tanah" },
 ];
 
+export const maizeProducts = [
+  { hs: "1005", name: "Maize (corn)", category: "Food & agriculture", observatoryProduct: "Jagung" },
+];
+
 export const fishProductionItems = [
   {
     itemCode: "FISH-CAPTURE",
@@ -391,6 +397,13 @@ export const productionItems = [
     observatoryProduct: "Kacang tanah",
     detail: "In-shell groundnuts. Not shelled nuts, not HS 1202 export weight, and not the Pink Sheet groundnut or groundnut-oil price.",
   },
+  {
+    itemCode: "56",
+    name: "Maize (corn)",
+    category: "Food & agriculture",
+    observatoryProduct: "Jagung",
+    detail: "FAO maize grain. Not HS 1005 customs weight, not seed trade alone, and not the US Gulf No. 2 yellow benchmark.",
+  },
 ];
 
 export const pinkSheetUrl =
@@ -504,6 +517,15 @@ export const commoditySeries = [
     observatoryProduct: "Kacang tanah",
     unit: "USD per metric ton",
     detail: "World Bank Pink Sheet groundnuts series. Not groundnut oil and not a bilateral Africa–Asia contract price.",
+  },
+  {
+    column: "Maize",
+    series: "Maize",
+    product: "Maize",
+    category: "Food & agriculture",
+    observatoryProduct: "Jagung",
+    unit: "USD per metric ton",
+    detail: "US No. 2 yellow maize, f.o.b. US Gulf ports. Not sorghum, not FAO production, and not a bilateral Africa–Asia contract price.",
   },
 ];
 

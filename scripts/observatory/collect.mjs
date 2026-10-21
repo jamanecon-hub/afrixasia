@@ -18,6 +18,8 @@ import {
   rubberProducts,
   groundnutDatasetId,
   groundnutProducts,
+  maizeDatasetId,
+  maizeProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -45,6 +47,7 @@ const specialtyCollectionVersion = 1;
 const fisheryCollectionVersion = 1;
 const rubberCollectionVersion = 1;
 const groundnutCollectionVersion = 1;
+const maizeCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -475,7 +478,7 @@ export async function collectProduction() {
     frequency: "Annual",
     sourceUpdatedAt: table.sourceFileDate,
     retrievedAt: stamp(),
-    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. Pepper is Piper, not Capsicum. Natural rubber is item 836, not HS 4001 trade and not the TSR20 price. Groundnuts are item 242, in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. A missing country-year is not zero production. Macao has no rows for these items.",
+    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. Pepper is Piper, not Capsicum. Natural rubber is item 836, not HS 4001 trade and not the TSR20 price. Groundnuts are item 242, in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. Maize is item 56, grain, not HS 1005 customs weight and not the US Gulf No. 2 yellow price. A missing country-year is not zero production. Macao has no rows for these items.",
     items: productionItems,
     rows: table.rows,
   };
@@ -578,6 +581,16 @@ const groundnutOptions = {
   useClient: false,
 };
 
+const maizeOptions = {
+  datasetId: maizeDatasetId,
+  title: "Africa–Asia maize exports",
+  note: "Maize (corn), including seed (HS 1005). Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not FAO grain production and not the US Gulf No. 2 yellow benchmark.",
+  products: maizeProducts,
+  collectionVersion: maizeCollectionVersion,
+  statePath: paths.tradeMaize,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -607,6 +620,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, rubberOptions);
   buildDatabase();
   await collectTrade(wdi.countries, groundnutOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, maizeOptions);
   buildDatabase();
 }
 

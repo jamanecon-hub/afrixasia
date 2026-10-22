@@ -120,6 +120,20 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'KOR' AND hs_code = '1005' AND year = 2023 AND flow = 'export'
   `).get();
+  const tobaccoPrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Tobacco, US import u.v.' ORDER BY period DESC LIMIT 1
+  `).get();
+  const tobaccoOutput = db.prepare(`
+    SELECT value, unit, flag
+    FROM production
+    WHERE country_iso3 = 'ZWE' AND item_code = '826' AND element_code = '5510' AND year = 2023
+  `).get();
+  const tobaccoTrade = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'ZWE' AND partner_iso3 = 'CHN' AND hs_code = '2401' AND year = 2024 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -148,7 +162,10 @@ function status(db) {
     maizeLatest: maizePrice || null,
     southAfricaMaize2023: maizeOutput || null,
     southAfricaMaizeExportsToKorea2023: maizeTrade || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price.",
+    tobaccoLatest: tobaccoPrice || null,
+    zimbabweTobacco2023: tobaccoOutput || null,
+    zimbabweTobaccoExportsToChina2024: tobaccoTrade || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero.",
     datasets,
   };
 }
@@ -262,7 +279,7 @@ function prices(db, params) {
     body: {
       total: rows.length,
       rows,
-      note: "Monthly international benchmarks. Tea is the Mombasa auction price.",
+      note: "Monthly international benchmarks. Tea is the Mombasa auction price. Tobacco is the US import unit value, and a missing month is not zero.",
     },
   };
 }
@@ -308,7 +325,7 @@ function production(db, params) {
     body: {
       total: rows.length,
       rows,
-      note: "FAOSTAT production, harvested area, or yield, plus FAO FishStat live weight for aquatic animals. Tea leaves are not made tea. Capture and aquaculture must not be added into a trade figure. A missing country-year is not zero production. Palm fruit and palm oil must not be added together.",
+      note: "FAOSTAT production, harvested area, or yield, plus FAO FishStat live weight for aquatic animals. Tea leaves are not made tea. Capture and aquaculture must not be added into a trade figure. A missing country-year is not zero production. Palm fruit and palm oil must not be added together. Unmanufactured tobacco production is not HS 2401 customs weight.",
     },
   };
 }

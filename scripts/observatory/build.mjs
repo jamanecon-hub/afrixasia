@@ -12,6 +12,8 @@ import {
   groundnutProducts,
   maizeDatasetId,
   maizeProducts,
+  tobaccoDatasetId,
+  tobaccoProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -65,6 +67,7 @@ export function buildDatabase() {
   const rubber = fs.existsSync(paths.tradeRubber) ? readJson(paths.tradeRubber) : null;
   const groundnuts = fs.existsSync(paths.tradeGroundnuts) ? readJson(paths.tradeGroundnuts) : null;
   const maize = fs.existsSync(paths.tradeMaize) ? readJson(paths.tradeMaize) : null;
+  const tobacco = fs.existsSync(paths.tradeTobacco) ? readJson(paths.tradeTobacco) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -219,6 +222,20 @@ export function buildDatabase() {
       note: maize.note,
     });
   }
+  if (tobacco) {
+    insertDataset(db, {
+      id: tobacco.datasetId || tobaccoDatasetId,
+      title: tobacco.title,
+      source: tobacco.source,
+      sourceUrl: tobacco.sourceUrl,
+      license: tobacco.license,
+      licenseUrl: tobacco.licenseUrl,
+      frequency: tobacco.frequency,
+      updatedAt: tobacco.retrievedAt,
+      retrievedAt: tobacco.retrievedAt,
+      note: tobacco.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -313,7 +330,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -350,6 +367,7 @@ export function buildDatabase() {
   insertFlows(rubber, rubberDatasetId);
   insertFlows(groundnuts, groundnutDatasetId);
   insertFlows(maize, maizeDatasetId);
+  insertFlows(tobacco, tobaccoDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -380,6 +398,7 @@ export function buildDatabase() {
   insertQueries(rubber, rubberDatasetId);
   insertQueries(groundnuts, groundnutDatasetId);
   insertQueries(maize, maizeDatasetId);
+  insertQueries(tobacco, tobaccoDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -421,6 +440,15 @@ export function buildDatabase() {
     if (!maizePrice) throw new Error("September 2026 maize price is missing from the database.");
     if (Math.abs(maizePrice.price - 239.6) > 0.001) {
       throw new Error(`Maize price ${maizePrice.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Tobacco, US import u.v.")) {
+    const tobaccoPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Tobacco, US import u.v.' AND period = '2026-07'
+    `).get();
+    if (!tobaccoPrice) throw new Error("July 2026 tobacco price is missing from the database.");
+    if (Math.abs(tobaccoPrice.price - 6775) > 0.001) {
+      throw new Error(`Tobacco price ${tobaccoPrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
   }
 
@@ -499,6 +527,14 @@ export function buildDatabase() {
     if (!maizeOutput) throw new Error("South Africa 2023 maize production is missing from the database.");
     if (maizeOutput.value !== 16430000 || maizeOutput.unit !== "t" || maizeOutput.flag !== "A") {
       throw new Error(`South Africa maize ${maizeOutput.value} ${maizeOutput.unit} flag ${maizeOutput.flag} does not match the FAOSTAT extract.`);
+    }
+    const tobaccoOutput = db.prepare(`
+      SELECT value, unit, flag FROM production
+      WHERE country_iso3 = 'ZWE' AND item_code = '826' AND element_code = '5510' AND year = 2023
+    `).get();
+    if (!tobaccoOutput) throw new Error("Zimbabwe 2023 unmanufactured tobacco production is missing from the database.");
+    if (Math.abs(tobaccoOutput.value - 194828.2) > 0.001 || tobaccoOutput.unit !== "t" || tobaccoOutput.flag !== "A") {
+      throw new Error(`Zimbabwe tobacco ${tobaccoOutput.value} ${tobaccoOutput.unit} flag ${tobaccoOutput.flag} does not match the FAOSTAT extract.`);
     }
   }
   if (fish) {
@@ -602,6 +638,21 @@ export function buildDatabase() {
     }
     if (maizeTrade.net_weight_kg !== 601540980) {
       throw new Error(`South Africa maize quantity ${maizeTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const tobaccoQuery = tobacco?.completedQueries?.["ZWE:2024"];
+  if (tobaccoQuery?.status === "ok") {
+    const tobaccoTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'ZWE' AND partner_iso3 = 'CHN' AND hs_code = '2401' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!tobaccoTrade) throw new Error("Zimbabwe 2024 unmanufactured tobacco export to China is missing from the database.");
+    if (Math.abs(tobaccoTrade.trade_value_usd - 627946907.139) > 1) {
+      throw new Error(`Zimbabwe tobacco value ${tobaccoTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (tobaccoTrade.net_weight_kg !== 68738674) {
+      throw new Error(`Zimbabwe tobacco quantity ${tobaccoTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

@@ -20,6 +20,7 @@ export const paths = {
   tradeRubber: path.join(root, "data", "collected", "trade-rubber.json"),
   tradeGroundnuts: path.join(root, "data", "collected", "trade-groundnuts.json"),
   tradeMaize: path.join(root, "data", "collected", "trade-maize.json"),
+  tradeTobacco: path.join(root, "data", "collected", "trade-tobacco.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -35,6 +36,7 @@ export const fisheryDatasetId = "un-comtrade-fishery";
 export const rubberDatasetId = "un-comtrade-rubber";
 export const groundnutDatasetId = "un-comtrade-groundnuts";
 export const maizeDatasetId = "un-comtrade-maize";
+export const tobaccoDatasetId = "un-comtrade-tobacco";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -260,6 +262,10 @@ export const maizeProducts = [
   { hs: "1005", name: "Maize (corn)", category: "Food & agriculture", observatoryProduct: "Jagung" },
 ];
 
+export const tobaccoProducts = [
+  { hs: "2401", name: "Unmanufactured tobacco; tobacco refuse", category: "Food & agriculture", observatoryProduct: "Tembakau" },
+];
+
 export const fishProductionItems = [
   {
     itemCode: "FISH-CAPTURE",
@@ -404,6 +410,13 @@ export const productionItems = [
     observatoryProduct: "Jagung",
     detail: "FAO maize grain. Not HS 1005 customs weight, not seed trade alone, and not the US Gulf No. 2 yellow benchmark.",
   },
+  {
+    itemCode: "826",
+    name: "Unmanufactured tobacco",
+    category: "Food & agriculture",
+    observatoryProduct: "Tembakau",
+    detail: "Unmanufactured tobacco. Not manufactured tobacco, not HS 2401 customs weight, and not the US import unit value.",
+  },
 ];
 
 export const pinkSheetUrl =
@@ -526,6 +539,15 @@ export const commoditySeries = [
     observatoryProduct: "Jagung",
     unit: "USD per metric ton",
     detail: "US No. 2 yellow maize, f.o.b. US Gulf ports. Not sorghum, not FAO production, and not a bilateral Africa–Asia contract price.",
+  },
+  {
+    column: "Tobacco, US import u.v.",
+    series: "Tobacco, US import u.v.",
+    product: "Unmanufactured tobacco",
+    category: "Food & agriculture",
+    observatoryProduct: "Tembakau",
+    unit: "USD per metric ton",
+    detail: "US import unit value. Not a Zimbabwe auction price, not FAO production, and not a bilateral Africa–Asia contract price. A missing month is not a zero price.",
   },
 ];
 

@@ -11,6 +11,27 @@ const examples = [
   ["/api/providers?country=JP&category=Workforce", "Public organization references, Japan workforce sector", "Referensi perusahaan publik sektor tenaga kerja Jepang", "Références publiques, secteur de la main-d’œuvre au Japon"],
   ["/api/intelligence?country=BF&category=Film%20%26%20media", "Country–sector evidence and research questions", "Bukti dan pertanyaan riset negara–sektor", "Données et questions de recherche pays–secteur"],
   ["/api/coverage", "Coverage and missing data", "Cakupan dan data belum tersedia", "Couverture et données manquantes"],
+  ["/api/observatory?view=status", "Observatory database: coverage, sources, and the Kenya checks", "Basis data observatorium: cakupan, sumber, dan cek Kenya", "Base observatoire : couverture, sources et contrôles Kenya"],
+  ["/api/observatory?view=trade&reporter=KEN&partner=PAK&hs=0902&year=2024", "Kenya tea exports to Pakistan, 2024", "Ekspor teh Kenya ke Pakistan, 2024", "Exportations de thé du Kenya vers le Pakistan, 2024"],
+  ["/api/observatory?view=production&country=KEN&item=667&element=5510", "Kenya tea-leaf production", "Produksi daun teh Kenya", "Production de feuilles de thé au Kenya"],
+  ["/api/observatory?view=prices&series=Tea,%20Mombasa&limit=3", "Latest Mombasa tea auction benchmarks", "Patokan lelang teh Mombasa terbaru", "Derniers prix de référence du thé de Mombasa"],
+  ["/api/observatory?view=trade&hs=120740&year=2024", "Sesame-seed exports of at least USD 1 million, 2024", "Ekspor biji wijen minimal USD 1 juta, 2024", "Exportations de graines de sésame d’au moins 1 million USD, 2024"],
+  ["/api/observatory?view=trade&hs=0303&year=2024", "Frozen-fish exports of at least USD 1 million, 2024", "Ekspor ikan beku minimal USD 1 juta, 2024", "Exportations de poisson congelé d’au moins 1 million USD, 2024"],
+  ["/api/observatory?view=production&country=EGY&item=FISH-AQUA&element=Q_tlw", "Egypt aquaculture, live weight", "Akuakultur Mesir, bobot hidup", "Aquaculture égyptienne, poids vif"],
+  ["/api/observatory?view=trade&hs=4001&year=2024", "Natural rubber exports of at least USD 1 million, 2024", "Ekspor karet alam minimal USD 1 juta, 2024", "Exportations de caoutchouc naturel d’au moins 1 million USD, 2024"],
+  ["/api/observatory?view=prices&series=Rubber,%20TSR20&limit=3", "Latest TSR20 natural-rubber benchmarks", "Patokan karet alam TSR20 terbaru", "Derniers prix de référence du caoutchouc naturel TSR20"],
+  ["/api/observatory?view=trade&reporter=SEN&partner=CHN&hs=1202&year=2024", "Senegal groundnut exports to China, 2024", "Ekspor kacang tanah Senegal ke Tiongkok, 2024", "Exportations d’arachides du Sénégal vers la Chine, 2024"],
+  ["/api/observatory?view=production&country=SEN&item=242&element=5510", "Senegal in-shell groundnut production", "Produksi kacang tanah berkulit Senegal", "Production d’arachides en coque du Sénégal"],
+  ["/api/observatory?view=prices&series=Groundnuts&limit=3", "Latest groundnut benchmarks", "Patokan kacang tanah terbaru", "Derniers prix de référence de l’arachide"],
+  ["/api/observatory?view=trade&reporter=ZAF&partner=KOR&hs=1005&year=2023", "South Africa maize exports to Korea, 2023", "Ekspor jagung Afrika Selatan ke Korea, 2023", "Exportations de maïs de l’Afrique du Sud vers la Corée, 2023"],
+  ["/api/observatory?view=production&country=ZAF&item=56&element=5510", "South Africa maize production", "Produksi jagung Afrika Selatan", "Production de maïs de l’Afrique du Sud"],
+  ["/api/observatory?view=prices&series=Maize&limit=3", "Latest US Gulf maize benchmarks", "Patokan jagung US Gulf terbaru", "Derniers prix de référence du maïs US Gulf"],
+  ["/api/observatory?view=trade&reporter=ZWE&partner=CHN&hs=2401&year=2024", "Zimbabwe unmanufactured tobacco exports to China, 2024", "Ekspor tembakau belum diolah Zimbabwe ke Tiongkok, 2024", "Exportations de tabac non fabriqué du Zimbabwe vers la Chine, 2024"],
+  ["/api/observatory?view=production&country=ZWE&item=826&element=5510", "Zimbabwe unmanufactured tobacco production", "Produksi tembakau belum diolah Zimbabwe", "Production de tabac non fabriqué du Zimbabwe"],
+  ["/api/observatory?view=prices&series=Tobacco,%20US%20import%20u.v.&limit=3", "Latest US tobacco import unit values", "Nilai satuan impor tembakau AS terbaru", "Dernières valeurs unitaires du tabac importé aux États-Unis"],
+  ["/api/observatory?view=trade&reporter=IND&partner=LBY&hs=1701&year=2024", "India sugar exports to Libya, 2024", "Ekspor gula India ke Libya, 2024", "Exportations de sucre de l’Inde vers la Libye, 2024"],
+  ["/api/observatory?view=production&country=IND&item=156&element=5510", "India sugar-cane production", "Produksi tebu India", "Production de canne à sucre de l’Inde"],
+  ["/api/observatory?view=prices&series=Sugar,%20world&limit=3", "Latest ISA world sugar benchmarks", "Patokan gula dunia ISA terbaru", "Derniers prix de référence ISA du sucre mondial"],
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
@@ -63,7 +84,10 @@ export default function DocsPage({ mode }) {
             </p>
             <h3>{t("Attribution & licensing", "Atribusi & lisensi", "Attribution & licence")}</h3>
             <p>
-              World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}.
+              World Bank, World Development Indicators · {wdi.version} · {wdi.retrievedAt.slice(0, 10)}. UN Comtrade
+              public preview for Africa–Asia product flows, including sesame, vanilla, cloves, pepper, frozen fish,
+              fillets, prepared tuna, natural rubber, groundnuts, maize, unmanufactured tobacco, and sugar. World Bank Pink Sheet for monthly commodity benchmarks. FAO. 2025. FAOSTAT:
+              Crops and livestock products. FAO. 2026. FishStat: Global production. Licence: CC-BY-4.0.
             </p>
             <a href={wdi.licenseUrl} target="_blank" rel="noreferrer">
               World Bank {t("terms", "terms", "conditions")} ↗
@@ -175,6 +199,17 @@ export default function DocsPage({ mode }) {
                   "Reference CSV includes all filtered results. Invalid countries, indicators or ranges return HTTP 400. Latest values may refer to different reporting years. Missing years are omitted, not estimated.",
                   "CSV reference memuat seluruh hasil filter. Negara, indikator, atau rentang tidak valid menerima HTTP 400. Nilai terakhir dapat memiliki tahun berbeda. Tahun kosong tidak diestimasi.",
                   "Le CSV reference inclut tous les résultats filtrés. Pays, indicateurs ou plages invalides renvoient HTTP 400. Les dernières valeurs peuvent avoir des années différentes. Les années absentes ne sont pas estimées.",
+                )}
+              </p>
+              <h3>{t("Observatory database", "Basis data observatorium", "Base de l’observatoire")}</h3>
+              <p>
+                <code>view=status|countries|indicators|series|trade|corridors|prices|production · country · reporter · partner · indicator · hs · product · series · item · element · year · start · end · limit · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "SQLite file data/observatory.sqlite. Series requires country and indicator. Trade requires reporter, partner, hs, or year. Prices require product or series. Production requires country, item, or product. Flows below USD 1 million are omitted, and a missing pair is not zero trade. A missing production year is not zero output. Fish production is live weight, not the customs weight of HS 0303, 0304, or 160414. Groundnut production is in shell, not HS 1202 customs weight. Maize production is grain, not HS 1005 customs weight. Unmanufactured tobacco production is not the customs weight of HS 2401. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not the customs weight of HS 1701.",
+                  "Berkas SQLite data/observatory.sqlite. Series memerlukan negara dan indikator. Trade memerlukan reporter, partner, hs, atau year. Prices memerlukan product atau series. Production memerlukan country, item, atau product. Arus di bawah USD 1 juta tidak dimuat, dan pasangan yang tidak ada bukan nol perdagangan. Tahun produksi yang kosong bukan nol hasil. Produksi ikan adalah bobot hidup, bukan bobot bea cukai HS 0303, 0304, atau 160414. Produksi kacang tanah adalah berkulit, bukan bobot bea cukai HS 1202. Produksi jagung adalah biji-bijian, bukan bobot bea cukai HS 1005. Produksi tembakau belum diolah bukan bobot bea cukai HS 2401. Tebu dan bit gula bukan gula mentah dan tidak boleh dijumlahkan. Gula sentrifugal mentah bukan bobot bea cukai HS 1701.",
+                  "Fichier SQLite data/observatory.sqlite. Series exige un pays et un indicateur. Trade exige reporter, partner, hs ou year. Prices exige product ou series. Production exige country, item ou product. Les flux inférieurs à 1 million USD sont omis, et une paire absente n’est pas un commerce nul. Une année de production absente n’est pas une production nulle. La production de poisson est un poids vif, pas le poids en douane des codes SH 0303, 0304 ou 160414. La production d’arachides est en coque, pas le poids en douane du SH 1202. La production de maïs est du grain, pas le poids en douane du SH 1005. La production de tabac non fabriqué n’est pas le poids en douane du SH 2401. La canne à sucre et la betterave sucrière ne sont pas du sucre brut et ne doivent pas être additionnées. Le sucre brut centrifuge n’est pas le poids en douane du SH 1701.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

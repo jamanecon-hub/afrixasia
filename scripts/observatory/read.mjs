@@ -134,6 +134,25 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'ZWE' AND partner_iso3 = 'CHN' AND hs_code = '2401' AND year = 2024 AND flow = 'export'
   `).get();
+  const sugarPrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Sugar, world' ORDER BY period DESC LIMIT 1
+  `).get();
+  const caneOutput = db.prepare(`
+    SELECT value, unit, flag
+    FROM production
+    WHERE country_iso3 = 'IND' AND item_code = '156' AND element_code = '5510' AND year = 2023
+  `).get();
+  const rawSugarOutput = db.prepare(`
+    SELECT value, unit, flag
+    FROM production
+    WHERE country_iso3 = 'ZAF' AND item_code = '162' AND element_code = '5510' AND year = 2023
+  `).get();
+  const sugarTrade = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'IND' AND partner_iso3 = 'LBY' AND hs_code = '1701' AND year = 2024 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -165,7 +184,11 @@ function status(db) {
     tobaccoLatest: tobaccoPrice || null,
     zimbabweTobacco2023: tobaccoOutput || null,
     zimbabweTobaccoExportsToChina2024: tobaccoTrade || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero.",
+    sugarWorldLatest: sugarPrice || null,
+    indiaSugarCane2023: caneOutput || null,
+    southAfricaRawSugar2023: rawSugarOutput || null,
+    indiaSugarExportsToLibya2024: sugarTrade || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price.",
     datasets,
   };
 }
@@ -325,7 +348,7 @@ function production(db, params) {
     body: {
       total: rows.length,
       rows,
-      note: "FAOSTAT production, harvested area, or yield, plus FAO FishStat live weight for aquatic animals. Tea leaves are not made tea. Capture and aquaculture must not be added into a trade figure. A missing country-year is not zero production. Palm fruit and palm oil must not be added together. Unmanufactured tobacco production is not HS 2401 customs weight.",
+      note: "FAOSTAT production, harvested area, or yield, plus FAO FishStat live weight for aquatic animals. Tea leaves are not made tea. Capture and aquaculture must not be added into a trade figure. A missing country-year is not zero production. Palm fruit and palm oil must not be added together. Unmanufactured tobacco production is not HS 2401 customs weight. Sugar cane and sugar beet must not be added. Raw centrifugal sugar is not HS 1701 customs weight.",
     },
   };
 }

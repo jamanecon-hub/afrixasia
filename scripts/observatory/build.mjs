@@ -14,6 +14,8 @@ import {
   maizeProducts,
   tobaccoDatasetId,
   tobaccoProducts,
+  sugarDatasetId,
+  sugarProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -68,6 +70,7 @@ export function buildDatabase() {
   const groundnuts = fs.existsSync(paths.tradeGroundnuts) ? readJson(paths.tradeGroundnuts) : null;
   const maize = fs.existsSync(paths.tradeMaize) ? readJson(paths.tradeMaize) : null;
   const tobacco = fs.existsSync(paths.tradeTobacco) ? readJson(paths.tradeTobacco) : null;
+  const sugar = fs.existsSync(paths.tradeSugar) ? readJson(paths.tradeSugar) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -236,6 +239,20 @@ export function buildDatabase() {
       note: tobacco.note,
     });
   }
+  if (sugar) {
+    insertDataset(db, {
+      id: sugar.datasetId || sugarDatasetId,
+      title: sugar.title,
+      source: sugar.source,
+      sourceUrl: sugar.sourceUrl,
+      license: sugar.license,
+      licenseUrl: sugar.licenseUrl,
+      frequency: sugar.frequency,
+      updatedAt: sugar.retrievedAt,
+      retrievedAt: sugar.retrievedAt,
+      note: sugar.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -330,7 +347,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -368,6 +385,7 @@ export function buildDatabase() {
   insertFlows(groundnuts, groundnutDatasetId);
   insertFlows(maize, maizeDatasetId);
   insertFlows(tobacco, tobaccoDatasetId);
+  insertFlows(sugar, sugarDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -399,6 +417,7 @@ export function buildDatabase() {
   insertQueries(groundnuts, groundnutDatasetId);
   insertQueries(maize, maizeDatasetId);
   insertQueries(tobacco, tobaccoDatasetId);
+  insertQueries(sugar, sugarDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -449,6 +468,15 @@ export function buildDatabase() {
     if (!tobaccoPrice) throw new Error("July 2026 tobacco price is missing from the database.");
     if (Math.abs(tobaccoPrice.price - 6775) > 0.001) {
       throw new Error(`Tobacco price ${tobaccoPrice.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Sugar, world")) {
+    const sugarPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Sugar, world' AND period = '2026-09'
+    `).get();
+    if (!sugarPrice) throw new Error("September 2026 world sugar price is missing from the database.");
+    if (Math.abs(sugarPrice.price - 0.41) > 0.001) {
+      throw new Error(`World sugar price ${sugarPrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
   }
 
@@ -535,6 +563,30 @@ export function buildDatabase() {
     if (!tobaccoOutput) throw new Error("Zimbabwe 2023 unmanufactured tobacco production is missing from the database.");
     if (Math.abs(tobaccoOutput.value - 194828.2) > 0.001 || tobaccoOutput.unit !== "t" || tobaccoOutput.flag !== "A") {
       throw new Error(`Zimbabwe tobacco ${tobaccoOutput.value} ${tobaccoOutput.unit} flag ${tobaccoOutput.flag} does not match the FAOSTAT extract.`);
+    }
+    const caneOutput = db.prepare(`
+      SELECT value, unit, flag FROM production
+      WHERE country_iso3 = 'IND' AND item_code = '156' AND element_code = '5510' AND year = 2023
+    `).get();
+    if (!caneOutput) throw new Error("India 2023 sugar-cane production is missing from the database.");
+    if (Math.abs(caneOutput.value - 490533351.06) > 0.001 || caneOutput.unit !== "t" || caneOutput.flag !== "A") {
+      throw new Error(`India sugar cane ${caneOutput.value} ${caneOutput.unit} flag ${caneOutput.flag} does not match the FAOSTAT extract.`);
+    }
+    const beetOutput = db.prepare(`
+      SELECT value, unit, flag FROM production
+      WHERE country_iso3 = 'CHN' AND item_code = '157' AND element_code = '5510' AND year = 2023
+    `).get();
+    if (!beetOutput) throw new Error("China 2023 sugar-beet production is missing from the database.");
+    if (beetOutput.value !== 9160200 || beetOutput.unit !== "t" || beetOutput.flag !== "A") {
+      throw new Error(`China sugar beet ${beetOutput.value} ${beetOutput.unit} flag ${beetOutput.flag} does not match the FAOSTAT extract.`);
+    }
+    const rawSugarOutput = db.prepare(`
+      SELECT value, unit, flag FROM production
+      WHERE country_iso3 = 'ZAF' AND item_code = '162' AND element_code = '5510' AND year = 2023
+    `).get();
+    if (!rawSugarOutput) throw new Error("South Africa 2023 raw sugar production is missing from the database.");
+    if (rawSugarOutput.value !== 2075000 || rawSugarOutput.unit !== "t" || rawSugarOutput.flag !== "A") {
+      throw new Error(`South Africa raw sugar ${rawSugarOutput.value} ${rawSugarOutput.unit} flag ${rawSugarOutput.flag} does not match the FAOSTAT extract.`);
     }
   }
   if (fish) {
@@ -653,6 +705,21 @@ export function buildDatabase() {
     }
     if (tobaccoTrade.net_weight_kg !== 68738674) {
       throw new Error(`Zimbabwe tobacco quantity ${tobaccoTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const sugarQuery = sugar?.completedQueries?.["IND:2024"];
+  if (sugarQuery?.status === "ok") {
+    const sugarTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'IND' AND partner_iso3 = 'LBY' AND hs_code = '1701' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!sugarTrade) throw new Error("India 2024 sugar export to Libya is missing from the database.");
+    if (Math.abs(sugarTrade.trade_value_usd - 295754311.572) > 1) {
+      throw new Error(`India sugar value ${sugarTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (sugarTrade.net_weight_kg !== 476420000) {
+      throw new Error(`India sugar quantity ${sugarTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

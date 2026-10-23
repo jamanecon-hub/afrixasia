@@ -18,7 +18,7 @@ npm run preview
 
 ## Observatory database
 
-`data/observatory.sqlite` is the queryable copy of the market observatory: the published WDI snapshot, extra annual sector indicators, Africa–Asia export flows (including sesame, vanilla, cloves, pepper, frozen fish, fillets, prepared tuna, natural rubber, groundnuts, maize, and unmanufactured tobacco), monthly commodity benchmarks, FAO crop production, and FAO FishStat aquatic-animal production.
+`data/observatory.sqlite` is the queryable copy of the market observatory: the published WDI snapshot, extra annual sector indicators, Africa–Asia export flows (including sesame, vanilla, cloves, pepper, frozen fish, fillets, prepared tuna, natural rubber, groundnuts, maize, unmanufactured tobacco, and sugar), monthly commodity benchmarks, FAO crop production, and FAO FishStat aquatic-animal production.
 
 ```bash
 npm run observatory:collect
@@ -26,7 +26,7 @@ npm run observatory:query -- status
 npm run observatory:query -- production --country KEN --item 667 --element 5510
 ```
 
-`GET /api/observatory` reads the same database. A missing trade or production row is not zero. Flows under USD 1 million are omitted. Tea production is fresh leaves, not made tea and not the Mombasa auction price. Fish production is live weight, not customs weight. Natural rubber production is not HS 4001 trade and not the TSR20 futures price. Groundnut production is in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. Maize production is grain, not HS 1005 trade and not the US Gulf No. 2 yellow price. Unmanufactured tobacco production is not HS 2401 trade and not the US import unit value. A missing price month is not zero.
+`GET /api/observatory` reads the same database. A missing trade or production row is not zero. Flows under USD 1 million are omitted. Tea production is fresh leaves, not made tea and not the Mombasa auction price. Fish production is live weight, not customs weight. Natural rubber production is not HS 4001 trade and not the TSR20 futures price. Groundnut production is in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. Maize production is grain, not HS 1005 trade and not the US Gulf No. 2 yellow price. Unmanufactured tobacco production is not HS 2401 trade and not the US import unit value. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 trade and not the ISA world price. A missing price month is not zero.
 
 ## What is included
 

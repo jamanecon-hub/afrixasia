@@ -22,6 +22,8 @@ import {
   maizeProducts,
   tobaccoDatasetId,
   tobaccoProducts,
+  sugarDatasetId,
+  sugarProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -51,6 +53,7 @@ const rubberCollectionVersion = 1;
 const groundnutCollectionVersion = 1;
 const maizeCollectionVersion = 1;
 const tobaccoCollectionVersion = 1;
+const sugarCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -258,7 +261,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series.",
     series: commoditySeries,
     prices,
   };
@@ -481,7 +484,7 @@ export async function collectProduction() {
     frequency: "Annual",
     sourceUpdatedAt: table.sourceFileDate,
     retrievedAt: stamp(),
-    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. Pepper is Piper, not Capsicum. Natural rubber is item 836, not HS 4001 trade and not the TSR20 price. Groundnuts are item 242, in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. Maize is item 56, grain, not HS 1005 customs weight and not the US Gulf No. 2 yellow price. Tobacco is item 826, unmanufactured, not HS 2401 customs weight and not the US import unit value. A missing country-year is not zero production. Macao has no rows for these items.",
+    note: "Production (t), area harvested (ha), and yield (kg/ha) for 2015–2024. Tea is fresh leaves, not made tea. Rice is the FAO rice item, not milled-rice trade. Palm fruit and palm oil are separate and must not be added. Cotton lint has no harvested-area series in this extract. Pepper is Piper, not Capsicum. Natural rubber is item 836, not HS 4001 trade and not the TSR20 price. Groundnuts are item 242, in shell, not HS 1202 trade and not the Pink Sheet groundnut or groundnut-oil price. Maize is item 56, grain, not HS 1005 customs weight and not the US Gulf No. 2 yellow price. Tobacco is item 826, unmanufactured, not HS 2401 customs weight and not the US import unit value. Sugar cane is item 156 and sugar beet is item 157; do not add them. Raw centrifugal sugar is item 162, not cane or beet tonnage, not HS 1701 customs weight, and not the ISA world price. Raw sugar has production only. A missing country-year is not zero production. Macao has no rows for these items.",
     items: productionItems,
     rows: table.rows,
   };
@@ -604,6 +607,16 @@ const tobaccoOptions = {
   useClient: false,
 };
 
+const sugarOptions = {
+  datasetId: sugarDatasetId,
+  title: "Africa–Asia sugar exports",
+  note: "Cane or beet sugar and chemically pure sucrose, in solid form (HS 1701), including raw and refined sugar. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not FAO sugar-cane or sugar-beet production, not raw centrifugal sugar, and not the ISA world price.",
+  products: sugarProducts,
+  collectionVersion: sugarCollectionVersion,
+  statePath: paths.tradeSugar,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -637,6 +650,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, maizeOptions);
   buildDatabase();
   await collectTrade(wdi.countries, tobaccoOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, sugarOptions);
   buildDatabase();
 }
 

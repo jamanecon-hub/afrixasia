@@ -21,6 +21,7 @@ export const paths = {
   tradeGroundnuts: path.join(root, "data", "collected", "trade-groundnuts.json"),
   tradeMaize: path.join(root, "data", "collected", "trade-maize.json"),
   tradeTobacco: path.join(root, "data", "collected", "trade-tobacco.json"),
+  tradeSugar: path.join(root, "data", "collected", "trade-sugar.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -37,6 +38,7 @@ export const rubberDatasetId = "un-comtrade-rubber";
 export const groundnutDatasetId = "un-comtrade-groundnuts";
 export const maizeDatasetId = "un-comtrade-maize";
 export const tobaccoDatasetId = "un-comtrade-tobacco";
+export const sugarDatasetId = "un-comtrade-sugar";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -266,6 +268,15 @@ export const tobaccoProducts = [
   { hs: "2401", name: "Unmanufactured tobacco; tobacco refuse", category: "Food & agriculture", observatoryProduct: "Tembakau" },
 ];
 
+export const sugarProducts = [
+  {
+    hs: "1701",
+    name: "Cane or beet sugar and chemically pure sucrose, in solid form",
+    category: "Food & agriculture",
+    observatoryProduct: "Gula",
+  },
+];
+
 export const fishProductionItems = [
   {
     itemCode: "FISH-CAPTURE",
@@ -417,6 +428,27 @@ export const productionItems = [
     observatoryProduct: "Tembakau",
     detail: "Unmanufactured tobacco. Not manufactured tobacco, not HS 2401 customs weight, and not the US import unit value.",
   },
+  {
+    itemCode: "156",
+    name: "Sugar cane",
+    category: "Food & agriculture",
+    observatoryProduct: "Gula",
+    detail: "Sugar cane. Not sugar beet, not raw or refined sugar, not HS 1701 customs weight, and not the ISA world price.",
+  },
+  {
+    itemCode: "157",
+    name: "Sugar beet",
+    category: "Food & agriculture",
+    observatoryProduct: "Gula",
+    detail: "Sugar beet. Not sugar cane. Do not add beet to cane. Not HS 1701 customs weight and not the ISA world price.",
+  },
+  {
+    itemCode: "162",
+    name: "Raw cane or beet sugar (centrifugal only)",
+    category: "Food & agriculture",
+    observatoryProduct: "Gula",
+    detail: "Raw centrifugal sugar from cane or beet. Not refined sugar, not sugar-cane or sugar-beet tonnage, not HS 1701 customs weight, and not the ISA world price.",
+  },
 ];
 
 export const pinkSheetUrl =
@@ -548,6 +580,15 @@ export const commoditySeries = [
     observatoryProduct: "Tembakau",
     unit: "USD per metric ton",
     detail: "US import unit value. Not a Zimbabwe auction price, not FAO production, and not a bilateral Africa–Asia contract price. A missing month is not a zero price.",
+  },
+  {
+    column: "Sugar, world",
+    series: "Sugar, world",
+    product: "Sugar",
+    category: "Food & agriculture",
+    observatoryProduct: "Gula",
+    unit: "USD per kg",
+    detail: "International Sugar Agreement world price, nominal US dollars per kilogram. Not the EU or US sugar price, not FAO cane, beet, or raw-sugar production, and not a bilateral Africa–Asia contract price.",
   },
 ];
 

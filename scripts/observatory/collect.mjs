@@ -24,6 +24,8 @@ import {
   tobaccoProducts,
   sugarDatasetId,
   sugarProducts,
+  phosphateDatasetId,
+  phosphateProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -54,6 +56,7 @@ const groundnutCollectionVersion = 1;
 const maizeCollectionVersion = 1;
 const tobaccoCollectionVersion = 1;
 const sugarCollectionVersion = 1;
+const phosphateCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -261,7 +264,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea.",
     series: commoditySeries,
     prices,
   };
@@ -617,6 +620,16 @@ const sugarOptions = {
   useClient: false,
 };
 
+const phosphateOptions = {
+  datasetId: phosphateDatasetId,
+  title: "Africa–Asia phosphate rock exports",
+  note: "Natural calcium phosphates, natural aluminium calcium phosphates and phosphatic chalk (HS 2510), whether or not ground. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not mine production. This is not HS 31 manufactured fertilizer and not the DAP, TSP, or urea price. The Pink Sheet benchmark is phosphate rock, f.o.b. North Africa.",
+  products: phosphateProducts,
+  collectionVersion: phosphateCollectionVersion,
+  statePath: paths.tradePhosphate,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -652,6 +665,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, tobaccoOptions);
   buildDatabase();
   await collectTrade(wdi.countries, sugarOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, phosphateOptions);
   buildDatabase();
 }
 

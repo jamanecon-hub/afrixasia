@@ -153,6 +153,15 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'IND' AND partner_iso3 = 'LBY' AND hs_code = '1701' AND year = 2024 AND flow = 'export'
   `).get();
+  const phosphatePrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Phosphate rock' ORDER BY period DESC LIMIT 1
+  `).get();
+  const phosphateTrade = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'MAR' AND partner_iso3 = 'IND' AND hs_code = '2510' AND year = 2024 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -188,7 +197,9 @@ function status(db) {
     indiaSugarCane2023: caneOutput || null,
     southAfricaRawSugar2023: rawSugarOutput || null,
     indiaSugarExportsToLibya2024: sugarTrade || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price.",
+    phosphateRockLatest: phosphatePrice || null,
+    moroccoPhosphateExportsToIndia2024: phosphateTrade || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa.",
     datasets,
   };
 }

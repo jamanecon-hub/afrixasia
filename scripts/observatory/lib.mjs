@@ -22,6 +22,7 @@ export const paths = {
   tradeMaize: path.join(root, "data", "collected", "trade-maize.json"),
   tradeTobacco: path.join(root, "data", "collected", "trade-tobacco.json"),
   tradeSugar: path.join(root, "data", "collected", "trade-sugar.json"),
+  tradePhosphate: path.join(root, "data", "collected", "trade-phosphate.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -39,6 +40,7 @@ export const groundnutDatasetId = "un-comtrade-groundnuts";
 export const maizeDatasetId = "un-comtrade-maize";
 export const tobaccoDatasetId = "un-comtrade-tobacco";
 export const sugarDatasetId = "un-comtrade-sugar";
+export const phosphateDatasetId = "un-comtrade-phosphate";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -274,6 +276,15 @@ export const sugarProducts = [
     name: "Cane or beet sugar and chemically pure sucrose, in solid form",
     category: "Food & agriculture",
     observatoryProduct: "Gula",
+  },
+];
+
+export const phosphateProducts = [
+  {
+    hs: "2510",
+    name: "Natural calcium phosphates, natural aluminium calcium phosphates and phosphatic chalk",
+    category: "Fertilizers & minerals",
+    observatoryProduct: "Batuan fosfat",
   },
 ];
 
@@ -589,6 +600,15 @@ export const commoditySeries = [
     observatoryProduct: "Gula",
     unit: "USD per kg",
     detail: "International Sugar Agreement world price, nominal US dollars per kilogram. Not the EU or US sugar price, not FAO cane, beet, or raw-sugar production, and not a bilateral Africa–Asia contract price.",
+  },
+  {
+    column: "Phosphate rock",
+    series: "Phosphate rock",
+    product: "Phosphate rock",
+    category: "Fertilizers & minerals",
+    observatoryProduct: "Batuan fosfat",
+    unit: "USD per metric ton",
+    detail: "Phosphate rock, f.o.b. North Africa. Not DAP, TSP, or urea, not HS 31 manufactured fertilizer, and not a bilateral Africa–Asia contract price.",
   },
 ];
 

@@ -16,6 +16,8 @@ import {
   tobaccoProducts,
   sugarDatasetId,
   sugarProducts,
+  phosphateDatasetId,
+  phosphateProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -71,6 +73,7 @@ export function buildDatabase() {
   const maize = fs.existsSync(paths.tradeMaize) ? readJson(paths.tradeMaize) : null;
   const tobacco = fs.existsSync(paths.tradeTobacco) ? readJson(paths.tradeTobacco) : null;
   const sugar = fs.existsSync(paths.tradeSugar) ? readJson(paths.tradeSugar) : null;
+  const phosphate = fs.existsSync(paths.tradePhosphate) ? readJson(paths.tradePhosphate) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -253,6 +256,20 @@ export function buildDatabase() {
       note: sugar.note,
     });
   }
+  if (phosphate) {
+    insertDataset(db, {
+      id: phosphate.datasetId || phosphateDatasetId,
+      title: phosphate.title,
+      source: phosphate.source,
+      sourceUrl: phosphate.sourceUrl,
+      license: phosphate.license,
+      licenseUrl: phosphate.licenseUrl,
+      frequency: phosphate.frequency,
+      updatedAt: phosphate.retrievedAt,
+      retrievedAt: phosphate.retrievedAt,
+      note: phosphate.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -347,7 +364,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -386,6 +403,7 @@ export function buildDatabase() {
   insertFlows(maize, maizeDatasetId);
   insertFlows(tobacco, tobaccoDatasetId);
   insertFlows(sugar, sugarDatasetId);
+  insertFlows(phosphate, phosphateDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -418,6 +436,7 @@ export function buildDatabase() {
   insertQueries(maize, maizeDatasetId);
   insertQueries(tobacco, tobaccoDatasetId);
   insertQueries(sugar, sugarDatasetId);
+  insertQueries(phosphate, phosphateDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -477,6 +496,15 @@ export function buildDatabase() {
     if (!sugarPrice) throw new Error("September 2026 world sugar price is missing from the database.");
     if (Math.abs(sugarPrice.price - 0.41) > 0.001) {
       throw new Error(`World sugar price ${sugarPrice.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Phosphate rock")) {
+    const phosphatePrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Phosphate rock' AND period = '2026-09'
+    `).get();
+    if (!phosphatePrice) throw new Error("September 2026 phosphate rock price is missing from the database.");
+    if (Math.abs(phosphatePrice.price - 170) > 0.001) {
+      throw new Error(`Phosphate rock price ${phosphatePrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
   }
 
@@ -720,6 +748,21 @@ export function buildDatabase() {
     }
     if (sugarTrade.net_weight_kg !== 476420000) {
       throw new Error(`India sugar quantity ${sugarTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const phosphateQuery = phosphate?.completedQueries?.["MAR:2024"];
+  if (phosphateQuery?.status === "ok") {
+    const phosphateTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'MAR' AND partner_iso3 = 'IND' AND hs_code = '2510' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!phosphateTrade) throw new Error("Morocco 2024 phosphate rock export to India is missing from the database.");
+    if (Math.abs(phosphateTrade.trade_value_usd - 217187614.907) > 1) {
+      throw new Error(`Morocco phosphate value ${phosphateTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (phosphateTrade.net_weight_kg !== 1826611000) {
+      throw new Error(`Morocco phosphate quantity ${phosphateTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

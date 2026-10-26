@@ -28,6 +28,8 @@ import {
   phosphateProducts,
   copperDatasetId,
   copperProducts,
+  cobaltDatasetId,
+  cobaltProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -60,6 +62,7 @@ const tobaccoCollectionVersion = 1;
 const sugarCollectionVersion = 1;
 const phosphateCollectionVersion = 1;
 const copperCollectionVersion = 1;
+const cobaltCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -267,7 +270,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper.",
     series: commoditySeries,
     prices,
   };
@@ -643,6 +646,16 @@ const copperOptions = {
   useClient: false,
 };
 
+const cobaltOptions = {
+  datasetId: cobaltDatasetId,
+  title: "Africa–Asia cobalt oxide and hydroxide exports",
+  note: "Cobalt oxides and hydroxides; commercial cobalt oxides (HS 282200). Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. This is not cobalt ores and concentrates (HS 2605), not unwrought cobalt, mattes, or powders (HS 810520), and not copper. Oxide and hydroxide weight must not be added to copper weight and is not contained cobalt metal. Mine production is absent from this database, not zero. The Pink Sheet extract has no cobalt price, so none is stored.",
+  products: cobaltProducts,
+  collectionVersion: cobaltCollectionVersion,
+  statePath: paths.tradeCobalt,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -682,6 +695,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, phosphateOptions);
   buildDatabase();
   await collectTrade(wdi.countries, copperOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, cobaltOptions);
   buildDatabase();
 }
 

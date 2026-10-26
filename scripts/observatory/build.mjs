@@ -20,6 +20,8 @@ import {
   phosphateProducts,
   copperDatasetId,
   copperProducts,
+  cobaltDatasetId,
+  cobaltProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -77,6 +79,7 @@ export function buildDatabase() {
   const sugar = fs.existsSync(paths.tradeSugar) ? readJson(paths.tradeSugar) : null;
   const phosphate = fs.existsSync(paths.tradePhosphate) ? readJson(paths.tradePhosphate) : null;
   const copper = fs.existsSync(paths.tradeCopper) ? readJson(paths.tradeCopper) : null;
+  const cobalt = fs.existsSync(paths.tradeCobalt) ? readJson(paths.tradeCobalt) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -287,6 +290,20 @@ export function buildDatabase() {
       note: copper.note,
     });
   }
+  if (cobalt) {
+    insertDataset(db, {
+      id: cobalt.datasetId || cobaltDatasetId,
+      title: cobalt.title,
+      source: cobalt.source,
+      sourceUrl: cobalt.sourceUrl,
+      license: cobalt.license,
+      licenseUrl: cobalt.licenseUrl,
+      frequency: cobalt.frequency,
+      updatedAt: cobalt.retrievedAt,
+      retrievedAt: cobalt.retrievedAt,
+      note: cobalt.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -381,7 +398,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -422,6 +439,7 @@ export function buildDatabase() {
   insertFlows(sugar, sugarDatasetId);
   insertFlows(phosphate, phosphateDatasetId);
   insertFlows(copper, copperDatasetId);
+  insertFlows(cobalt, cobaltDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -456,6 +474,7 @@ export function buildDatabase() {
   insertQueries(sugar, sugarDatasetId);
   insertQueries(phosphate, phosphateDatasetId);
   insertQueries(copper, copperDatasetId);
+  insertQueries(cobalt, cobaltDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -817,6 +836,21 @@ export function buildDatabase() {
     }
     if (copperOre.net_weight_kg !== 725941930.5) {
       throw new Error(`DRC copper-ore quantity ${copperOre.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const cobaltQuery = cobalt?.completedQueries?.["COD:2024"];
+  if (cobaltQuery?.status === "ok") {
+    const cobaltTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'COD' AND partner_iso3 = 'CHN' AND hs_code = '282200' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!cobaltTrade) throw new Error("DRC 2024 cobalt oxide and hydroxide export to China is missing from the database.");
+    if (Math.abs(cobaltTrade.trade_value_usd - 3319809009.513) > 1) {
+      throw new Error(`DRC cobalt value ${cobaltTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (cobaltTrade.net_weight_kg !== 368551016) {
+      throw new Error(`DRC cobalt quantity ${cobaltTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

@@ -24,6 +24,7 @@ export const paths = {
   tradeSugar: path.join(root, "data", "collected", "trade-sugar.json"),
   tradePhosphate: path.join(root, "data", "collected", "trade-phosphate.json"),
   tradeCopper: path.join(root, "data", "collected", "trade-copper.json"),
+  tradeCobalt: path.join(root, "data", "collected", "trade-cobalt.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -43,6 +44,7 @@ export const tobaccoDatasetId = "un-comtrade-tobacco";
 export const sugarDatasetId = "un-comtrade-sugar";
 export const phosphateDatasetId = "un-comtrade-phosphate";
 export const copperDatasetId = "un-comtrade-copper";
+export const cobaltDatasetId = "un-comtrade-cobalt";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -302,6 +304,15 @@ export const copperProducts = [
     name: "Refined copper cathodes",
     category: "Metals & minerals",
     observatoryProduct: "Tembaga",
+  },
+];
+
+export const cobaltProducts = [
+  {
+    hs: "282200",
+    name: "Cobalt oxides and hydroxides; commercial cobalt oxides",
+    category: "Metals & minerals",
+    observatoryProduct: "Kobalt",
   },
 ];
 

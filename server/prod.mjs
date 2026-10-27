@@ -119,7 +119,11 @@ function dispatch(req, res) {
   next();
 }
 
-const server = http.createServer(dispatch);
-server.listen(port, host, () => {
-  console.log(`AfriXAsia listening on http://${host}:${port}`);
-});
+export { dispatch };
+
+if (!process.env.VERCEL) {
+  const server = http.createServer(dispatch);
+  server.listen(port, host, () => {
+    console.log(`AfriXAsia listening on http://${host}:${port}`);
+  });
+}

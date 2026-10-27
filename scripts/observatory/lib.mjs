@@ -25,6 +25,7 @@ export const paths = {
   tradePhosphate: path.join(root, "data", "collected", "trade-phosphate.json"),
   tradeCopper: path.join(root, "data", "collected", "trade-copper.json"),
   tradeCobalt: path.join(root, "data", "collected", "trade-cobalt.json"),
+  tradeIron: path.join(root, "data", "collected", "trade-iron.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -45,6 +46,7 @@ export const sugarDatasetId = "un-comtrade-sugar";
 export const phosphateDatasetId = "un-comtrade-phosphate";
 export const copperDatasetId = "un-comtrade-copper";
 export const cobaltDatasetId = "un-comtrade-cobalt";
+export const ironDatasetId = "un-comtrade-iron";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -313,6 +315,15 @@ export const cobaltProducts = [
     name: "Cobalt oxides and hydroxides; commercial cobalt oxides",
     category: "Metals & minerals",
     observatoryProduct: "Kobalt",
+  },
+];
+
+export const ironProducts = [
+  {
+    hs: "2601",
+    name: "Iron ores and concentrates, including roasted iron pyrites",
+    category: "Metals & minerals",
+    observatoryProduct: "Bijih besi",
   },
 ];
 
@@ -646,6 +657,15 @@ export const commoditySeries = [
     observatoryProduct: "Tembaga",
     unit: "USD per metric ton",
     detail: "LME grade A copper cathode settlement, nominal US dollars per metric ton. Not copper ore or concentrate, not HS 2603, and not a bilateral Africa–Asia contract price.",
+  },
+  {
+    column: "Iron ore, cfr spot",
+    series: "Iron ore, cfr spot",
+    product: "Iron ore",
+    category: "Metals & minerals",
+    observatoryProduct: "Bijih besi",
+    unit: "USD per dry metric ton",
+    detail: "Iron ore fines, spot, c.f.r. China, 62% Fe, nominal US dollars per dry metric ton. The Monthly Prices header prints ($/dmtu); the Description sheet defines this spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit, not HS 2601 customs value, and not a bilateral Africa–Asia contract price.",
   },
 ];
 

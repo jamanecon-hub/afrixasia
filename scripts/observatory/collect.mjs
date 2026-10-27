@@ -30,6 +30,8 @@ import {
   copperProducts,
   cobaltDatasetId,
   cobaltProducts,
+  ironDatasetId,
+  ironProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -63,6 +65,7 @@ const sugarCollectionVersion = 1;
 const phosphateCollectionVersion = 1;
 const copperCollectionVersion = 1;
 const cobaltCollectionVersion = 1;
+const ironCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -270,7 +273,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value.",
     series: commoditySeries,
     prices,
   };
@@ -656,6 +659,16 @@ const cobaltOptions = {
   useClient: false,
 };
 
+const ironOptions = {
+  datasetId: ironDatasetId,
+  title: "Africa–Asia iron ore exports",
+  note: "Iron ores and concentrates, including roasted iron pyrites (HS 2601). This is the heading aggregate, including non-agglomerated and agglomerated ore. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not mine production. Mine production is absent from this database, not zero. This is not pig iron (HS 7201) and not steel. The Pink Sheet benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value.",
+  products: ironProducts,
+  collectionVersion: ironCollectionVersion,
+  statePath: paths.tradeIron,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -697,6 +710,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, copperOptions);
   buildDatabase();
   await collectTrade(wdi.countries, cobaltOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, ironOptions);
   buildDatabase();
 }
 

@@ -22,6 +22,8 @@ import {
   copperProducts,
   cobaltDatasetId,
   cobaltProducts,
+  ironDatasetId,
+  ironProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -80,6 +82,7 @@ export function buildDatabase() {
   const phosphate = fs.existsSync(paths.tradePhosphate) ? readJson(paths.tradePhosphate) : null;
   const copper = fs.existsSync(paths.tradeCopper) ? readJson(paths.tradeCopper) : null;
   const cobalt = fs.existsSync(paths.tradeCobalt) ? readJson(paths.tradeCobalt) : null;
+  const iron = fs.existsSync(paths.tradeIron) ? readJson(paths.tradeIron) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -304,6 +307,20 @@ export function buildDatabase() {
       note: cobalt.note,
     });
   }
+  if (iron) {
+    insertDataset(db, {
+      id: iron.datasetId || ironDatasetId,
+      title: iron.title,
+      source: iron.source,
+      sourceUrl: iron.sourceUrl,
+      license: iron.license,
+      licenseUrl: iron.licenseUrl,
+      frequency: iron.frequency,
+      updatedAt: iron.retrievedAt,
+      retrievedAt: iron.retrievedAt,
+      note: iron.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -398,7 +415,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -440,6 +457,7 @@ export function buildDatabase() {
   insertFlows(phosphate, phosphateDatasetId);
   insertFlows(copper, copperDatasetId);
   insertFlows(cobalt, cobaltDatasetId);
+  insertFlows(iron, ironDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -475,6 +493,7 @@ export function buildDatabase() {
   insertQueries(phosphate, phosphateDatasetId);
   insertQueries(copper, copperDatasetId);
   insertQueries(cobalt, cobaltDatasetId);
+  insertQueries(iron, ironDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -552,6 +571,15 @@ export function buildDatabase() {
     if (!copperPrice) throw new Error("September 2026 copper price is missing from the database.");
     if (Math.abs(copperPrice.price - 14474) > 0.001) {
       throw new Error(`Copper price ${copperPrice.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Iron ore, cfr spot")) {
+    const ironPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Iron ore, cfr spot' AND period = '2026-09'
+    `).get();
+    if (!ironPrice) throw new Error("September 2026 iron ore price is missing from the database.");
+    if (Math.abs(ironPrice.price - 97.7) > 0.001) {
+      throw new Error(`Iron ore price ${ironPrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
   }
 
@@ -836,6 +864,21 @@ export function buildDatabase() {
     }
     if (copperOre.net_weight_kg !== 725941930.5) {
       throw new Error(`DRC copper-ore quantity ${copperOre.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const ironQuery = iron?.completedQueries?.["ZAF:2024"];
+  if (ironQuery?.status === "ok") {
+    const ironTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg FROM trade_flows
+      WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'CHN' AND hs_code = '2601' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!ironTrade) throw new Error("South Africa 2024 iron-ore export to China is missing from the database.");
+    if (Math.abs(ironTrade.trade_value_usd - 3315436104.443) > 1) {
+      throw new Error(`South Africa iron-ore value ${ironTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (ironTrade.net_weight_kg !== 33780474247.75) {
+      throw new Error(`South Africa iron-ore quantity ${ironTrade.net_weight_kg} does not match the Comtrade preview.`);
     }
   }
 

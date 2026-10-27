@@ -184,6 +184,15 @@ function status(db) {
   const cobaltSeries = db.prepare(`
     SELECT COUNT(*) AS n FROM commodity_series WHERE series LIKE '%obalt%'
   `).get();
+  const ironPrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Iron ore, cfr spot' ORDER BY period DESC LIMIT 1
+  `).get();
+  const ironTrade = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg
+    FROM trade_flows
+    WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'CHN' AND hs_code = '2601' AND year = 2024 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -226,7 +235,9 @@ function status(db) {
     drcCopperOreExportsToChina2024: copperOreTrade || null,
     drcCobaltOxideExportsToChina2024: cobaltTrade || null,
     cobaltPriceSeries: cobaltSeries?.n || 0,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored.",
+    ironOreLatest: ironPrice || null,
+    southAfricaIronOreExportsToChina2024: ironTrade || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored. Iron ore trade is HS 2601 customs weight, including agglomerated ore, not pig iron, not steel, and not mine production. The iron-ore benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value.",
     datasets,
   };
 }
@@ -340,7 +351,7 @@ function prices(db, params) {
     body: {
       total: rows.length,
       rows,
-      note: "Monthly international benchmarks. Tea is the Mombasa auction price. Tobacco is the US import unit value, and a missing month is not zero. Copper is the LME grade A cathode price, not copper ore. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. This extract has no cobalt series.",
+      note: "Monthly international benchmarks. Tea is the Mombasa auction price. Tobacco is the US import unit value, and a missing month is not zero. Copper is the LME grade A cathode price, not copper ore. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. This extract has no cobalt series. Iron ore is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not HS 2601 customs value.",
     },
   };
 }

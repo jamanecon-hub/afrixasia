@@ -27,6 +27,7 @@ export const paths = {
   tradeCobalt: path.join(root, "data", "collected", "trade-cobalt.json"),
   tradeIron: path.join(root, "data", "collected", "trade-iron.json"),
   tradeManganese: path.join(root, "data", "collected", "trade-manganese.json"),
+  tradeChromium: path.join(root, "data", "collected", "trade-chromium.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -49,6 +50,7 @@ export const copperDatasetId = "un-comtrade-copper";
 export const cobaltDatasetId = "un-comtrade-cobalt";
 export const ironDatasetId = "un-comtrade-iron";
 export const manganeseDatasetId = "un-comtrade-manganese";
+export const chromiumDatasetId = "un-comtrade-chromium";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -335,6 +337,15 @@ export const manganeseProducts = [
     name: "Manganese ores and concentrates, including ferruginous manganese ores and concentrates with a manganese content of 20% or more, calculated on the dry weight",
     category: "Metals & minerals",
     observatoryProduct: "Bijih mangan",
+  },
+];
+
+export const chromiumProducts = [
+  {
+    hs: "2610",
+    name: "Chromium ores and concentrates",
+    category: "Metals & minerals",
+    observatoryProduct: "Bijih krom",
   },
 ];
 

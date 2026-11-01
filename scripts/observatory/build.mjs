@@ -28,6 +28,8 @@ import {
   manganeseProducts,
   chromiumDatasetId,
   chromiumProducts,
+  bauxiteDatasetId,
+  bauxiteProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -89,6 +91,7 @@ export function buildDatabase() {
   const iron = fs.existsSync(paths.tradeIron) ? readJson(paths.tradeIron) : null;
   const manganese = fs.existsSync(paths.tradeManganese) ? readJson(paths.tradeManganese) : null;
   const chromium = fs.existsSync(paths.tradeChromium) ? readJson(paths.tradeChromium) : null;
+  const bauxite = fs.existsSync(paths.tradeBauxite) ? readJson(paths.tradeBauxite) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -355,6 +358,20 @@ export function buildDatabase() {
       note: chromium.note,
     });
   }
+  if (bauxite) {
+    insertDataset(db, {
+      id: bauxite.datasetId || bauxiteDatasetId,
+      title: bauxite.title,
+      source: bauxite.source,
+      sourceUrl: bauxite.sourceUrl,
+      license: bauxite.license,
+      licenseUrl: bauxite.licenseUrl,
+      frequency: bauxite.frequency,
+      updatedAt: bauxite.retrievedAt,
+      retrievedAt: bauxite.retrievedAt,
+      note: bauxite.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -449,7 +466,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -494,6 +511,7 @@ export function buildDatabase() {
   insertFlows(iron, ironDatasetId);
   insertFlows(manganese, manganeseDatasetId);
   insertFlows(chromium, chromiumDatasetId);
+  insertFlows(bauxite, bauxiteDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -532,6 +550,7 @@ export function buildDatabase() {
   insertQueries(iron, ironDatasetId);
   insertQueries(manganese, manganeseDatasetId);
   insertQueries(chromium, chromiumDatasetId);
+  insertQueries(bauxite, bauxiteDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -619,6 +638,13 @@ export function buildDatabase() {
     if (Math.abs(ironPrice.price - 97.7) > 0.001) {
       throw new Error(`Iron ore price ${ironPrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
+  }
+  const metalNotOre = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series LIKE '%auxite%' OR series = 'Aluminum' OR series = 'Aluminium'
+  `).get();
+  if (metalNotOre.n !== 0) {
+    throw new Error("Bauxite or aluminum metal was stored as a price series. The Pink Sheet Aluminum series is metal, not HS 2606.");
   }
 
   const insertProductionItem = db.prepare(`
@@ -917,6 +943,27 @@ export function buildDatabase() {
     }
     if (chromiumTrade.net_weight_kg !== 10112636146.12) {
       throw new Error(`South Africa chromium-ore quantity ${chromiumTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+  }
+
+  const bauxiteQuery = bauxite?.completedQueries?.["GHA:2024"];
+  if (bauxiteQuery?.status === "ok") {
+    const bauxiteTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'GHA' AND partner_iso3 = 'CHN' AND hs_code = '2606' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!bauxiteTrade) throw new Error("Ghana 2024 bauxite export to China is missing from the database.");
+    if (Math.abs(bauxiteTrade.trade_value_usd - 44973457.13) > 1) {
+      throw new Error(`Ghana bauxite value ${bauxiteTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (bauxiteTrade.net_weight_kg !== 1086922960) {
+      throw new Error(`Ghana bauxite net weight ${bauxiteTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (bauxiteTrade.qty !== 948613378.03) {
+      throw new Error(`Ghana bauxite quantity ${bauxiteTrade.qty} does not match the Comtrade preview.`);
+    }
+    if (bauxiteTrade.qty_unit_code !== 8) {
+      throw new Error(`Ghana bauxite quantity unit ${bauxiteTrade.qty_unit_code} is not kilograms.`);
     }
   }
 

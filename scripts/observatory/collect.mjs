@@ -36,6 +36,8 @@ import {
   manganeseProducts,
   chromiumDatasetId,
   chromiumProducts,
+  bauxiteDatasetId,
+  bauxiteProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -72,6 +74,7 @@ const cobaltCollectionVersion = 1;
 const ironCollectionVersion = 1;
 const manganeseCollectionVersion = 1;
 const chromiumCollectionVersion = 1;
+const bauxiteCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -255,6 +258,13 @@ export async function collectPrices() {
   const parsed = spawnSync("python3", [pinkScript, file], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
   if (parsed.status !== 0) throw new Error(parsed.stderr || "Pink Sheet parser failed");
   const table = JSON.parse(parsed.stdout);
+  const seriesNames = new Set(table.prices.map((row) => row.series));
+  const bauxiteNamed = [...seriesNames].filter((name) => /bauxite/i.test(name));
+  if (bauxiteNamed.length) {
+    throw new Error(`Pink Sheet gained a bauxite series (${bauxiteNamed.join(", ")}). Store it explicitly; do not leave it out.`);
+  }
+  const aluminumSep = table.prices.find((row) => row.series === "Aluminum" && row.period === "2026-09");
+  console.log(`Aluminum metal 2026-09 is ${aluminumSep ? aluminumSep.price : "absent"} USD per metric ton. Not stored. It is not bauxite.`);
   const byName = new Map();
   for (const row of table.prices) {
     const list = byName.get(row.series) || [];
@@ -279,7 +289,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -695,6 +705,16 @@ const chromiumOptions = {
   useClient: false,
 };
 
+const bauxiteOptions = {
+  datasetId: bauxiteDatasetId,
+  title: "Africa–Asia bauxite exports",
+  note: "Aluminium ores and concentrates (HS 2606). This is the heading aggregate and the customs series for bauxite. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not contained aluminium metal and is not mine production. Mine production is absent from this database, not zero. This is not alumina (HS 281820) and not unwrought aluminium (HS 7601). Net weight and quantity can both be kilograms and still differ; they must not be substituted. The Pink Sheet extract has no bauxite series. Its Aluminum series is metal, not bauxite, and is not stored. A missing price is not zero.",
+  products: bauxiteProducts,
+  collectionVersion: bauxiteCollectionVersion,
+  statePath: paths.tradeBauxite,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -742,6 +762,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, manganeseOptions);
   buildDatabase();
   await collectTrade(wdi.countries, chromiumOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, bauxiteOptions);
   buildDatabase();
 }
 

@@ -30,6 +30,8 @@ import {
   chromiumProducts,
   bauxiteDatasetId,
   bauxiteProducts,
+  titaniumDatasetId,
+  titaniumProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -92,6 +94,7 @@ export function buildDatabase() {
   const manganese = fs.existsSync(paths.tradeManganese) ? readJson(paths.tradeManganese) : null;
   const chromium = fs.existsSync(paths.tradeChromium) ? readJson(paths.tradeChromium) : null;
   const bauxite = fs.existsSync(paths.tradeBauxite) ? readJson(paths.tradeBauxite) : null;
+  const titanium = fs.existsSync(paths.tradeTitanium) ? readJson(paths.tradeTitanium) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -372,6 +375,20 @@ export function buildDatabase() {
       note: bauxite.note,
     });
   }
+  if (titanium) {
+    insertDataset(db, {
+      id: titanium.datasetId || titaniumDatasetId,
+      title: titanium.title,
+      source: titanium.source,
+      sourceUrl: titanium.sourceUrl,
+      license: titanium.license,
+      licenseUrl: titanium.licenseUrl,
+      frequency: titanium.frequency,
+      updatedAt: titanium.retrievedAt,
+      retrievedAt: titanium.retrievedAt,
+      note: titanium.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -466,7 +483,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -512,6 +529,7 @@ export function buildDatabase() {
   insertFlows(manganese, manganeseDatasetId);
   insertFlows(chromium, chromiumDatasetId);
   insertFlows(bauxite, bauxiteDatasetId);
+  insertFlows(titanium, titaniumDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -551,6 +569,7 @@ export function buildDatabase() {
   insertQueries(manganese, manganeseDatasetId);
   insertQueries(chromium, chromiumDatasetId);
   insertQueries(bauxite, bauxiteDatasetId);
+  insertQueries(titanium, titaniumDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -645,6 +664,13 @@ export function buildDatabase() {
   `).get();
   if (metalNotOre.n !== 0) {
     throw new Error("Bauxite or aluminum metal was stored as a price series. The Pink Sheet Aluminum series is metal, not HS 2606.");
+  }
+  const titaniumPrice = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series LIKE '%itanium%' OR series LIKE '%lmenite%' OR series LIKE '%utile%'
+  `).get();
+  if (titaniumPrice.n !== 0) {
+    throw new Error("A titanium, ilmenite, or rutile series was stored as a price. This Pink Sheet extract has no titanium-ore benchmark.");
   }
 
   const insertProductionItem = db.prepare(`
@@ -964,6 +990,48 @@ export function buildDatabase() {
     }
     if (bauxiteTrade.qty_unit_code !== 8) {
       throw new Error(`Ghana bauxite quantity unit ${bauxiteTrade.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const titaniumQuery = titanium?.completedQueries?.["MOZ:2024"];
+  if (titaniumQuery?.status === "ok") {
+    const titaniumTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2614' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!titaniumTrade) throw new Error("Mozambique 2024 titanium-ore export to China is missing from the database.");
+    if (Math.abs(titaniumTrade.trade_value_usd - 148311867.3) > 1) {
+      throw new Error(`Mozambique titanium-ore value ${titaniumTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (titaniumTrade.net_weight_kg !== 743042000) {
+      throw new Error(`Mozambique titanium-ore net weight ${titaniumTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (titaniumTrade.qty !== 743042000) {
+      throw new Error(`Mozambique titanium-ore quantity ${titaniumTrade.qty} does not match the Comtrade preview.`);
+    }
+    if (titaniumTrade.qty_unit_code !== 8) {
+      throw new Error(`Mozambique titanium-ore quantity unit ${titaniumTrade.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const titanium2023 = titanium?.completedQueries?.["MOZ:2023"];
+  if (titanium2023?.status === "ok") {
+    const earlier = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2614' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!earlier) throw new Error("Mozambique 2023 titanium-ore export to China is missing from the database.");
+    if (Math.abs(earlier.trade_value_usd - 194785000) > 1) {
+      throw new Error(`Mozambique 2023 titanium-ore value ${earlier.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (earlier.net_weight_kg !== 710696200) {
+      throw new Error(`Mozambique 2023 titanium-ore net weight ${earlier.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (earlier.qty !== 706982300) {
+      throw new Error(`Mozambique 2023 titanium-ore quantity ${earlier.qty} does not match the Comtrade preview.`);
+    }
+    if (earlier.qty_unit_code !== 8) {
+      throw new Error(`Mozambique 2023 titanium-ore quantity unit ${earlier.qty_unit_code} is not kilograms.`);
     }
   }
 

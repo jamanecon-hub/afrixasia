@@ -38,6 +38,8 @@ import {
   chromiumProducts,
   bauxiteDatasetId,
   bauxiteProducts,
+  titaniumDatasetId,
+  titaniumProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -75,6 +77,7 @@ const ironCollectionVersion = 1;
 const manganeseCollectionVersion = 1;
 const chromiumCollectionVersion = 1;
 const bauxiteCollectionVersion = 1;
+const titaniumCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -263,6 +266,10 @@ export async function collectPrices() {
   if (bauxiteNamed.length) {
     throw new Error(`Pink Sheet gained a bauxite series (${bauxiteNamed.join(", ")}). Store it explicitly; do not leave it out.`);
   }
+  const titaniumNamed = [...seriesNames].filter((name) => /titanium|ilmenite|rutile/i.test(name));
+  if (titaniumNamed.length) {
+    throw new Error(`Pink Sheet gained a titanium series (${titaniumNamed.join(", ")}). Store it explicitly; do not leave it out.`);
+  }
   const aluminumSep = table.prices.find((row) => row.series === "Aluminum" && row.period === "2026-09");
   console.log(`Aluminum metal 2026-09 is ${aluminumSep ? aluminumSep.price : "absent"} USD per metric ton. Not stored. It is not bauxite.`);
   const byName = new Map();
@@ -289,7 +296,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. A missing price is not zero.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -715,6 +722,16 @@ const bauxiteOptions = {
   useClient: false,
 };
 
+const titaniumOptions = {
+  datasetId: titaniumDatasetId,
+  title: "Africa–Asia titanium ore exports",
+  note: "Titanium ores and concentrates (HS 2614). This is the heading aggregate for ilmenite, rutile, and other titanium ores. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is not contained titanium metal and is not mine production. Mine production is absent from this database, not zero. Net weight and quantity can both be kilograms and still differ; they must not be substituted. This is not titanium oxides (HS 2823), not titanium dioxide pigments (HS 320611), not unwrought titanium (HS 8108), not ferrotitanium (HS 720291), and not slag or ash (HS 2620). The Pink Sheet extract has no titanium ore, ilmenite, or rutile series, so no titanium price is stored. A missing price is not zero.",
+  products: titaniumProducts,
+  collectionVersion: titaniumCollectionVersion,
+  statePath: paths.tradeTitanium,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -764,6 +781,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, chromiumOptions);
   buildDatabase();
   await collectTrade(wdi.countries, bauxiteOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, titaniumOptions);
   buildDatabase();
 }
 

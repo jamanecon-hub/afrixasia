@@ -29,6 +29,7 @@ export const paths = {
   tradeManganese: path.join(root, "data", "collected", "trade-manganese.json"),
   tradeChromium: path.join(root, "data", "collected", "trade-chromium.json"),
   tradeBauxite: path.join(root, "data", "collected", "trade-bauxite.json"),
+  tradeTitanium: path.join(root, "data", "collected", "trade-titanium.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -53,6 +54,7 @@ export const ironDatasetId = "un-comtrade-iron";
 export const manganeseDatasetId = "un-comtrade-manganese";
 export const chromiumDatasetId = "un-comtrade-chromium";
 export const bauxiteDatasetId = "un-comtrade-bauxite";
+export const titaniumDatasetId = "un-comtrade-titanium";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -357,6 +359,15 @@ export const bauxiteProducts = [
     name: "Aluminium ores and concentrates",
     category: "Metals & minerals",
     observatoryProduct: "Bijih bauksit",
+  },
+];
+
+export const titaniumProducts = [
+  {
+    hs: "2614",
+    name: "Titanium ores and concentrates",
+    category: "Metals & minerals",
+    observatoryProduct: "Bijih titan",
   },
 ];
 

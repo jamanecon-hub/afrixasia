@@ -40,6 +40,8 @@ import {
   bauxiteProducts,
   titaniumDatasetId,
   titaniumProducts,
+  crudeDatasetId,
+  crudeProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -78,6 +80,7 @@ const manganeseCollectionVersion = 1;
 const chromiumCollectionVersion = 1;
 const bauxiteCollectionVersion = 1;
 const titaniumCollectionVersion = 1;
+const crudeCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -272,6 +275,14 @@ export async function collectPrices() {
   }
   const aluminumSep = table.prices.find((row) => row.series === "Aluminum" && row.period === "2026-09");
   console.log(`Aluminum metal 2026-09 is ${aluminumSep ? aluminumSep.price : "absent"} USD per metric ton. Not stored. It is not bauxite.`);
+  const brentSep = table.prices.find((row) => row.series === "Crude oil, Brent" && row.period === "2026-09");
+  const dubaiSep = table.prices.find((row) => row.series === "Crude oil, Dubai" && row.period === "2026-09");
+  const wtiSep = table.prices.find((row) => row.series === "Crude oil, WTI" && row.period === "2026-09");
+  const averageSep = table.prices.find((row) => row.series === "Crude oil, average" && row.period === "2026-09");
+  console.log(`Brent 2026-09 is ${brentSep ? brentSep.price : "absent"} USD per barrel.`);
+  console.log(`Dubai Fateh 2026-09 is ${dubaiSep ? dubaiSep.price : "absent"} USD per barrel.`);
+  console.log(`WTI 2026-09 is ${wtiSep ? wtiSep.price : "absent"} USD per barrel. Not stored.`);
+  console.log(`Crude average 2026-09 is ${averageSep ? averageSep.price : "absent"} USD per barrel. Not stored.`);
   const byName = new Map();
   for (const row of table.prices) {
     const list = byName.get(row.series) || [];
@@ -296,7 +307,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. A missing price is not zero.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -732,6 +743,16 @@ const titaniumOptions = {
   useClient: false,
 };
 
+const crudeOptions = {
+  datasetId: crudeDatasetId,
+  title: "Africa–Asia crude petroleum exports",
+  note: "Petroleum oils and oils obtained from bituminous minerals, crude (HS 2709). This is the heading aggregate. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is kilograms, not barrels, and is not a Brent or Dubai price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not refined petroleum (HS 2710) and not petroleum gases (HS 2711). The Pink Sheet benchmarks stored with this trade are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. They are not the customs unit value. WTI and the equal-weighted crude average are not stored.",
+  products: crudeProducts,
+  collectionVersion: crudeCollectionVersion,
+  statePath: paths.tradeCrude,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -783,6 +804,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, bauxiteOptions);
   buildDatabase();
   await collectTrade(wdi.countries, titaniumOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, crudeOptions);
   buildDatabase();
 }
 

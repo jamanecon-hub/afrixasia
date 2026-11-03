@@ -30,6 +30,7 @@ export const paths = {
   tradeChromium: path.join(root, "data", "collected", "trade-chromium.json"),
   tradeBauxite: path.join(root, "data", "collected", "trade-bauxite.json"),
   tradeTitanium: path.join(root, "data", "collected", "trade-titanium.json"),
+  tradeCrude: path.join(root, "data", "collected", "trade-crude.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -55,6 +56,7 @@ export const manganeseDatasetId = "un-comtrade-manganese";
 export const chromiumDatasetId = "un-comtrade-chromium";
 export const bauxiteDatasetId = "un-comtrade-bauxite";
 export const titaniumDatasetId = "un-comtrade-titanium";
+export const crudeDatasetId = "un-comtrade-crude";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -368,6 +370,15 @@ export const titaniumProducts = [
     name: "Titanium ores and concentrates",
     category: "Metals & minerals",
     observatoryProduct: "Bijih titan",
+  },
+];
+
+export const crudeProducts = [
+  {
+    hs: "2709",
+    name: "Petroleum oils and oils obtained from bituminous minerals, crude",
+    category: "Energy",
+    observatoryProduct: "Minyak mentah",
   },
 ];
 
@@ -710,6 +721,24 @@ export const commoditySeries = [
     observatoryProduct: "Bijih besi",
     unit: "USD per dry metric ton",
     detail: "Iron ore fines, spot, c.f.r. China, 62% Fe, nominal US dollars per dry metric ton. The Monthly Prices header prints ($/dmtu); the Description sheet defines this spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit, not HS 2601 customs value, and not a bilateral Africa–Asia contract price.",
+  },
+  {
+    column: "Crude oil, Brent",
+    series: "Crude oil, Brent",
+    product: "Crude petroleum",
+    category: "Energy",
+    observatoryProduct: "Minyak mentah",
+    unit: "USD per barrel",
+    detail: "World Bank Pink Sheet: UK Brent, 38 API, nominal US dollars per barrel. Not Dubai Fateh, not WTI, not the equal-weighted average of Brent, Dubai, and WTI, not a barrel count, and not the HS 2709 customs unit value.",
+  },
+  {
+    column: "Crude oil, Dubai",
+    series: "Crude oil, Dubai",
+    product: "Crude petroleum",
+    category: "Energy",
+    observatoryProduct: "Minyak mentah",
+    unit: "USD per barrel",
+    detail: "World Bank Pink Sheet: Dubai Fateh, 32 API, nominal US dollars per barrel. Not UK Brent, not WTI, not the equal-weighted average of Brent, Dubai, and WTI, not a barrel count, and not the HS 2709 customs unit value.",
   },
 ];
 

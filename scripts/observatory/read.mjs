@@ -227,6 +227,33 @@ function status(db) {
     FROM trade_flows
     WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2614' AND year = 2024 AND flow = 'export'
   `).get();
+  const brentPrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Crude oil, Brent' ORDER BY period DESC LIMIT 1
+  `).get();
+  const dubaiPrice = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Crude oil, Dubai' ORDER BY period DESC LIMIT 1
+  `).get();
+  const excludedCrude = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series IN ('Crude oil, WTI', 'Crude oil, average')
+  `).get();
+  const angolaCrude = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'AGO' AND partner_iso3 = 'CHN' AND hs_code = '2709' AND year = 2024 AND flow = 'export'
+  `).get();
+  const mozambiqueCrude = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2709' AND year = 2023 AND flow = 'export'
+  `).get();
+  const nigeriaCrude = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2709' AND year = 2025 AND flow = 'export'
+  `).get();
   return {
     database: "data/observatory.sqlite",
     counts: {
@@ -279,7 +306,13 @@ function status(db) {
     ghanaBauxiteExportsToChina2024: bauxiteTrade || null,
     titaniumPriceSeries: titaniumSeries?.n || 0,
     mozambiqueTitaniumOreExportsToChina2024: titaniumTrade || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored. Iron ore trade is HS 2601 customs weight, including agglomerated ore, not pig iron, not steel, and not mine production. The iron-ore benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value. Manganese ore trade is HS 2602 customs weight, including ferruginous manganese ores with a manganese content of 20% or more, calculated on the dry weight. It is not ferromanganese (HS 7202), not manganese oxides (HS 2820), and not contained manganese metal. No manganese price is stored. Chromium ore trade is HS 2610 customs weight. It is not ferrochromium (HS 720241 or HS 720249), not chromium oxides and hydroxides (HS 2819), and not contained chromium metal. No chromium price is stored. Bauxite trade is HS 2606 customs weight, aluminium ores and concentrates. It is not alumina (HS 281820), not unwrought aluminium (HS 7601), and not contained aluminium metal. Net weight and quantity can both be kilograms and still differ. No bauxite price is stored. The Pink Sheet Aluminum series is metal and is not stored. Titanium ore trade is HS 2614 customs weight, titanium ores and concentrates. It is not titanium oxides (HS 2823), not titanium dioxide pigments (HS 320611), not unwrought titanium (HS 8108), not ferrotitanium (HS 720291), and not slag or ash (HS 2620). Customs weight is not contained titanium metal. Net weight and quantity can both be kilograms and still differ. No titanium-ore price is stored.",
+    brentLatest: brentPrice || null,
+    dubaiLatest: dubaiPrice || null,
+    excludedCrudeSeries: excludedCrude?.n || 0,
+    angolaCrudeExportsToChina2024: angolaCrude || null,
+    mozambiqueCrudeExportsToChina2023: mozambiqueCrude || null,
+    nigeriaCrudeExportsToIndia2025: nigeriaCrude || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored. Iron ore trade is HS 2601 customs weight, including agglomerated ore, not pig iron, not steel, and not mine production. The iron-ore benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value. Manganese ore trade is HS 2602 customs weight, including ferruginous manganese ores with a manganese content of 20% or more, calculated on the dry weight. It is not ferromanganese (HS 7202), not manganese oxides (HS 2820), and not contained manganese metal. No manganese price is stored. Chromium ore trade is HS 2610 customs weight. It is not ferrochromium (HS 720241 or HS 720249), not chromium oxides and hydroxides (HS 2819), and not contained chromium metal. No chromium price is stored. Bauxite trade is HS 2606 customs weight, aluminium ores and concentrates. It is not alumina (HS 281820), not unwrought aluminium (HS 7601), and not contained aluminium metal. Net weight and quantity can both be kilograms and still differ. No bauxite price is stored. The Pink Sheet Aluminum series is metal and is not stored. Titanium ore trade is HS 2614 customs weight, titanium ores and concentrates. It is not titanium oxides (HS 2823), not titanium dioxide pigments (HS 320611), not unwrought titanium (HS 8108), not ferrotitanium (HS 720291), and not slag or ash (HS 2620). Customs weight is not contained titanium metal. Net weight and quantity can both be kilograms and still differ. No titanium-ore price is stored. Crude petroleum trade is HS 2709 customs weight in kilograms, not barrels, not refined petroleum (HS 2710), and not petroleum gases (HS 2711). The stored benchmarks are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. They are not the customs unit value. WTI and the equal-weighted average are not stored. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight.",
     datasets,
   };
 }
@@ -393,7 +426,7 @@ function prices(db, params) {
     body: {
       total: rows.length,
       rows,
-      note: "Monthly international benchmarks. Tea is the Mombasa auction price. Tobacco is the US import unit value, and a missing month is not zero. Copper is the LME grade A cathode price, not copper ore. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. This extract has no cobalt series. Iron ore is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not HS 2601 customs value. This extract has no manganese series. This extract has no chromium series. This extract has no bauxite series. Aluminum metal is not stored. This extract has no titanium ore, ilmenite, or rutile series.",
+      note: "Monthly international benchmarks. Tea is the Mombasa auction price. Tobacco is the US import unit value, and a missing month is not zero. Copper is the LME grade A cathode price, not copper ore. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. This extract has no cobalt series. Iron ore is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not HS 2601 customs value. This extract has no manganese series. This extract has no chromium series. This extract has no bauxite series. Aluminum metal is not stored. This extract has no titanium ore, ilmenite, or rutile series. Brent is UK Brent, 38 API, and Dubai is Dubai Fateh, 32 API, both in US dollars per barrel. Neither is WTI, the equal-weighted average, or the HS 2709 customs unit value.",
     },
   };
 }

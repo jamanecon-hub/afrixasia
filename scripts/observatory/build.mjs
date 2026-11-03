@@ -32,6 +32,8 @@ import {
   bauxiteProducts,
   titaniumDatasetId,
   titaniumProducts,
+  crudeDatasetId,
+  crudeProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -95,6 +97,7 @@ export function buildDatabase() {
   const chromium = fs.existsSync(paths.tradeChromium) ? readJson(paths.tradeChromium) : null;
   const bauxite = fs.existsSync(paths.tradeBauxite) ? readJson(paths.tradeBauxite) : null;
   const titanium = fs.existsSync(paths.tradeTitanium) ? readJson(paths.tradeTitanium) : null;
+  const crude = fs.existsSync(paths.tradeCrude) ? readJson(paths.tradeCrude) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -389,6 +392,20 @@ export function buildDatabase() {
       note: titanium.note,
     });
   }
+  if (crude) {
+    insertDataset(db, {
+      id: crude.datasetId || crudeDatasetId,
+      title: crude.title,
+      source: crude.source,
+      sourceUrl: crude.sourceUrl,
+      license: crude.license,
+      licenseUrl: crude.licenseUrl,
+      frequency: crude.frequency,
+      updatedAt: crude.retrievedAt,
+      retrievedAt: crude.retrievedAt,
+      note: crude.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -483,7 +500,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -530,6 +547,7 @@ export function buildDatabase() {
   insertFlows(chromium, chromiumDatasetId);
   insertFlows(bauxite, bauxiteDatasetId);
   insertFlows(titanium, titaniumDatasetId);
+  insertFlows(crude, crudeDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -570,6 +588,7 @@ export function buildDatabase() {
   insertQueries(chromium, chromiumDatasetId);
   insertQueries(bauxite, bauxiteDatasetId);
   insertQueries(titanium, titaniumDatasetId);
+  insertQueries(crude, crudeDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -648,6 +667,31 @@ export function buildDatabase() {
     if (Math.abs(copperPrice.price - 14474) > 0.001) {
       throw new Error(`Copper price ${copperPrice.price} does not match the 2 October 2026 Pink Sheet.`);
     }
+  }
+  if (prices?.series?.some((series) => series.series === "Crude oil, Brent")) {
+    const brent = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Crude oil, Brent' AND period = '2026-09'
+    `).get();
+    if (!brent) throw new Error("September 2026 Brent crude price is missing from the database.");
+    if (Math.abs(brent.price - 116.8) > 0.001) {
+      throw new Error(`Brent crude price ${brent.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  if (prices?.series?.some((series) => series.series === "Crude oil, Dubai")) {
+    const dubai = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Crude oil, Dubai' AND period = '2026-09'
+    `).get();
+    if (!dubai) throw new Error("September 2026 Dubai crude price is missing from the database.");
+    if (Math.abs(dubai.price - 93.3) > 0.001) {
+      throw new Error(`Dubai crude price ${dubai.price} does not match the 2 October 2026 Pink Sheet.`);
+    }
+  }
+  const excludedCrude = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series IN ('Crude oil, WTI', 'Crude oil, average')
+  `).get();
+  if (excludedCrude.n !== 0) {
+    throw new Error("WTI or the Pink Sheet crude-oil average was stored. Those series are not the Africa–Asia benchmarks kept in this database.");
   }
   if (prices?.series?.some((series) => series.series === "Iron ore, cfr spot")) {
     const ironPrice = db.prepare(`
@@ -1032,6 +1076,90 @@ export function buildDatabase() {
     }
     if (earlier.qty_unit_code !== 8) {
       throw new Error(`Mozambique 2023 titanium-ore quantity unit ${earlier.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const crudeQuery = crude?.completedQueries?.["AGO:2024"];
+  if (crudeQuery?.status === "ok") {
+    const crudeTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'AGO' AND partner_iso3 = 'CHN' AND hs_code = '2709' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!crudeTrade) throw new Error("Angola 2024 crude petroleum export to China is missing from the database.");
+    if (Math.abs(crudeTrade.trade_value_usd - 16194452099.296) > 1) {
+      throw new Error(`Angola crude value ${crudeTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (crudeTrade.net_weight_kg !== 32504672805.96) {
+      throw new Error(`Angola crude net weight ${crudeTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (crudeTrade.qty !== 32504672805.96) {
+      throw new Error(`Angola crude quantity ${crudeTrade.qty} does not match the Comtrade preview.`);
+    }
+    if (crudeTrade.qty_unit_code !== 8) {
+      throw new Error(`Angola crude quantity unit ${crudeTrade.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const crude2023 = crude?.completedQueries?.["AGO:2023"];
+  if (crude2023?.status === "ok") {
+    const earlierCrude = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'AGO' AND partner_iso3 = 'CHN' AND hs_code = '2709' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!earlierCrude) throw new Error("Angola 2023 crude petroleum export to China is missing from the database.");
+    if (Math.abs(earlierCrude.trade_value_usd - 17854239529.849) > 1) {
+      throw new Error(`Angola 2023 crude value ${earlierCrude.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (earlierCrude.net_weight_kg !== 35081000457) {
+      throw new Error(`Angola 2023 crude net weight ${earlierCrude.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (earlierCrude.qty !== 35081000457) {
+      throw new Error(`Angola 2023 crude quantity ${earlierCrude.qty} does not match the Comtrade preview.`);
+    }
+    if (earlierCrude.qty_unit_code !== 8) {
+      throw new Error(`Angola 2023 crude quantity unit ${earlierCrude.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const mozambiqueCrude = crude?.completedQueries?.["MOZ:2023"];
+  if (mozambiqueCrude?.status === "ok") {
+    const mozambique = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2709' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!mozambique) throw new Error("Mozambique 2023 crude petroleum export to China is missing from the database.");
+    if (Math.abs(mozambique.trade_value_usd - 72838000) > 1) {
+      throw new Error(`Mozambique crude value ${mozambique.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (mozambique.net_weight_kg !== null) {
+      throw new Error(`Mozambique crude net weight ${mozambique.net_weight_kg} is not null.`);
+    }
+    if (mozambique.qty !== 101029276.632) {
+      throw new Error(`Mozambique crude quantity ${mozambique.qty} does not match the Comtrade preview.`);
+    }
+    if (mozambique.qty_unit_code !== 8) {
+      throw new Error(`Mozambique crude quantity unit ${mozambique.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const nigeriaCrude = crude?.completedQueries?.["NGA:2025"];
+  if (nigeriaCrude?.status === "ok") {
+    const nigeria = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2709' AND year = 2025 AND flow = 'export'
+    `).get();
+    if (!nigeria) throw new Error("Nigeria 2025 crude petroleum export to India is missing from the database.");
+    if (Math.abs(nigeria.trade_value_usd - 2816967484.864) > 1) {
+      throw new Error(`Nigeria 2025 crude value ${nigeria.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (nigeria.net_weight_kg !== null) {
+      throw new Error(`Nigeria 2025 crude net weight ${nigeria.net_weight_kg} is not null.`);
+    }
+    if (nigeria.qty !== 0) {
+      throw new Error(`Nigeria 2025 crude quantity ${nigeria.qty} is not the reported zero.`);
+    }
+    if (nigeria.qty_unit_code !== -1) {
+      throw new Error(`Nigeria 2025 crude quantity unit ${nigeria.qty_unit_code} is not the unspecified code -1.`);
     }
   }
 

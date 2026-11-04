@@ -42,6 +42,8 @@ import {
   titaniumProducts,
   crudeDatasetId,
   crudeProducts,
+  coalDatasetId,
+  coalProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -81,6 +83,7 @@ const chromiumCollectionVersion = 1;
 const bauxiteCollectionVersion = 1;
 const titaniumCollectionVersion = 1;
 const crudeCollectionVersion = 1;
+const coalCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -283,6 +286,18 @@ export async function collectPrices() {
   console.log(`Dubai Fateh 2026-09 is ${dubaiSep ? dubaiSep.price : "absent"} USD per barrel.`);
   console.log(`WTI 2026-09 is ${wtiSep ? wtiSep.price : "absent"} USD per barrel. Not stored.`);
   console.log(`Crude average 2026-09 is ${averageSep ? averageSep.price : "absent"} USD per barrel. Not stored.`);
+  const coalSep = table.prices.find((row) => row.series === "Coal, South African **" && row.period === "2026-09");
+  const coalOct = table.prices.find((row) => row.series === "Coal, South African **" && row.period === "2026-10");
+  const coalAus = table.prices.find((row) => row.series === "Coal, Australian" && row.period === "2026-09");
+  const gasUs = table.prices.find((row) => row.series === "Natural gas, US" && row.period === "2026-09");
+  const gasEu = table.prices.find((row) => row.series === "Natural gas, Europe" && row.period === "2026-09");
+  const lngJapan = table.prices.find((row) => row.series === "Liquefied natural gas, Japan" && row.period === "2026-09");
+  console.log(`South African coal 2026-09 is ${coalSep ? coalSep.price : "absent"} USD per metric ton.`);
+  console.log(`South African coal 2026-10 is ${coalOct ? coalOct.price : "absent"} USD per metric ton.`);
+  console.log(`Australian coal 2026-09 is ${coalAus ? coalAus.price : "absent"} USD per metric ton. Not stored.`);
+  console.log(`US natural gas 2026-09 is ${gasUs ? gasUs.price : "absent"} USD per mmbtu. Not stored.`);
+  console.log(`Europe natural gas 2026-09 is ${gasEu ? gasEu.price : "absent"} USD per mmbtu. Not stored.`);
+  console.log(`Japan LNG 2026-09 is ${lngJapan ? lngJapan.price : "absent"} USD per mmbtu. Not stored.`);
   const byName = new Map();
   for (const row of table.prices) {
     const list = byName.get(row.series) || [];
@@ -307,7 +322,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. A missing price is not zero.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. Coal stored here is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored. It is not the HS 2701 customs unit value. Natural gas in the US, Europe, and Japan, and the natural gas index, are not coal and are not stored. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -753,6 +768,16 @@ const crudeOptions = {
   useClient: false,
 };
 
+const coalOptions = {
+  datasetId: coalDatasetId,
+  title: "Africa–Asia coal exports",
+  note: "Coal; briquettes, ovoids and similar solid fuels manufactured from coal (HS 2701). This is the heading aggregate. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is kilograms, not the Richards Bay benchmark. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not lignite (HS 2702), not peat (HS 2703), not coke (HS 2704), not crude petroleum (HS 2709), not refined petroleum (HS 2710), and not petroleum gases (HS 2711). Mine production is absent from this database, not zero. The Pink Sheet benchmark stored with this trade is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored, and not the customs unit value. Natural gas prices are not stored.",
+  products: coalProducts,
+  collectionVersion: coalCollectionVersion,
+  statePath: paths.tradeCoal,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -806,6 +831,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, titaniumOptions);
   buildDatabase();
   await collectTrade(wdi.countries, crudeOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, coalOptions);
   buildDatabase();
 }
 

@@ -34,6 +34,8 @@ import {
   titaniumProducts,
   crudeDatasetId,
   crudeProducts,
+  coalDatasetId,
+  coalProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -98,6 +100,7 @@ export function buildDatabase() {
   const bauxite = fs.existsSync(paths.tradeBauxite) ? readJson(paths.tradeBauxite) : null;
   const titanium = fs.existsSync(paths.tradeTitanium) ? readJson(paths.tradeTitanium) : null;
   const crude = fs.existsSync(paths.tradeCrude) ? readJson(paths.tradeCrude) : null;
+  const coal = fs.existsSync(paths.tradeCoal) ? readJson(paths.tradeCoal) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -406,6 +409,20 @@ export function buildDatabase() {
       note: crude.note,
     });
   }
+  if (coal) {
+    insertDataset(db, {
+      id: coal.datasetId || coalDatasetId,
+      title: coal.title,
+      source: coal.source,
+      sourceUrl: coal.sourceUrl,
+      license: coal.license,
+      licenseUrl: coal.licenseUrl,
+      frequency: coal.frequency,
+      updatedAt: coal.retrievedAt,
+      retrievedAt: coal.retrievedAt,
+      note: coal.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -500,7 +517,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -548,6 +565,7 @@ export function buildDatabase() {
   insertFlows(bauxite, bauxiteDatasetId);
   insertFlows(titanium, titaniumDatasetId);
   insertFlows(crude, crudeDatasetId);
+  insertFlows(coal, coalDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -589,6 +607,7 @@ export function buildDatabase() {
   insertQueries(bauxite, bauxiteDatasetId);
   insertQueries(titanium, titaniumDatasetId);
   insertQueries(crude, crudeDatasetId);
+  insertQueries(coal, coalDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -692,6 +711,28 @@ export function buildDatabase() {
   `).get();
   if (excludedCrude.n !== 0) {
     throw new Error("WTI or the Pink Sheet crude-oil average was stored. Those series are not the Africa–Asia benchmarks kept in this database.");
+  }
+  if (prices?.series?.some((series) => series.series === "Coal, South African")) {
+    const coalPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Coal, South African' AND period = '2026-09'
+    `).get();
+    if (!coalPrice) throw new Error("September 2026 South African coal price is missing from the database.");
+    if (Math.abs(coalPrice.price - 98.2) > 0.001) {
+      throw new Error(`South African coal price ${coalPrice.price} does not match the 3 November 2026 Pink Sheet.`);
+    }
+  }
+  const excludedCoal = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series IN (
+      'Coal, Australian',
+      'Natural gas, US',
+      'Natural gas, Europe',
+      'Liquefied natural gas, Japan',
+      'Natural gas index'
+    )
+  `).get();
+  if (excludedCoal.n !== 0) {
+    throw new Error("Australian coal or a natural-gas series was stored. Those series are not the South African coal benchmark kept in this database.");
   }
   if (prices?.series?.some((series) => series.series === "Iron ore, cfr spot")) {
     const ironPrice = db.prepare(`
@@ -1160,6 +1201,84 @@ export function buildDatabase() {
     }
     if (nigeria.qty_unit_code !== -1) {
       throw new Error(`Nigeria 2025 crude quantity unit ${nigeria.qty_unit_code} is not the unspecified code -1.`);
+    }
+  }
+
+  const coalQuery = coal?.completedQueries?.["ZAF:2024"];
+  if (coalQuery?.status === "ok") {
+    const coalTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'IND' AND hs_code = '2701' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!coalTrade) throw new Error("South Africa 2024 coal export to India is missing from the database.");
+    if (Math.abs(coalTrade.trade_value_usd - 2780458353.603) > 1) {
+      throw new Error(`South Africa coal value ${coalTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (coalTrade.net_weight_kg !== 32455066678) {
+      throw new Error(`South Africa coal net weight ${coalTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (coalTrade.qty !== 32455066678) {
+      throw new Error(`South Africa coal quantity ${coalTrade.qty} does not match the Comtrade preview.`);
+    }
+    if (coalTrade.qty_unit_code !== 8) {
+      throw new Error(`South Africa coal quantity unit ${coalTrade.qty_unit_code} is not kilograms.`);
+    }
+    const vietnamCoal = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'VNM' AND hs_code = '2701' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!vietnamCoal) throw new Error("South Africa 2024 coal export to Vietnam is missing from the database.");
+    if (Math.abs(vietnamCoal.trade_value_usd - 410235810.299) > 1) {
+      throw new Error(`South Africa coal value to Vietnam ${vietnamCoal.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (vietnamCoal.net_weight_kg !== null) {
+      throw new Error(`South Africa coal net weight to Vietnam ${vietnamCoal.net_weight_kg} is not null.`);
+    }
+    if (vietnamCoal.qty !== 0) {
+      throw new Error(`South Africa coal quantity to Vietnam ${vietnamCoal.qty} is not the reported zero.`);
+    }
+    if (vietnamCoal.qty_unit_code !== -1) {
+      throw new Error(`South Africa coal quantity unit to Vietnam ${vietnamCoal.qty_unit_code} is not the unspecified code -1.`);
+    }
+  }
+  const coal2023 = coal?.completedQueries?.["ZAF:2023"];
+  if (coal2023?.status === "ok") {
+    const earlierCoal = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'ZAF' AND partner_iso3 = 'IND' AND hs_code = '2701' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!earlierCoal) throw new Error("South Africa 2023 coal export to India is missing from the database.");
+    if (Math.abs(earlierCoal.trade_value_usd - 3155773716.936) > 1) {
+      throw new Error(`South Africa 2023 coal value ${earlierCoal.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (earlierCoal.net_weight_kg !== 30275549025) {
+      throw new Error(`South Africa 2023 coal net weight ${earlierCoal.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (earlierCoal.qty !== 30275549025) {
+      throw new Error(`South Africa 2023 coal quantity ${earlierCoal.qty} does not match the Comtrade preview.`);
+    }
+    if (earlierCoal.qty_unit_code !== 8) {
+      throw new Error(`South Africa 2023 coal quantity unit ${earlierCoal.qty_unit_code} is not kilograms.`);
+    }
+  }
+  const mozambiqueCoal = coal?.completedQueries?.["MOZ:2023"];
+  if (mozambiqueCoal?.status === "ok") {
+    const mozambique = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'IND' AND hs_code = '2701' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!mozambique) throw new Error("Mozambique 2023 coal export to India is missing from the database.");
+    if (Math.abs(mozambique.trade_value_usd - 570030000) > 1) {
+      throw new Error(`Mozambique coal value ${mozambique.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (mozambique.net_weight_kg !== 5023953000) {
+      throw new Error(`Mozambique coal net weight ${mozambique.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (mozambique.qty !== 5363920000) {
+      throw new Error(`Mozambique coal quantity ${mozambique.qty} does not match the Comtrade preview.`);
+    }
+    if (mozambique.qty_unit_code !== 8) {
+      throw new Error(`Mozambique coal quantity unit ${mozambique.qty_unit_code} is not kilograms.`);
     }
   }
 

@@ -31,6 +31,7 @@ export const paths = {
   tradeBauxite: path.join(root, "data", "collected", "trade-bauxite.json"),
   tradeTitanium: path.join(root, "data", "collected", "trade-titanium.json"),
   tradeCrude: path.join(root, "data", "collected", "trade-crude.json"),
+  tradeCoal: path.join(root, "data", "collected", "trade-coal.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -57,6 +58,7 @@ export const chromiumDatasetId = "un-comtrade-chromium";
 export const bauxiteDatasetId = "un-comtrade-bauxite";
 export const titaniumDatasetId = "un-comtrade-titanium";
 export const crudeDatasetId = "un-comtrade-crude";
+export const coalDatasetId = "un-comtrade-coal";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -379,6 +381,15 @@ export const crudeProducts = [
     name: "Petroleum oils and oils obtained from bituminous minerals, crude",
     category: "Energy",
     observatoryProduct: "Minyak mentah",
+  },
+];
+
+export const coalProducts = [
+  {
+    hs: "2701",
+    name: "Coal; briquettes, ovoids and similar solid fuels manufactured from coal",
+    category: "Energy",
+    observatoryProduct: "Batu bara",
   },
 ];
 
@@ -739,6 +750,15 @@ export const commoditySeries = [
     observatoryProduct: "Minyak mentah",
     unit: "USD per barrel",
     detail: "World Bank Pink Sheet: Dubai Fateh, 32 API, nominal US dollars per barrel. Not UK Brent, not WTI, not the equal-weighted average of Brent, Dubai, and WTI, not a barrel count, and not the HS 2709 customs unit value.",
+  },
+  {
+    column: "Coal, South African **",
+    series: "Coal, South African",
+    product: "Coal",
+    category: "Energy",
+    observatoryProduct: "Batu bara",
+    unit: "USD per metric ton",
+    detail: "World Bank Pink Sheet: thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, sulfur less than 1%, forward month 1, nominal US dollars per metric ton from January 2015. Not Australian Newcastle coal, not natural gas, not a bilateral Africa–Asia contract price, and not the HS 2701 customs unit value.",
   },
 ];
 

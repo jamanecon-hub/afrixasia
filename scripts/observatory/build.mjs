@@ -36,6 +36,8 @@ import {
   crudeProducts,
   coalDatasetId,
   coalProducts,
+  gasDatasetId,
+  gasProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -101,6 +103,7 @@ export function buildDatabase() {
   const titanium = fs.existsSync(paths.tradeTitanium) ? readJson(paths.tradeTitanium) : null;
   const crude = fs.existsSync(paths.tradeCrude) ? readJson(paths.tradeCrude) : null;
   const coal = fs.existsSync(paths.tradeCoal) ? readJson(paths.tradeCoal) : null;
+  const gas = fs.existsSync(paths.tradeGas) ? readJson(paths.tradeGas) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -423,6 +426,20 @@ export function buildDatabase() {
       note: coal.note,
     });
   }
+  if (gas) {
+    insertDataset(db, {
+      id: gas.datasetId || gasDatasetId,
+      title: gas.title,
+      source: gas.source,
+      sourceUrl: gas.sourceUrl,
+      license: gas.license,
+      licenseUrl: gas.licenseUrl,
+      frequency: gas.frequency,
+      updatedAt: gas.retrievedAt,
+      retrievedAt: gas.retrievedAt,
+      note: gas.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -517,7 +534,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -566,6 +583,7 @@ export function buildDatabase() {
   insertFlows(titanium, titaniumDatasetId);
   insertFlows(crude, crudeDatasetId);
   insertFlows(coal, coalDatasetId);
+  insertFlows(gas, gasDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -608,6 +626,7 @@ export function buildDatabase() {
   insertQueries(titanium, titaniumDatasetId);
   insertQueries(crude, crudeDatasetId);
   insertQueries(coal, coalDatasetId);
+  insertQueries(gas, gasDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -723,16 +742,30 @@ export function buildDatabase() {
   }
   const excludedCoal = db.prepare(`
     SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series = 'Coal, Australian'
+  `).get();
+  if (excludedCoal.n !== 0) {
+    throw new Error("Australian coal was stored. That series is not the South African coal benchmark kept in this database.");
+  }
+  if (prices?.series?.some((series) => series.series === "Liquefied natural gas, Japan")) {
+    const lng = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Liquefied natural gas, Japan' AND period = '2026-09'
+    `).get();
+    if (!lng) throw new Error("September 2026 Japan LNG price is missing from the database.");
+    if (Math.abs(lng.price - 16.26) > 0.001) {
+      throw new Error(`Japan LNG price ${lng.price} does not match the 3 November 2026 Pink Sheet.`);
+    }
+  }
+  const excludedGas = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
     WHERE series IN (
-      'Coal, Australian',
       'Natural gas, US',
       'Natural gas, Europe',
-      'Liquefied natural gas, Japan',
       'Natural gas index'
     )
   `).get();
-  if (excludedCoal.n !== 0) {
-    throw new Error("Australian coal or a natural-gas series was stored. Those series are not the South African coal benchmark kept in this database.");
+  if (excludedGas.n !== 0) {
+    throw new Error("US natural gas, European natural gas, or the natural-gas index was stored. Those series are not the Japan LNG benchmark kept in this database.");
   }
   if (prices?.series?.some((series) => series.series === "Iron ore, cfr spot")) {
     const ironPrice = db.prepare(`
@@ -1279,6 +1312,128 @@ export function buildDatabase() {
     }
     if (mozambique.qty_unit_code !== 8) {
       throw new Error(`Mozambique coal quantity unit ${mozambique.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const gasQuery = gas?.completedQueries?.["DZA:2024"];
+  if (gasQuery?.status === "ok") {
+    const algeriaGas = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'DZA' AND partner_iso3 = 'TUR' AND hs_code = '2711' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!algeriaGas) throw new Error("Algeria 2024 petroleum-gas export to Türkiye is missing from the database.");
+    if (Math.abs(algeriaGas.trade_value_usd - 3074125894.613) > 1) {
+      throw new Error(`Algeria petroleum-gas value ${algeriaGas.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (algeriaGas.net_weight_kg !== 4438707018.107) {
+      throw new Error(`Algeria petroleum-gas net weight ${algeriaGas.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (algeriaGas.qty !== 4438707018.107) {
+      throw new Error(`Algeria petroleum-gas quantity ${algeriaGas.qty} does not match the Comtrade preview.`);
+    }
+    if (algeriaGas.qty_unit_code !== 8) {
+      throw new Error(`Algeria petroleum-gas quantity unit ${algeriaGas.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const nigeriaGas = gas?.completedQueries?.["NGA:2024"];
+  if (nigeriaGas?.status === "ok") {
+    const nigeria = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2711' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (!nigeria) throw new Error("Nigeria 2024 petroleum-gas export to India is missing from the database.");
+    if (Math.abs(nigeria.trade_value_usd - 1478396111.781) > 1) {
+      throw new Error(`Nigeria petroleum-gas value ${nigeria.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (nigeria.net_weight_kg !== 71917476) {
+      throw new Error(`Nigeria petroleum-gas net weight ${nigeria.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (nigeria.qty !== 71917476) {
+      throw new Error(`Nigeria petroleum-gas quantity ${nigeria.qty} does not match the Comtrade preview.`);
+    }
+    if (nigeria.qty_unit_code !== 8) {
+      throw new Error(`Nigeria petroleum-gas quantity unit ${nigeria.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const nigeriaGas2023 = gas?.completedQueries?.["NGA:2023"];
+  if (nigeriaGas2023?.status === "ok") {
+    const earlierGas = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!earlierGas) throw new Error("Nigeria 2023 petroleum-gas export to India is missing from the database.");
+    if (Math.abs(earlierGas.trade_value_usd - 324020075.849) > 1) {
+      throw new Error(`Nigeria 2023 petroleum-gas value ${earlierGas.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (earlierGas.net_weight_kg !== 36941190) {
+      throw new Error(`Nigeria 2023 petroleum-gas net weight ${earlierGas.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (earlierGas.qty !== 36941190) {
+      throw new Error(`Nigeria 2023 petroleum-gas quantity ${earlierGas.qty} does not match the Comtrade preview.`);
+    }
+    if (earlierGas.qty_unit_code !== 8) {
+      throw new Error(`Nigeria 2023 petroleum-gas quantity unit ${earlierGas.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const mozambiqueGas = gas?.completedQueries?.["MOZ:2023"];
+  if (mozambiqueGas?.status === "ok") {
+    const mozambiqueGasTrade = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!mozambiqueGasTrade) throw new Error("Mozambique 2023 petroleum-gas export to China is missing from the database.");
+    if (Math.abs(mozambiqueGasTrade.trade_value_usd - 337321000) > 1) {
+      throw new Error(`Mozambique petroleum-gas value ${mozambiqueGasTrade.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (mozambiqueGasTrade.net_weight_kg !== 11044872.598) {
+      throw new Error(`Mozambique petroleum-gas net weight ${mozambiqueGasTrade.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (mozambiqueGasTrade.qty !== 21706602.598) {
+      throw new Error(`Mozambique petroleum-gas quantity ${mozambiqueGasTrade.qty} does not match the Comtrade preview.`);
+    }
+    if (mozambiqueGasTrade.qty_unit_code !== 8) {
+      throw new Error(`Mozambique petroleum-gas quantity unit ${mozambiqueGasTrade.qty_unit_code} is not kilograms.`);
+    }
+    const mozambiqueTurkiye = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'TUR' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!mozambiqueTurkiye) throw new Error("Mozambique 2023 petroleum-gas export to Türkiye is missing from the database.");
+    if (Math.abs(mozambiqueTurkiye.trade_value_usd - 51924000) > 1) {
+      throw new Error(`Mozambique petroleum-gas value to Türkiye ${mozambiqueTurkiye.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (mozambiqueTurkiye.net_weight_kg !== null) {
+      throw new Error(`Mozambique petroleum-gas net weight to Türkiye ${mozambiqueTurkiye.net_weight_kg} is not null.`);
+    }
+    if (mozambiqueTurkiye.qty !== 5344000) {
+      throw new Error(`Mozambique petroleum-gas quantity to Türkiye ${mozambiqueTurkiye.qty} does not match the Comtrade preview.`);
+    }
+    if (mozambiqueTurkiye.qty_unit_code !== 8) {
+      throw new Error(`Mozambique petroleum-gas quantity unit to Türkiye ${mozambiqueTurkiye.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  const egyptGas = gas?.completedQueries?.["EGY:2023"];
+  if (egyptGas?.status === "ok") {
+    const egypt = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'EGY' AND partner_iso3 = 'PSE' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!egypt) throw new Error("Egypt 2023 petroleum-gas export to Palestine is missing from the database.");
+    if (Math.abs(egypt.trade_value_usd - 19510000) > 1) {
+      throw new Error(`Egypt petroleum-gas value ${egypt.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (egypt.net_weight_kg !== null) {
+      throw new Error(`Egypt petroleum-gas net weight ${egypt.net_weight_kg} is not null.`);
+    }
+    if (egypt.qty !== 0) {
+      throw new Error(`Egypt petroleum-gas quantity ${egypt.qty} is not the reported zero.`);
+    }
+    if (egypt.qty_unit_code !== -1) {
+      throw new Error(`Egypt petroleum-gas quantity unit ${egypt.qty_unit_code} is not the unspecified code -1.`);
     }
   }
 

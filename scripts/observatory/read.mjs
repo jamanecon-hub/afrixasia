@@ -264,9 +264,42 @@ function status(db) {
       'Coal, Australian',
       'Natural gas, US',
       'Natural gas, Europe',
-      'Liquefied natural gas, Japan',
       'Natural gas index'
     )
+  `).get();
+  const japanLng = db.prepare(`
+    SELECT price, period FROM commodity_prices
+    WHERE series = 'Liquefied natural gas, Japan' ORDER BY period DESC LIMIT 1
+  `).get();
+  const algeriaGas = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'DZA' AND partner_iso3 = 'TUR' AND hs_code = '2711' AND year = 2024 AND flow = 'export'
+  `).get();
+  const nigeriaGas = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2711' AND year = 2024 AND flow = 'export'
+  `).get();
+  const nigeriaGas2023 = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'IND' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+  `).get();
+  const mozambiqueGas = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'CHN' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+  `).get();
+  const mozambiqueGasTurkiye = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'MOZ' AND partner_iso3 = 'TUR' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
+  `).get();
+  const egyptGas = db.prepare(`
+    SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
+    FROM trade_flows
+    WHERE reporter_iso3 = 'EGY' AND partner_iso3 = 'PSE' AND hs_code = '2711' AND year = 2023 AND flow = 'export'
   `).get();
   const southAfricaCoal = db.prepare(`
     SELECT trade_value_usd AS tradeValueUsd, net_weight_kg AS netWeightKg, qty, qty_unit_code AS qtyUnitCode
@@ -352,7 +385,14 @@ function status(db) {
     southAfricaCoalExportsToIndia2023: southAfricaCoal2023 || null,
     southAfricaCoalExportsToVietnam2024: vietnamCoal || null,
     mozambiqueCoalExportsToIndia2023: mozambiqueCoal || null,
-    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored. Iron ore trade is HS 2601 customs weight, including agglomerated ore, not pig iron, not steel, and not mine production. The iron-ore benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value. Manganese ore trade is HS 2602 customs weight, including ferruginous manganese ores with a manganese content of 20% or more, calculated on the dry weight. It is not ferromanganese (HS 7202), not manganese oxides (HS 2820), and not contained manganese metal. No manganese price is stored. Chromium ore trade is HS 2610 customs weight. It is not ferrochromium (HS 720241 or HS 720249), not chromium oxides and hydroxides (HS 2819), and not contained chromium metal. No chromium price is stored. Bauxite trade is HS 2606 customs weight, aluminium ores and concentrates. It is not alumina (HS 281820), not unwrought aluminium (HS 7601), and not contained aluminium metal. Net weight and quantity can both be kilograms and still differ. No bauxite price is stored. The Pink Sheet Aluminum series is metal and is not stored. Titanium ore trade is HS 2614 customs weight, titanium ores and concentrates. It is not titanium oxides (HS 2823), not titanium dioxide pigments (HS 320611), not unwrought titanium (HS 8108), not ferrotitanium (HS 720291), and not slag or ash (HS 2620). Customs weight is not contained titanium metal. Net weight and quantity can both be kilograms and still differ. No titanium-ore price is stored. Crude petroleum trade is HS 2709 customs weight in kilograms, not barrels, not refined petroleum (HS 2710), and not petroleum gases (HS 2711). The stored benchmarks are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. They are not the customs unit value. WTI and the equal-weighted average are not stored. Coal trade is HS 2701 customs weight in kilograms. It is not lignite (HS 2702), not coke (HS 2704), not crude petroleum, and not petroleum gases. The stored benchmark is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal and not the customs unit value. Natural gas prices are not stored. Mozambique’s 2023 net weight and quantity to India both use unit code 8 and differ, so they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight.",
+    japanLngLatest: japanLng || null,
+    algeriaPetroleumGasExportsToTurkiye2024: algeriaGas || null,
+    nigeriaPetroleumGasExportsToIndia2024: nigeriaGas || null,
+    nigeriaPetroleumGasExportsToIndia2023: nigeriaGas2023 || null,
+    mozambiquePetroleumGasExportsToChina2023: mozambiqueGas || null,
+    mozambiquePetroleumGasExportsToTurkiye2023: mozambiqueGasTurkiye || null,
+    egyptPetroleumGasExportsToPalestine2023: egyptGas || null,
+    note: "A missing trade row is not zero trade. Flows under USD 1 million are omitted. Commodity prices are international benchmarks, not bilateral contracts. Crop figures are production, area, or yield, not available stock. Fish figures are live weight of aquatic animals, not export weight. Groundnut production is in shell, not HS 1202 customs weight and not the groundnut-oil price. Maize production is grain, not HS 1005 customs weight and not the US Gulf price. Tobacco production is unmanufactured leaf, not HS 2401 customs weight and not the US import unit value. A missing tobacco price month is not zero. Sugar cane and sugar beet are not raw sugar and must not be added. Raw centrifugal sugar is not HS 1701 customs weight and not the ISA world price. Phosphate rock trade is HS 2510 customs weight, not mine production and not the DAP, TSP, or urea price. The phosphate benchmark is f.o.b. North Africa. Copper ore (HS 2603) and refined copper cathodes (HS 740311) must not be added. Mine production is absent, not zero. The copper benchmark is the LME grade A cathode price, not a concentrate price. Cobalt oxides and hydroxides (HS 282200) are not cobalt ores (HS 2605), not unwrought cobalt (HS 810520), and not copper. Customs weight is not contained cobalt metal. No cobalt price is stored. Iron ore trade is HS 2601 customs weight, including agglomerated ore, not pig iron, not steel, and not mine production. The iron-ore benchmark is 62% Fe fines, c.f.r. China, in US dollars per dry metric ton, not the customs unit value. Manganese ore trade is HS 2602 customs weight, including ferruginous manganese ores with a manganese content of 20% or more, calculated on the dry weight. It is not ferromanganese (HS 7202), not manganese oxides (HS 2820), and not contained manganese metal. No manganese price is stored. Chromium ore trade is HS 2610 customs weight. It is not ferrochromium (HS 720241 or HS 720249), not chromium oxides and hydroxides (HS 2819), and not contained chromium metal. No chromium price is stored. Bauxite trade is HS 2606 customs weight, aluminium ores and concentrates. It is not alumina (HS 281820), not unwrought aluminium (HS 7601), and not contained aluminium metal. Net weight and quantity can both be kilograms and still differ. No bauxite price is stored. The Pink Sheet Aluminum series is metal and is not stored. Titanium ore trade is HS 2614 customs weight, titanium ores and concentrates. It is not titanium oxides (HS 2823), not titanium dioxide pigments (HS 320611), not unwrought titanium (HS 8108), not ferrotitanium (HS 720291), and not slag or ash (HS 2620). Customs weight is not contained titanium metal. Net weight and quantity can both be kilograms and still differ. No titanium-ore price is stored. Crude petroleum trade is HS 2709 customs weight in kilograms, not barrels, not refined petroleum (HS 2710), and not petroleum gases (HS 2711). The stored benchmarks are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. They are not the customs unit value. WTI and the equal-weighted average are not stored. Coal trade is HS 2701 customs weight in kilograms. It is not lignite (HS 2702), not coke (HS 2704), not crude petroleum, and not petroleum gases. The stored benchmark is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal and not the customs unit value. Petroleum-gas trade is HS 2711 customs weight in kilograms. The heading includes liquefied natural gas, other liquefied petroleum gases, and natural gas in the gaseous state. It is not crude petroleum, not refined petroleum (HS 2710), and not coal. The stored benchmark is Japan LNG, c.i.f. import price, in US dollars per million Btu. It is not the customs unit value. US Henry Hub, Europe TTF, and the natural-gas index are not stored. Mozambique’s 2023 petroleum-gas net weight and quantity to China both use unit code 8 and differ, so they must not be substituted. Nigeria’s 2024 petroleum-gas net weight and quantity to India both use unit code 8 and match. That implied unit value is not the Japan LNG price and was stored as reported. Mozambique’s 2023 net weight and quantity to India both use unit code 8 and differ, so they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight.",
     datasets,
   };
 }

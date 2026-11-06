@@ -46,6 +46,8 @@ import {
   coalProducts,
   gasDatasetId,
   gasProducts,
+  refinedDatasetId,
+  refinedProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -87,6 +89,7 @@ const titaniumCollectionVersion = 1;
 const crudeCollectionVersion = 1;
 const coalCollectionVersion = 1;
 const gasCollectionVersion = 1;
+const refinedCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -279,6 +282,11 @@ export async function collectPrices() {
   if (titaniumNamed.length) {
     throw new Error(`Pink Sheet gained a titanium series (${titaniumNamed.join(", ")}). Store it explicitly; do not leave it out.`);
   }
+  const refinedNamed = [...seriesNames].filter((name) => /\b(gasoline|gasoil|diesel|jet fuel|kerosene|fuel oil)\b/i.test(name));
+  if (refinedNamed.length) {
+    throw new Error(`Pink Sheet gained a refined-petroleum series (${refinedNamed.join(", ")}). Store it explicitly; do not leave it out.`);
+  }
+  console.log("Pink Sheet has no gasoline, diesel, gasoil, jet fuel, kerosene, or fuel-oil series. No refined-product price is stored.");
   const aluminumSep = table.prices.find((row) => row.series === "Aluminum" && row.period === "2026-09");
   console.log(`Aluminum metal 2026-09 is ${aluminumSep ? aluminumSep.price : "absent"} USD per metric ton. Not stored. It is not bauxite.`);
   const brentSep = table.prices.find((row) => row.series === "Crude oil, Brent" && row.period === "2026-09");
@@ -327,7 +335,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. Coal stored here is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored. It is not the HS 2701 customs unit value. Japan LNG stored here is the c.i.f. import price, in US dollars per million Btu. Recent two months' averages are estimates. It is not US Henry Hub, not Europe TTF, not the natural-gas index, and not the HS 2711 customs unit value. US natural gas, European natural gas, and the natural-gas index are not stored. A missing price is not zero.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. Coal stored here is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored. It is not the HS 2701 customs unit value. Japan LNG stored here is the c.i.f. import price, in US dollars per million Btu. Recent two months' averages are estimates. It is not US Henry Hub, not Europe TTF, not the natural-gas index, and not the HS 2711 customs unit value. US natural gas, European natural gas, and the natural-gas index are not stored. This file has no gasoline, diesel, gasoil, jet fuel, kerosene, or fuel-oil series. Brent, Dubai, WTI, and the crude average are not refined-product prices and are not the HS 2710 customs unit value. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -793,6 +801,16 @@ const gasOptions = {
   useClient: false,
 };
 
+const refinedOptions = {
+  datasetId: refinedDatasetId,
+  title: "Africa–Asia refined petroleum exports",
+  note: "Petroleum oils and oils obtained from bituminous minerals, other than crude; preparations containing by weight 70% or more of petroleum oils; waste oils (HS 2710). This is the heading aggregate, including light oils, other oils, oils containing biodiesel, and waste oils. The six-digit parts are not stored separately. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is kilograms, not barrels, and is not a Brent, Dubai, or WTI price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. A reported net weight of zero is not a null weight. Quantity 0 with unit code -1 is not a measured kilogram weight. Quantity 0 with unit code 8 is a reported zero quantity in kilograms. It is not unit code -1 and must not replace the net weight. This is not crude petroleum (HS 2709) and not petroleum gases (HS 2711). Refinery output is absent from this database, not zero. The Pink Sheet extract has no gasoline, diesel, gasoil, jet fuel, kerosene, or fuel-oil series. Brent, Dubai, WTI, and the crude average are crude benchmarks, not refined-product prices, and they are not the HS 2710 customs unit value. A missing price is not zero.",
+  products: refinedProducts,
+  collectionVersion: refinedCollectionVersion,
+  statePath: paths.tradeRefined,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -850,6 +868,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, coalOptions);
   buildDatabase();
   await collectTrade(wdi.countries, gasOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, refinedOptions);
   buildDatabase();
 }
 

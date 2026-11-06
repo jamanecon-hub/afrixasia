@@ -38,6 +38,8 @@ import {
   coalProducts,
   gasDatasetId,
   gasProducts,
+  refinedDatasetId,
+  refinedProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -104,6 +106,7 @@ export function buildDatabase() {
   const crude = fs.existsSync(paths.tradeCrude) ? readJson(paths.tradeCrude) : null;
   const coal = fs.existsSync(paths.tradeCoal) ? readJson(paths.tradeCoal) : null;
   const gas = fs.existsSync(paths.tradeGas) ? readJson(paths.tradeGas) : null;
+  const refined = fs.existsSync(paths.tradeRefined) ? readJson(paths.tradeRefined) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -440,6 +443,20 @@ export function buildDatabase() {
       note: gas.note,
     });
   }
+  if (refined) {
+    insertDataset(db, {
+      id: refined.datasetId || refinedDatasetId,
+      title: refined.title,
+      source: refined.source,
+      sourceUrl: refined.sourceUrl,
+      license: refined.license,
+      licenseUrl: refined.licenseUrl,
+      frequency: refined.frequency,
+      updatedAt: refined.retrievedAt,
+      retrievedAt: refined.retrievedAt,
+      note: refined.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -534,7 +551,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -584,6 +601,7 @@ export function buildDatabase() {
   insertFlows(crude, crudeDatasetId);
   insertFlows(coal, coalDatasetId);
   insertFlows(gas, gasDatasetId);
+  insertFlows(refined, refinedDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -627,6 +645,7 @@ export function buildDatabase() {
   insertQueries(crude, crudeDatasetId);
   insertQueries(coal, coalDatasetId);
   insertQueries(gas, gasDatasetId);
+  insertQueries(refined, refinedDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -1413,6 +1432,74 @@ export function buildDatabase() {
     }
     if (mozambiqueTurkiye.qty_unit_code !== 8) {
       throw new Error(`Mozambique petroleum-gas quantity unit to Türkiye ${mozambiqueTurkiye.qty_unit_code} is not kilograms.`);
+    }
+  }
+
+  function expectRefined(query, reporter, partner, year, value, netWeight, qty, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = '2710' AND year = ? AND flow = 'export'
+    `).get(reporter, partner, year);
+    if (!row) throw new Error(`${label} is missing from the database.`);
+    if (Math.abs(row.trade_value_usd - value) > 1) {
+      throw new Error(`${label} value ${row.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (row.net_weight_kg !== netWeight) {
+      throw new Error(`${label} net weight ${row.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (row.qty !== qty) {
+      throw new Error(`${label} quantity ${row.qty} does not match the Comtrade preview.`);
+    }
+    if (row.qty_unit_code !== 8) {
+      throw new Error(`${label} quantity unit ${row.qty_unit_code} is not kilograms.`);
+    }
+  }
+  expectRefined(refined?.completedQueries?.["IND:2024"], "IND", "ZAF", 2024, 3563531699.767, 5084739934, 5084739934, "India 2024 refined-petroleum export to South Africa");
+  expectRefined(refined?.completedQueries?.["IND:2023"], "IND", "ZAF", 2023, 3505230363.834, 4117627409.563, 4117627409.563, "India 2023 refined-petroleum export to South Africa");
+  expectRefined(refined?.completedQueries?.["IND:2025"], "IND", "ZAF", 2025, 2030543522.97, 3007079617, 3007079617, "India 2025 refined-petroleum export to South Africa");
+  expectRefined(refined?.completedQueries?.["DZA:2024"], "DZA", "CHN", 2024, 1643305932.352, 1850827118.026, 1850827118.026, "Algeria 2024 refined-petroleum export to China");
+  expectRefined(refined?.completedQueries?.["CHN:2024"], "CHN", "LBR", 2024, 2186177684, 3590098856, 3590098856, "China 2024 refined-petroleum export to Liberia");
+  expectRefined(refined?.completedQueries?.["CHN:2023"], "CHN", "LBR", 2023, 2460952806, 3886619694, 3886619694, "China 2023 refined-petroleum export to Liberia");
+  expectRefined(refined?.completedQueries?.["TUR:2025"], "TUR", "MAR", 2025, 511879128, 1169745500, 0, "Türkiye 2025 refined-petroleum export to Morocco");
+  expectRefined(refined?.completedQueries?.["MOZ:2023"], "MOZ", "ARE", 2023, 30787000, 47827107, 48197107, "Mozambique 2023 refined-petroleum export to the United Arab Emirates");
+  expectRefined(refined?.completedQueries?.["NGA:2025"], "NGA", "SAU", 2025, 58805543.232, 90000, 90000, "Nigeria 2025 refined-petroleum export to Saudi Arabia");
+  if (refined?.completedQueries?.["NGA:2025"]?.status === "ok") {
+    const nigeriaSingapore = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'SGP' AND hs_code = '2710' AND year = 2025 AND flow = 'export'
+    `).get();
+    if (!nigeriaSingapore) throw new Error("Nigeria 2025 refined-petroleum export to Singapore is missing from the database.");
+    if (Math.abs(nigeriaSingapore.trade_value_usd - 260940118.318) > 1) {
+      throw new Error(`Nigeria refined-petroleum value to Singapore ${nigeriaSingapore.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (nigeriaSingapore.net_weight_kg !== null) {
+      throw new Error(`Nigeria refined-petroleum net weight to Singapore ${nigeriaSingapore.net_weight_kg} is not null.`);
+    }
+    if (nigeriaSingapore.qty !== 0) {
+      throw new Error(`Nigeria refined-petroleum quantity to Singapore ${nigeriaSingapore.qty} is not the reported zero.`);
+    }
+    if (nigeriaSingapore.qty_unit_code !== -1) {
+      throw new Error(`Nigeria refined-petroleum quantity unit to Singapore ${nigeriaSingapore.qty_unit_code} is not the unspecified code -1.`);
+    }
+  }
+  if (refined?.completedQueries?.["EGY:2023"]?.status === "ok") {
+    const egyptSaudi = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'EGY' AND partner_iso3 = 'SAU' AND hs_code = '2710' AND year = 2023 AND flow = 'export'
+    `).get();
+    if (!egyptSaudi) throw new Error("Egypt 2023 refined-petroleum export to Saudi Arabia is missing from the database.");
+    if (Math.abs(egyptSaudi.trade_value_usd - 311440380.2) > 1) {
+      throw new Error(`Egypt refined-petroleum value to Saudi Arabia ${egyptSaudi.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (egyptSaudi.net_weight_kg !== 0) {
+      throw new Error(`Egypt refined-petroleum net weight to Saudi Arabia ${egyptSaudi.net_weight_kg} is not the reported zero.`);
+    }
+    if (egyptSaudi.qty !== 0) {
+      throw new Error(`Egypt refined-petroleum quantity to Saudi Arabia ${egyptSaudi.qty} is not the reported zero.`);
+    }
+    if (egyptSaudi.qty_unit_code !== -1) {
+      throw new Error(`Egypt refined-petroleum quantity unit to Saudi Arabia ${egyptSaudi.qty_unit_code} is not the unspecified code -1.`);
     }
   }
 

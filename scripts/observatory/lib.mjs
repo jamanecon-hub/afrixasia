@@ -33,6 +33,7 @@ export const paths = {
   tradeCrude: path.join(root, "data", "collected", "trade-crude.json"),
   tradeCoal: path.join(root, "data", "collected", "trade-coal.json"),
   tradeGas: path.join(root, "data", "collected", "trade-gas.json"),
+  tradeRefined: path.join(root, "data", "collected", "trade-refined.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -61,6 +62,7 @@ export const titaniumDatasetId = "un-comtrade-titanium";
 export const crudeDatasetId = "un-comtrade-crude";
 export const coalDatasetId = "un-comtrade-coal";
 export const gasDatasetId = "un-comtrade-gas";
+export const refinedDatasetId = "un-comtrade-refined";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -401,6 +403,15 @@ export const gasProducts = [
     name: "Petroleum gases and other gaseous hydrocarbons",
     category: "Energy",
     observatoryProduct: "Gas minyak bumi",
+  },
+];
+
+export const refinedProducts = [
+  {
+    hs: "2710",
+    name: "Petroleum oils and oils obtained from bituminous minerals, other than crude",
+    category: "Energy",
+    observatoryProduct: "Minyak olahan",
   },
 ];
 

@@ -6,7 +6,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server/prod.mjs"
+    "start": "node server/prod.mjs",
+    "observatory:collect": "node --disable-warning=ExperimentalWarning scripts/observatory/collect.mjs",
+    "observatory:build": "node --disable-warning=ExperimentalWarning scripts/observatory/build.mjs",
+    "observatory:query": "node --disable-warning=ExperimentalWarning scripts/observatory/query.mjs"
   },
   "engines": {
     "node": ">=22"

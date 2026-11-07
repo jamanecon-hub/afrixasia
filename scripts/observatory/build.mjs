@@ -40,6 +40,8 @@ import {
   gasProducts,
   refinedDatasetId,
   refinedProducts,
+  goldDatasetId,
+  goldProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -107,6 +109,7 @@ export function buildDatabase() {
   const coal = fs.existsSync(paths.tradeCoal) ? readJson(paths.tradeCoal) : null;
   const gas = fs.existsSync(paths.tradeGas) ? readJson(paths.tradeGas) : null;
   const refined = fs.existsSync(paths.tradeRefined) ? readJson(paths.tradeRefined) : null;
+  const gold = fs.existsSync(paths.tradeGold) ? readJson(paths.tradeGold) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -457,6 +460,20 @@ export function buildDatabase() {
       note: refined.note,
     });
   }
+  if (gold) {
+    insertDataset(db, {
+      id: gold.datasetId || goldDatasetId,
+      title: gold.title,
+      source: gold.source,
+      sourceUrl: gold.sourceUrl,
+      license: gold.license,
+      licenseUrl: gold.licenseUrl,
+      frequency: gold.frequency,
+      updatedAt: gold.retrievedAt,
+      retrievedAt: gold.retrievedAt,
+      note: gold.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -551,7 +568,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -602,6 +619,7 @@ export function buildDatabase() {
   insertFlows(coal, coalDatasetId);
   insertFlows(gas, gasDatasetId);
   insertFlows(refined, refinedDatasetId);
+  insertFlows(gold, goldDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -646,6 +664,7 @@ export function buildDatabase() {
   insertQueries(coal, coalDatasetId);
   insertQueries(gas, gasDatasetId);
   insertQueries(refined, refinedDatasetId);
+  insertQueries(gold, goldDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -785,6 +804,29 @@ export function buildDatabase() {
   `).get();
   if (excludedGas.n !== 0) {
     throw new Error("US natural gas, European natural gas, or the natural-gas index was stored. Those series are not the Japan LNG benchmark kept in this database.");
+  }
+  if (prices?.series?.some((series) => series.series === "Gold")) {
+    const goldPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Gold' AND period = '2026-09'
+    `).get();
+    if (!goldPrice) throw new Error("September 2026 gold price is missing from the database.");
+    if (Math.abs(goldPrice.price - 4319) > 0.001) {
+      throw new Error(`Gold price ${goldPrice.price} does not match the 3 November 2026 Pink Sheet.`);
+    }
+    const goldMonths = db.prepare(`
+      SELECT COUNT(*) AS n, MIN(period) AS firstPeriod, MAX(period) AS lastPeriod
+      FROM commodity_prices WHERE series = 'Gold'
+    `).get();
+    if (goldMonths.n !== 142 || goldMonths.firstPeriod !== "2015-01" || goldMonths.lastPeriod !== "2026-10") {
+      throw new Error(`Gold price coverage ${goldMonths.n} from ${goldMonths.firstPeriod} to ${goldMonths.lastPeriod} is not the 2015-01 through 2026-10 series.`);
+    }
+  }
+  const excludedPrecious = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series IN ('Silver', 'Platinum')
+  `).get();
+  if (excludedPrecious.n) {
+    throw new Error("Silver or platinum was stored. Those series are not the gold benchmark kept in this database.");
   }
   if (prices?.series?.some((series) => series.series === "Iron ore, cfr spot")) {
     const ironPrice = db.prepare(`
@@ -1597,6 +1639,100 @@ export function buildDatabase() {
     if (frozenFish.net_weight_kg !== 76140821) {
       throw new Error(`China frozen-fish quantity ${frozenFish.net_weight_kg} does not match the Comtrade preview.`);
     }
+  }
+
+  function expectGold(query, reporter, partner, year, value, netWeight, qty, unitCode, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = '7108' AND year = ? AND flow = 'export'
+    `).get(reporter, partner, year);
+    if (!row) throw new Error(`${label} is missing from the database.`);
+    if (Math.abs(row.trade_value_usd - value) > 1) {
+      throw new Error(`${label} value ${row.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (row.net_weight_kg !== netWeight) {
+      throw new Error(`${label} net weight ${row.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (row.qty !== qty) {
+      throw new Error(`${label} quantity ${row.qty} does not match the Comtrade preview.`);
+    }
+    if (row.qty_unit_code !== unitCode) {
+      throw new Error(`${label} quantity unit ${row.qty_unit_code} does not match the Comtrade preview.`);
+    }
+  }
+  expectGold(gold?.completedQueries?.["GHA:2024"], "GHA", "ARE", 2024, 4067603545.566, 56417.671, 135360.422, 8, "Ghana 2024 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["GHA:2023"], "GHA", "ARE", 2023, 1647817005.893, 27756.406, 443128.29, 8, "Ghana 2023 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["GHA:2025"], "GHA", "ARE", 2025, 8232910492.331, 79754.034, 207757.976, 8, "Ghana 2025 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["GHA:2024"], "GHA", "IND", 2024, 940442814.683, 13774.964, 318535.786, 8, "Ghana 2024 gold export to India");
+  expectGold(gold?.completedQueries?.["BFA:2024"], "BFA", "ARE", 2024, 1439484532.634, 22392, 22392, 8, "Burkina Faso 2024 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["MLI:2024"], "MLI", "ARE", 2024, 77662800.752, 1617.524, 1617.524, 8, "Mali 2024 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["TZA:2024"], "TZA", "IND", 2024, 533441565.025, 8009.06, 0, -1, "Tanzania 2024 gold export to India");
+  expectGold(gold?.completedQueries?.["GHA:2023"], "GHA", "CHN", 2023, 7735258.643, 139.02, 4050.15, 8, "Ghana 2023 gold export to China");
+  expectGold(gold?.completedQueries?.["EGY:2025"], "EGY", "ARE", 2025, 5855457793.68, 61659.168, 61659.168, 8, "Egypt 2025 gold export to the United Arab Emirates");
+  expectGold(gold?.completedQueries?.["UGA:2025"], "UGA", "ARE", 2025, 5083347961.12, 48443.82, 48523.875, 8, "Uganda 2025 gold export to the United Arab Emirates");
+  if (gold?.completedQueries?.["GHA:2024"]?.status === "ok") {
+    const ghanaChina = db.prepare(`
+      SELECT trade_value_usd FROM trade_flows
+      WHERE reporter_iso3 = 'GHA' AND partner_iso3 = 'CHN' AND hs_code = '7108' AND year = 2024 AND flow = 'export'
+    `).get();
+    if (ghanaChina) {
+      throw new Error("Ghana 2024 gold export to China was kept. The preview is under USD 1 million and must not be stored.");
+    }
+  }
+  if (gold?.completedQueries?.["GHA:2025"]?.status === "ok") {
+    const ghanaChina = db.prepare(`
+      SELECT trade_value_usd FROM trade_flows
+      WHERE reporter_iso3 = 'GHA' AND partner_iso3 = 'CHN' AND hs_code = '7108' AND year = 2025 AND flow = 'export'
+    `).get();
+    if (ghanaChina) {
+      throw new Error("Ghana 2025 gold export to China was stored. The Comtrade preview returned no HS 7108 row.");
+    }
+  }
+  if (gold?.completedQueries?.["NGA:2025"]?.status === "ok") {
+    const nigeria = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = 'NGA' AND partner_iso3 = 'ARE' AND hs_code = '7108' AND year = 2025 AND flow = 'export'
+    `).get();
+    if (!nigeria) throw new Error("Nigeria 2025 gold export to the United Arab Emirates is missing from the database.");
+    if (Math.abs(nigeria.trade_value_usd - 2923456.55) > 1) {
+      throw new Error(`Nigeria gold value ${nigeria.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (nigeria.net_weight_kg !== null) {
+      throw new Error(`Nigeria gold net weight ${nigeria.net_weight_kg} is not null.`);
+    }
+    if (nigeria.qty !== 0) {
+      throw new Error(`Nigeria gold quantity ${nigeria.qty} is not the reported zero.`);
+    }
+    if (nigeria.qty_unit_code !== -1) {
+      throw new Error(`Nigeria gold quantity unit ${nigeria.qty_unit_code} is not the unspecified code -1.`);
+    }
+  }
+  function expectNoGold(query, reporter, year, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows
+      WHERE reporter_iso3 = ? AND hs_code = '7108' AND year = ? AND flow = 'export'
+    `).get(reporter, year);
+    if (row.n) throw new Error(`${label} stored ${row.n} HS 7108 flows. The Comtrade preview returned no rows.`);
+  }
+  expectNoGold(gold?.completedQueries?.["ZAF:2023"], "ZAF", 2023, "South Africa 2023");
+  expectNoGold(gold?.completedQueries?.["ZAF:2024"], "ZAF", 2024, "South Africa 2024");
+  expectNoGold(gold?.completedQueries?.["ZAF:2025"], "ZAF", 2025, "South Africa 2025");
+  expectNoGold(gold?.completedQueries?.["SDN:2023"], "SDN", 2023, "Sudan 2023");
+  expectNoGold(gold?.completedQueries?.["SDN:2024"], "SDN", 2024, "Sudan 2024");
+  expectNoGold(gold?.completedQueries?.["SDN:2025"], "SDN", 2025, "Sudan 2025");
+  expectNoGold(gold?.completedQueries?.["LBY:2023"], "LBY", 2023, "Libya 2023");
+  expectNoGold(gold?.completedQueries?.["LBY:2024"], "LBY", 2024, "Libya 2024");
+  expectNoGold(gold?.completedQueries?.["LBY:2025"], "LBY", 2025, "Libya 2025");
+  expectNoGold(gold?.completedQueries?.["MLI:2025"], "MLI", 2025, "Mali 2025");
+  expectNoGold(gold?.completedQueries?.["ARE:2024"], "ARE", 2024, "United Arab Emirates 2024");
+  expectNoGold(gold?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
+  const sixDigitGold = db.prepare(`
+    SELECT COUNT(*) AS n FROM trade_flows WHERE hs_code IN ('710811', '710812', '710813', '710820', '2616', '7112', '7113')
+  `).get();
+  if (sixDigitGold.n) {
+    throw new Error("A gold subheading, gold ore, scrap, or jewelry code was stored. This database keeps the HS 7108 heading only.");
   }
 
   const tea = db.prepare(`

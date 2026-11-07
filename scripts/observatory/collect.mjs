@@ -48,6 +48,8 @@ import {
   gasProducts,
   refinedDatasetId,
   refinedProducts,
+  goldDatasetId,
+  goldProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -90,6 +92,7 @@ const crudeCollectionVersion = 1;
 const coalCollectionVersion = 1;
 const gasCollectionVersion = 1;
 const refinedCollectionVersion = 1;
+const goldCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -311,6 +314,14 @@ export async function collectPrices() {
   console.log(`Europe natural gas 2026-09 is ${gasEu ? gasEu.price : "absent"} USD per mmbtu. Not stored.`);
   console.log(`Japan LNG 2026-09 is ${lngJapan ? lngJapan.price : "absent"} USD per mmbtu.`);
   console.log(`Japan LNG 2026-10 is ${lngOct ? lngOct.price : "absent"} USD per mmbtu.`);
+  const goldSep = table.prices.find((row) => row.series === "Gold" && row.period === "2026-09");
+  const goldOct = table.prices.find((row) => row.series === "Gold" && row.period === "2026-10");
+  const silverSep = table.prices.find((row) => row.series === "Silver" && row.period === "2026-09");
+  const platinumSep = table.prices.find((row) => row.series === "Platinum" && row.period === "2026-09");
+  console.log(`Gold 2026-09 is ${goldSep ? goldSep.price : "absent"} USD per troy oz.`);
+  console.log(`Gold 2026-10 is ${goldOct ? goldOct.price : "absent"} USD per troy oz.`);
+  console.log(`Silver 2026-09 is ${silverSep ? silverSep.price : "absent"} USD per troy oz. Not stored.`);
+  console.log(`Platinum 2026-09 is ${platinumSep ? platinumSep.price : "absent"} USD per troy oz. Not stored.`);
   const byName = new Map();
   for (const row of table.prices) {
     const list = byName.get(row.series) || [];
@@ -335,7 +346,7 @@ export async function collectPrices() {
     frequency: "Monthly",
     sourceUpdatedAt: table.updated,
     retrievedAt: stamp(),
-    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. Coal stored here is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored. It is not the HS 2701 customs unit value. Japan LNG stored here is the c.i.f. import price, in US dollars per million Btu. Recent two months' averages are estimates. It is not US Henry Hub, not Europe TTF, not the natural-gas index, and not the HS 2711 customs unit value. US natural gas, European natural gas, and the natural-gas index are not stored. This file has no gasoline, diesel, gasoil, jet fuel, kerosene, or fuel-oil series. Brent, Dubai, WTI, and the crude average are not refined-product prices and are not the HS 2710 customs unit value. A missing price is not zero.",
+    note: "Nominal US dollar benchmarks. They are not bilateral Africa–Asia contract prices. Tea is the Mombasa auction series. Tobacco is the US import unit value; a missing month is not a zero price. Sugar is the ISA world price, not the EU or US series. Phosphate rock is f.o.b. North Africa, not DAP, TSP, or urea. Copper is the LME grade A cathode settlement, not copper ore or concentrate. This file has no cobalt series. Cobalt oxides and hydroxides are not copper. Iron ore is the cfr China 62% Fe fines spot, in US dollars per dry metric ton. The spreadsheet header prints ($/dmtu); the Description sheet defines the spot series as US dollars per dry ton. It is not a contract price in cents per Fe-unit and not HS 2601 customs value. This file has no manganese series. HS 2602 customs weight is not a manganese price. This file has no chromium series. HS 2610 customs weight is not a chromium price and is not contained chromium metal. This file has no bauxite series. The Aluminum column is metal, in US dollars per metric ton, not HS 2606 bauxite, and it is not stored. This file has no titanium ore, ilmenite, or rutile series. HS 2614 customs weight is not a titanium price and is not contained titanium metal. Crude petroleum benchmarks stored here are UK Brent, 38 API, and Dubai Fateh, 32 API, in US dollars per barrel. Brent is not Dubai. WTI and the equal-weighted average of Brent, Dubai, and WTI are not stored. Neither stored benchmark is the HS 2709 customs unit value, a barrel count, or a refined-product price. Coal stored here is South African thermal coal, f.o.b. Richards Bay, NAR 6,000 kcal/kg, in US dollars per metric ton. It is not Australian Newcastle coal, which is not stored. It is not the HS 2701 customs unit value. Japan LNG stored here is the c.i.f. import price, in US dollars per million Btu. Recent two months' averages are estimates. It is not US Henry Hub, not Europe TTF, not the natural-gas index, and not the HS 2711 customs unit value. US natural gas, European natural gas, and the natural-gas index are not stored. This file has no gasoline, diesel, gasoil, jet fuel, kerosene, or fuel-oil series. Brent, Dubai, WTI, and the crude average are not refined-product prices and are not the HS 2710 customs unit value. Gold stored here is the spot average of daily rates from June 2025, and previously the UK 99.5% fine London afternoon fixing, in US dollars per troy ounce. It is not silver, not platinum, and not the HS 7108 customs unit value. Silver and platinum are not stored. Customs weight is kilograms, not troy ounces. A missing price is not zero.",
     series: commoditySeries,
     prices,
   };
@@ -811,6 +822,16 @@ const refinedOptions = {
   useClient: false,
 };
 
+const goldOptions = {
+  datasetId: goldDatasetId,
+  title: "Africa–Asia gold exports",
+  note: "Gold, including gold plated with platinum, unwrought or in semi-manufactured forms, or in powder form (HS 7108). This is the heading aggregate, including powder, other unwrought forms, other semi-manufactured forms, and monetary gold. The six-digit parts are not stored separately. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. Customs weight is kilograms, not troy ounces, and is not the London or spot gold price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not precious-metal ores and concentrates (HS 2616), not waste and scrap of precious metal (HS 7112), and not articles of jewelry (HS 7113). Mine production is absent from this database, not zero. The Pink Sheet benchmark stored with this trade is gold, in US dollars per troy ounce. It is not silver, not platinum, and not the HS 7108 customs unit value. Silver and platinum are not stored.",
+  products: goldProducts,
+  collectionVersion: goldCollectionVersion,
+  statePath: paths.tradeGold,
+  useClient: false,
+};
+
 const fisheryOptions = {
   datasetId: fisheryDatasetId,
   title: "Africa–Asia frozen fish, fillet, and prepared-tuna exports",
@@ -870,6 +891,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, gasOptions);
   buildDatabase();
   await collectTrade(wdi.countries, refinedOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, goldOptions);
   buildDatabase();
 }
 

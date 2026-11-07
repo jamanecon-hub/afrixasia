@@ -34,6 +34,7 @@ export const paths = {
   tradeCoal: path.join(root, "data", "collected", "trade-coal.json"),
   tradeGas: path.join(root, "data", "collected", "trade-gas.json"),
   tradeRefined: path.join(root, "data", "collected", "trade-refined.json"),
+  tradeGold: path.join(root, "data", "collected", "trade-gold.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -63,6 +64,7 @@ export const crudeDatasetId = "un-comtrade-crude";
 export const coalDatasetId = "un-comtrade-coal";
 export const gasDatasetId = "un-comtrade-gas";
 export const refinedDatasetId = "un-comtrade-refined";
+export const goldDatasetId = "un-comtrade-gold";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -412,6 +414,15 @@ export const refinedProducts = [
     name: "Petroleum oils and oils obtained from bituminous minerals, other than crude",
     category: "Energy",
     observatoryProduct: "Minyak olahan",
+  },
+];
+
+export const goldProducts = [
+  {
+    hs: "7108",
+    name: "Gold, including gold plated with platinum, unwrought or in semi-manufactured forms, or in powder form",
+    category: "Metals & minerals",
+    observatoryProduct: "Emas",
   },
 ];
 
@@ -790,6 +801,15 @@ export const commoditySeries = [
     observatoryProduct: "LNG Jepang",
     unit: "USD per mmbtu",
     detail: "World Bank Pink Sheet: liquefied natural gas, Japan, import price, c.i.f. Recent two months' averages are estimates. Nominal US dollars per million Btu. Not US Henry Hub, not Europe TTF, not the natural-gas index, not a bilateral Africa–Asia contract price, and not the HS 2711 customs unit value.",
+  },
+  {
+    column: "Gold",
+    series: "Gold",
+    product: "Gold",
+    category: "Metals & minerals",
+    observatoryProduct: "Emas",
+    unit: "USD per troy oz",
+    detail: "World Bank Pink Sheet: gold, spot average of daily rates from June 2025; previously UK, 99.5% fine, London afternoon fixing, average of daily rates. Nominal US dollars per troy ounce. Not silver, not platinum, not mine production, and not the HS 7108 customs unit value. Customs weight is kilograms, not troy ounces.",
   },
 ];
 

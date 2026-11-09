@@ -36,6 +36,7 @@ export const paths = {
   tradeRefined: path.join(root, "data", "collected", "trade-refined.json"),
   tradeGold: path.join(root, "data", "collected", "trade-gold.json"),
   tradePlatinum: path.join(root, "data", "collected", "trade-platinum.json"),
+  tradeSilver: path.join(root, "data", "collected", "trade-silver.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -67,6 +68,7 @@ export const gasDatasetId = "un-comtrade-gas";
 export const refinedDatasetId = "un-comtrade-refined";
 export const goldDatasetId = "un-comtrade-gold";
 export const platinumDatasetId = "un-comtrade-platinum";
+export const silverDatasetId = "un-comtrade-silver";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -440,6 +442,15 @@ export const platinumProducts = [
     name: "Platinum, in other semi-manufactured forms",
     category: "Metals & minerals",
     observatoryProduct: "Platina",
+  },
+];
+
+export const silverProducts = [
+  {
+    hs: "7106",
+    name: "Silver, including silver plated with gold or platinum, unwrought or in semi-manufactured forms, or in powder form",
+    category: "Metals & minerals",
+    observatoryProduct: "Perak",
   },
 ];
 
@@ -836,6 +847,15 @@ export const commoditySeries = [
     observatoryProduct: "Platina",
     unit: "USD per troy oz",
     detail: "World Bank Pink Sheet: platinum, 99.95% minimum purity, plate or ingot form, spot average of daily rates from June 2025; previously UK, 99.9% refined, London afternoon fixing. Nominal US dollars per troy ounce. Not gold, not silver, not palladium, not mine production, and not the HS 711011 or HS 711019 customs unit value. Customs weight is kilograms, not troy ounces. The two platinum codes must not be added, and neither is the HS 7110 heading.",
+  },
+  {
+    column: "Silver",
+    series: "Silver",
+    product: "Silver",
+    category: "Metals & minerals",
+    observatoryProduct: "Perak",
+    unit: "USD per troy oz",
+    detail: "World Bank Pink Sheet: silver (UK), 99.9% refined, London afternoon fixing. Prior to July 1976, Handy & Harman. Grade prior to 1962 was unrefined silver. Nominal US dollars per troy ounce. Not gold, not platinum, not palladium, not mine production, and not the HS 7106 customs unit value. Customs weight is kilograms, not troy ounces. The six-digit parts of HS 7106 are not stored separately.",
   },
 ];
 

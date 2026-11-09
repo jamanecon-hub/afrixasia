@@ -44,6 +44,8 @@ import {
   goldProducts,
   platinumDatasetId,
   platinumProducts,
+  silverDatasetId,
+  silverProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -113,6 +115,7 @@ export function buildDatabase() {
   const refined = fs.existsSync(paths.tradeRefined) ? readJson(paths.tradeRefined) : null;
   const gold = fs.existsSync(paths.tradeGold) ? readJson(paths.tradeGold) : null;
   const platinum = fs.existsSync(paths.tradePlatinum) ? readJson(paths.tradePlatinum) : null;
+  const silver = fs.existsSync(paths.tradeSilver) ? readJson(paths.tradeSilver) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -491,6 +494,20 @@ export function buildDatabase() {
       note: platinum.note,
     });
   }
+  if (silver) {
+    insertDataset(db, {
+      id: silver.datasetId || silverDatasetId,
+      title: silver.title,
+      source: silver.source,
+      sourceUrl: silver.sourceUrl,
+      license: silver.license,
+      licenseUrl: silver.licenseUrl,
+      frequency: silver.frequency,
+      updatedAt: silver.retrievedAt,
+      retrievedAt: silver.retrievedAt,
+      note: silver.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -585,7 +602,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts, ...silverProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -638,6 +655,7 @@ export function buildDatabase() {
   insertFlows(refined, refinedDatasetId);
   insertFlows(gold, goldDatasetId);
   insertFlows(platinum, platinumDatasetId);
+  insertFlows(silver, silverDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -684,6 +702,7 @@ export function buildDatabase() {
   insertQueries(refined, refinedDatasetId);
   insertQueries(gold, goldDatasetId);
   insertQueries(platinum, platinumDatasetId);
+  insertQueries(silver, silverDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -842,10 +861,26 @@ export function buildDatabase() {
   }
   const excludedPrecious = db.prepare(`
     SELECT COUNT(*) AS n FROM commodity_series
-    WHERE series IN ('Silver', 'Palladium', 'Rhodium')
+    WHERE series IN ('Palladium', 'Rhodium')
   `).get();
   if (excludedPrecious.n) {
-    throw new Error("Silver, palladium, or rhodium was stored. Those series are not the gold or platinum benchmark kept in this database.");
+    throw new Error("Palladium or rhodium was stored. The Pink Sheet has no palladium or rhodium series, and neither is the silver benchmark.");
+  }
+  if (prices?.series?.some((series) => series.series === "Silver")) {
+    const silverPrice = db.prepare(`
+      SELECT price FROM commodity_prices WHERE series = 'Silver' AND period = '2026-09'
+    `).get();
+    if (!silverPrice) throw new Error("September 2026 silver price is missing from the database.");
+    if (Math.abs(silverPrice.price - 64.6) > 0.001) {
+      throw new Error(`Silver price ${silverPrice.price} does not match the 3 November 2026 Pink Sheet.`);
+    }
+    const silverMonths = db.prepare(`
+      SELECT COUNT(*) AS n, MIN(period) AS firstPeriod, MAX(period) AS lastPeriod
+      FROM commodity_prices WHERE series = 'Silver'
+    `).get();
+    if (silverMonths.n !== 142 || silverMonths.firstPeriod !== "2015-01" || silverMonths.lastPeriod !== "2026-10") {
+      throw new Error(`Silver price coverage ${silverMonths.n} from ${silverMonths.firstPeriod} to ${silverMonths.lastPeriod} is not the 2015-01 through 2026-10 series.`);
+    }
   }
   if (prices?.series?.some((series) => series.series === "Platinum")) {
     const platinumPrice = db.prepare(`
@@ -1836,6 +1871,73 @@ export function buildDatabase() {
   `).get();
   if (otherPlatinumGroup.n) {
     throw new Error("A platinum-group heading, palladium, rhodium, iridium, ore, scrap, or jewelry code was stored. This database keeps HS 711011 and HS 711019 only.");
+  }
+
+  function expectSilver(query, reporter, partner, year, value, netWeight, qty, unitCode, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = '7106' AND year = ? AND flow = 'export'
+    `).get(reporter, partner, year);
+    if (!row) throw new Error(`${label} is missing from the database.`);
+    if (Math.abs(row.trade_value_usd - value) > 1) {
+      throw new Error(`${label} value ${row.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (row.net_weight_kg !== netWeight) {
+      throw new Error(`${label} net weight ${row.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (row.qty !== qty) {
+      throw new Error(`${label} quantity ${row.qty} does not match the Comtrade preview.`);
+    }
+    if (row.qty_unit_code !== unitCode) {
+      throw new Error(`${label} quantity unit ${row.qty_unit_code} does not match the Comtrade preview.`);
+    }
+  }
+  function expectNoSilver(query, reporter, partner, year, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = '7106' AND year = ? AND flow = 'export'
+    `).get(reporter, partner, year);
+    if (row) throw new Error(`${label} was stored. The Comtrade preview is under USD 1 million and must not be kept.`);
+  }
+  expectSilver(silver?.completedQueries?.["MAR:2024"], "MAR", "ARE", 2024, 43069724.674, 49373.07, 49373.07, 8, "Morocco 2024 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["MAR:2023"], "MAR", "ARE", 2023, 17854069.095, 24784.07, 24784.07, 8, "Morocco 2023 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["MAR:2025"], "MAR", "ARE", 2025, 83050312.524, 66932.212, 66932.212, 8, "Morocco 2025 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["ZAF:2024"], "ZAF", "IND", 2024, 22772652.965, 24980, 24980, 8, "South Africa 2024 silver export to India");
+  expectSilver(silver?.completedQueries?.["ZAF:2025"], "ZAF", "IND", 2025, 30508943.453, 21177.85, 21177.85, 8, "South Africa 2025 silver export to India");
+  expectSilver(silver?.completedQueries?.["ZAF:2024"], "ZAF", "HKG", 2024, 4670495.181, 4995, 4995, 8, "South Africa 2024 silver export to Hong Kong");
+  expectSilver(silver?.completedQueries?.["ZAF:2025"], "ZAF", "ARE", 2025, 13085293.284, 7926.23, 7926.23, 8, "South Africa 2025 silver export to the United Arab Emirates");
+  expectNoSilver(silver?.completedQueries?.["MAR:2024"], "MAR", "TUR", 2024, "Morocco 2024 silver export to Türkiye");
+  expectNoSilver(silver?.completedQueries?.["ZAF:2023"], "ZAF", "IND", 2023, "South Africa 2023 silver export to India");
+  expectNoSilver(silver?.completedQueries?.["ZAF:2023"], "ZAF", "ARE", 2023, "South Africa 2023 silver export to the United Arab Emirates");
+  expectNoSilver(silver?.completedQueries?.["ZAF:2024"], "ZAF", "ARE", 2024, "South Africa 2024 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["TUR:2025"], "TUR", "LBY", 2025, 18798633, 11540, 11538.35, 8, "Türkiye 2025 silver export to Libya");
+  expectSilver(silver?.completedQueries?.["GHA:2024"], "GHA", "KOR", 2024, 5601071.137, 90, 0, -1, "Ghana 2024 silver export to Korea");
+  expectSilver(silver?.completedQueries?.["GHA:2023"], "GHA", "KOR", 2023, 4728151.318, 79, 0, -1, "Ghana 2023 silver export to Korea");
+  expectSilver(silver?.completedQueries?.["UGA:2025"], "UGA", "ARE", 2025, 3689319.98, 3332.68, 2596.141, 8, "Uganda 2025 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["UGA:2024"], "UGA", "ARE", 2024, 1484046.59, 1752.37, 1752.85, 8, "Uganda 2024 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["TZA:2025"], "TZA", "ARE", 2025, 1028424.31, 812.285, 0, -1, "Tanzania 2025 silver export to the United Arab Emirates");
+  expectSilver(silver?.completedQueries?.["ARE:2023"], "ARE", "EGY", 2023, 3269773.022, 4054.14, 4054.14, 8, "United Arab Emirates 2023 silver export to Egypt");
+  function expectNoSilverYear(query, reporter, year, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows
+      WHERE reporter_iso3 = ? AND year = ? AND flow = 'export' AND hs_code = '7106'
+    `).get(reporter, year);
+    if (row.n) throw new Error(`${label} stored ${row.n} silver flows. The Comtrade preview kept none.`);
+  }
+  expectNoSilverYear(silver?.completedQueries?.["ARE:2024"], "ARE", 2024, "United Arab Emirates 2024");
+  expectNoSilverYear(silver?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
+  expectNoSilverYear(silver?.completedQueries?.["GHA:2025"], "GHA", 2025, "Ghana 2025");
+  expectNoSilverYear(silver?.completedQueries?.["TUR:2023"], "TUR", 2023, "Türkiye 2023");
+  expectNoSilverYear(silver?.completedQueries?.["TUR:2024"], "TUR", 2024, "Türkiye 2024");
+  const silverParts = db.prepare(`
+    SELECT COUNT(*) AS n FROM trade_flows
+    WHERE hs_code IN ('710610', '710691', '710692', '7107')
+  `).get();
+  if (silverParts.n) {
+    throw new Error("A silver subheading or base metal clad with silver was stored. This database keeps the HS 7106 heading only.");
   }
 
   const tea = db.prepare(`

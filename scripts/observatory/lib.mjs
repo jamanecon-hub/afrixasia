@@ -37,6 +37,7 @@ export const paths = {
   tradeGold: path.join(root, "data", "collected", "trade-gold.json"),
   tradePlatinum: path.join(root, "data", "collected", "trade-platinum.json"),
   tradeSilver: path.join(root, "data", "collected", "trade-silver.json"),
+  tradePalladium: path.join(root, "data", "collected", "trade-palladium.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -69,6 +70,7 @@ export const refinedDatasetId = "un-comtrade-refined";
 export const goldDatasetId = "un-comtrade-gold";
 export const platinumDatasetId = "un-comtrade-platinum";
 export const silverDatasetId = "un-comtrade-silver";
+export const palladiumDatasetId = "un-comtrade-palladium";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -451,6 +453,21 @@ export const silverProducts = [
     name: "Silver, including silver plated with gold or platinum, unwrought or in semi-manufactured forms, or in powder form",
     category: "Metals & minerals",
     observatoryProduct: "Perak",
+  },
+];
+
+export const palladiumProducts = [
+  {
+    hs: "711021",
+    name: "Palladium, unwrought or in powder form",
+    category: "Metals & minerals",
+    observatoryProduct: "Paladium",
+  },
+  {
+    hs: "711029",
+    name: "Palladium, in other semi-manufactured forms",
+    category: "Metals & minerals",
+    observatoryProduct: "Paladium",
   },
 ];
 

@@ -54,6 +54,8 @@ import {
   platinumProducts,
   silverDatasetId,
   silverProducts,
+  palladiumDatasetId,
+  palladiumProducts,
   horticultureDatasetId,
   horticultureProducts,
   specialtyDatasetId,
@@ -99,6 +101,7 @@ const refinedCollectionVersion = 1;
 const goldCollectionVersion = 1;
 const platinumCollectionVersion = 1;
 const silverCollectionVersion = 1;
+const palladiumCollectionVersion = 1;
 const faostatUrl = "https://bulks-faostat.fao.org/production/Production_Crops_Livestock_E_All_Data_(Normalized).zip";
 const fishStatUrl = "https://www.fao.org/fishery/static/Data/GlobalProduction_2026.1.0.zip";
 const pinkScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "pinksheet.py");
@@ -850,7 +853,7 @@ const goldOptions = {
 const platinumOptions = {
   datasetId: platinumDatasetId,
   title: "Africa–Asia platinum exports",
-  note: "Platinum, unwrought or in powder form (HS 711011), and platinum in other semi-manufactured forms (HS 711019). The two codes are stored separately and must not be added. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. A missing code or year is not zero and must not be filled from the other platinum code or from another year. Customs weight is kilograms, not troy ounces, and is not the London or spot platinum price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not the HS 7110 heading, which also includes palladium, rhodium, iridium, osmium, and ruthenium. Palladium (HS 711021 and HS 711029), rhodium (HS 711031 and HS 711039), and iridium, osmium, and ruthenium (HS 711041 and HS 711049) are not stored. This is not precious-metal ores (HS 2616), not waste and scrap (HS 7112), not jewelry (HS 7113), and not gold (HS 7108). Mine production is absent from this database, not zero. The Pink Sheet benchmark stored with this trade is platinum, 99.95% minimum purity, plate or ingot form, spot average of daily rates from June 2025, and previously UK 99.9% refined London afternoon fixing, in US dollars per troy ounce. It is not gold, not silver, not palladium, and not the customs unit value. Silver is stored as its own benchmark and is not this platinum price. The Pink Sheet has no palladium or rhodium series.",
+  note: "Platinum, unwrought or in powder form (HS 711011), and platinum in other semi-manufactured forms (HS 711019). The two codes are stored separately and must not be added. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. A missing code or year is not zero and must not be filled from the other platinum code or from another year. Customs weight is kilograms, not troy ounces, and is not the London or spot platinum price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not the HS 7110 heading, which also includes palladium, rhodium, iridium, osmium, and ruthenium. Palladium is stored separately as HS 711021 and HS 711029 and must not be added to these platinum codes. Rhodium (HS 711031 and HS 711039) and iridium, osmium, and ruthenium (HS 711041 and HS 711049) are not stored. This is not precious-metal ores (HS 2616), not waste and scrap (HS 7112), not jewelry (HS 7113), and not gold (HS 7108). Mine production is absent from this database, not zero. The Pink Sheet benchmark stored with this trade is platinum, 99.95% minimum purity, plate or ingot form, spot average of daily rates from June 2025, and previously UK 99.9% refined London afternoon fixing, in US dollars per troy ounce. It is not gold, not silver, not palladium, and not the customs unit value. Silver is stored as its own benchmark and is not this platinum price. The Pink Sheet has no palladium or rhodium series.",
   products: platinumProducts,
   collectionVersion: platinumCollectionVersion,
   statePath: paths.tradePlatinum,
@@ -864,6 +867,16 @@ const silverOptions = {
   products: silverProducts,
   collectionVersion: silverCollectionVersion,
   statePath: paths.tradeSilver,
+  useClient: false,
+};
+
+const palladiumOptions = {
+  datasetId: palladiumDatasetId,
+  title: "Africa–Asia palladium exports",
+  note: "Palladium, unwrought or in powder form (HS 711021), and palladium in other semi-manufactured forms (HS 711029). The two codes are stored separately and must not be added. Reporter exports to the other region only. Values under USD 1 million are omitted. A missing pair is not zero trade. A missing code or year is not zero and must not be filled from the other palladium code, from another year, or from another reporter. Customs weight is kilograms, not troy ounces, and is not a platinum price. Net weight and quantity can both be kilograms and still differ; they must not be substituted. A null net weight is not zero. Quantity 0 with unit code -1 is not a measured kilogram weight. This is not the HS 7110 heading. It is not platinum (HS 711011 or HS 711019), not rhodium (HS 711031 or HS 711039), not iridium, osmium, and ruthenium (HS 711041 or HS 711049), not precious-metal ores (HS 2616), not waste and scrap (HS 7112), not jewelry (HS 7113), not gold (HS 7108), and not silver (HS 7106). Mine production is absent from this database, not zero. The Pink Sheet has no palladium series, so no palladium price is stored. The stored platinum benchmark is not a palladium price and not the customs unit value. South Africa to Japan in 2024, 2023, and 2025 differ, so those years must not be substituted. Within each of those code-years the net weight and quantity use unit code 8 and match. South Africa to China in 2024 kept both codes. South Africa to China in 2023 and 2025 kept HS 711029 and returned no HS 711021 row. Zimbabwe and Botswana returned no palladium rows against Asia in 2023, 2024, and 2025. The only kept Asia-to-Africa flow is the United Arab Emirates unwrought palladium (HS 711021) to South Africa in 2023: both weight fields are 127 kg, unit code 8. The United Arab Emirates returned no palladium rows against Africa in 2024 and 2025, so those years must not be filled from 2023. A reported row under USD 1 million is not zero trade. A South Africa 2024 rhodium probe against Asia was not a full reporter sweep and was not stored.",
+  products: palladiumProducts,
+  collectionVersion: palladiumCollectionVersion,
+  statePath: paths.tradePalladium,
   useClient: false,
 };
 
@@ -932,6 +945,8 @@ export async function collectObservatory() {
   await collectTrade(wdi.countries, platinumOptions);
   buildDatabase();
   await collectTrade(wdi.countries, silverOptions);
+  buildDatabase();
+  await collectTrade(wdi.countries, palladiumOptions);
   buildDatabase();
 }
 

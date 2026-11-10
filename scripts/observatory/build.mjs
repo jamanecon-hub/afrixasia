@@ -46,6 +46,8 @@ import {
   platinumProducts,
   silverDatasetId,
   silverProducts,
+  palladiumDatasetId,
+  palladiumProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -116,6 +118,7 @@ export function buildDatabase() {
   const gold = fs.existsSync(paths.tradeGold) ? readJson(paths.tradeGold) : null;
   const platinum = fs.existsSync(paths.tradePlatinum) ? readJson(paths.tradePlatinum) : null;
   const silver = fs.existsSync(paths.tradeSilver) ? readJson(paths.tradeSilver) : null;
+  const palladium = fs.existsSync(paths.tradePalladium) ? readJson(paths.tradePalladium) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -508,6 +511,20 @@ export function buildDatabase() {
       note: silver.note,
     });
   }
+  if (palladium) {
+    insertDataset(db, {
+      id: palladium.datasetId || palladiumDatasetId,
+      title: palladium.title,
+      source: palladium.source,
+      sourceUrl: palladium.sourceUrl,
+      license: palladium.license,
+      licenseUrl: palladium.licenseUrl,
+      frequency: palladium.frequency,
+      updatedAt: palladium.retrievedAt,
+      retrievedAt: palladium.retrievedAt,
+      note: palladium.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -602,7 +619,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts, ...silverProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts, ...silverProducts, ...palladiumProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -656,6 +673,7 @@ export function buildDatabase() {
   insertFlows(gold, goldDatasetId);
   insertFlows(platinum, platinumDatasetId);
   insertFlows(silver, silverDatasetId);
+  insertFlows(palladium, palladiumDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -703,6 +721,7 @@ export function buildDatabase() {
   insertQueries(gold, goldDatasetId);
   insertQueries(platinum, platinumDatasetId);
   insertQueries(silver, silverDatasetId);
+  insertQueries(palladium, palladiumDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -1867,10 +1886,10 @@ export function buildDatabase() {
   expectNoPlatinumYear(platinum?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
   const otherPlatinumGroup = db.prepare(`
     SELECT COUNT(*) AS n FROM trade_flows
-    WHERE hs_code IN ('7110', '711021', '711029', '711031', '711039', '711041', '711049', '2616', '7112', '7113')
+    WHERE hs_code IN ('7110', '711031', '711039', '711041', '711049', '2616', '7112', '7113')
   `).get();
   if (otherPlatinumGroup.n) {
-    throw new Error("A platinum-group heading, palladium, rhodium, iridium, ore, scrap, or jewelry code was stored. This database keeps HS 711011 and HS 711019 only.");
+    throw new Error("A platinum-group heading, rhodium, iridium, ore, scrap, or jewelry code was stored. Platinum stays HS 711011 and HS 711019. Palladium stays HS 711021 and HS 711029.");
   }
 
   function expectSilver(query, reporter, partner, year, value, netWeight, qty, unitCode, label) {
@@ -1938,6 +1957,77 @@ export function buildDatabase() {
   `).get();
   if (silverParts.n) {
     throw new Error("A silver subheading or base metal clad with silver was stored. This database keeps the HS 7106 heading only.");
+  }
+
+  function expectPalladium(query, reporter, partner, year, hs, value, netWeight, qty, unitCode, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = ? AND year = ? AND flow = 'export'
+    `).get(reporter, partner, hs, year);
+    if (!row) throw new Error(`${label} is missing from the database.`);
+    if (Math.abs(row.trade_value_usd - value) > 1) {
+      throw new Error(`${label} value ${row.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (row.net_weight_kg !== netWeight) {
+      throw new Error(`${label} net weight ${row.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (row.qty !== qty) {
+      throw new Error(`${label} quantity ${row.qty} does not match the Comtrade preview.`);
+    }
+    if (row.qty_unit_code !== unitCode) {
+      throw new Error(`${label} quantity unit ${row.qty_unit_code} does not match the Comtrade preview.`);
+    }
+  }
+  function expectNoPalladium(query, reporter, partner, year, hs, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = ? AND year = ? AND flow = 'export'
+    `).get(reporter, partner, hs, year);
+    if (row) throw new Error(`${label} was stored. The Comtrade preview must not be kept.`);
+  }
+  expectPalladium(palladium?.completedQueries?.["ZAF:2024"], "ZAF", "JPN", 2024, "711021", 510175739.902, 16621.74, 16621.74, 8, "South Africa 2024 unwrought palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "JPN", 2023, "711021", 809816790.967, 18223.4, 18223.4, 8, "South Africa 2023 unwrought palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "JPN", 2025, "711021", 635246120.695, 17429.28, 17429.28, 8, "South Africa 2025 unwrought palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2024"], "ZAF", "JPN", 2024, "711029", 48976675.598, 1550.8, 1550.8, 8, "South Africa 2024 semi-manufactured palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "JPN", 2023, "711029", 66736653.633, 1747.72, 1747.72, 8, "South Africa 2023 semi-manufactured palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "JPN", 2025, "711029", 80683391.427, 2273.21, 2273.21, 8, "South Africa 2025 semi-manufactured palladium export to Japan");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2024"], "ZAF", "CHN", 2024, "711021", 48183012.664, 1600, 1600, 8, "South Africa 2024 unwrought palladium export to China");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2024"], "ZAF", "CHN", 2024, "711029", 24662444.25, 794.58, 794.58, 8, "South Africa 2024 semi-manufactured palladium export to China");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "CHN", 2023, "711029", 25250780.67, 830.22, 830.22, 8, "South Africa 2023 semi-manufactured palladium export to China");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "CHN", 2023, "711021", "South Africa 2023 unwrought palladium export to China");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "CHN", 2025, "711029", 36398296.786, 845.39, 845.39, 8, "South Africa 2025 semi-manufactured palladium export to China");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "CHN", 2025, "711021", "South Africa 2025 unwrought palladium export to China");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "IND", 2023, "711021", 23108588.425, 585.4, 585.4, 8, "South Africa 2023 unwrought palladium export to India");
+  expectPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "KOR", 2025, "711029", 55773962.96, 1575.82, 1575.82, 8, "South Africa 2025 semi-manufactured palladium export to Korea");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2023"], "ZAF", "SGP", 2023, "711021", "South Africa 2023 unwrought palladium export to Singapore");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2024"], "ZAF", "SGP", 2024, "711021", "South Africa 2024 unwrought palladium export to Singapore");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "SGP", 2025, "711021", "South Africa 2025 unwrought palladium export to Singapore");
+  expectNoPalladium(palladium?.completedQueries?.["ZAF:2025"], "ZAF", "VNM", 2025, "711021", "South Africa 2025 unwrought palladium export to Vietnam");
+  function expectNoPalladiumYear(query, reporter, year, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows
+      WHERE reporter_iso3 = ? AND year = ? AND flow = 'export' AND hs_code IN ('711021', '711029')
+    `).get(reporter, year);
+    if (row.n) throw new Error(`${label} stored ${row.n} palladium flows. The Comtrade preview kept none.`);
+  }
+  expectNoPalladiumYear(palladium?.completedQueries?.["ZWE:2023"], "ZWE", 2023, "Zimbabwe 2023");
+  expectNoPalladiumYear(palladium?.completedQueries?.["ZWE:2024"], "ZWE", 2024, "Zimbabwe 2024");
+  expectNoPalladiumYear(palladium?.completedQueries?.["ZWE:2025"], "ZWE", 2025, "Zimbabwe 2025");
+  expectNoPalladiumYear(palladium?.completedQueries?.["BWA:2023"], "BWA", 2023, "Botswana 2023");
+  expectNoPalladiumYear(palladium?.completedQueries?.["BWA:2024"], "BWA", 2024, "Botswana 2024");
+  expectNoPalladiumYear(palladium?.completedQueries?.["BWA:2025"], "BWA", 2025, "Botswana 2025");
+  expectPalladium(palladium?.completedQueries?.["ARE:2023"], "ARE", "ZAF", 2023, "711021", 5237543.761, 127, 127, 8, "United Arab Emirates 2023 unwrought palladium export to South Africa");
+  expectNoPalladiumYear(palladium?.completedQueries?.["ARE:2024"], "ARE", 2024, "United Arab Emirates 2024");
+  expectNoPalladiumYear(palladium?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
+  const palladiumMixed = db.prepare(`
+    SELECT COUNT(*) AS n FROM trade_flows
+    WHERE hs_code IN ('711021', '711029') AND dataset_id != 'un-comtrade-palladium'
+  `).get();
+  if (palladiumMixed.n) {
+    throw new Error("Palladium codes were stored on another dataset. HS 711021 and HS 711029 stay on the palladium dataset and must not be added to platinum.");
   }
 
   const tea = db.prepare(`

@@ -16,6 +16,18 @@ npm run build
 npm run preview
 ```
 
+## Observatory database
+
+`data/observatory.sqlite` is the queryable copy of the market observatory: the published WDI snapshot, extra annual sector indicators, Africa–Asia export flows (including sesame, vanilla, cloves, pepper, frozen fish, fillets, and prepared tuna), monthly commodity benchmarks, FAO crop production, and FAO FishStat aquatic-animal production.
+
+```bash
+npm run observatory:collect
+npm run observatory:query -- status
+npm run observatory:query -- production --country KEN --item 667 --element 5510
+```
+
+`GET /api/observatory` reads the same database. A missing trade or production row is not zero. Flows under USD 1 million are omitted. Tea production is fresh leaves, not made tea and not the Mombasa auction price. Fish production is live weight, not customs weight.
+
 ## What is included
 
 - Pages: `/`, `/data-pasar`, `/open-data`, `/daily-brief`, `/marketplace`, `/daftar`, `/kualitas-data`, `/api-docs`, `/privasi`, `/anggota/:id`

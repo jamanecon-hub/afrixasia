@@ -39,6 +39,7 @@ export const paths = {
   tradeSilver: path.join(root, "data", "collected", "trade-silver.json"),
   tradePalladium: path.join(root, "data", "collected", "trade-palladium.json"),
   tradeRhodium: path.join(root, "data", "collected", "trade-rhodium.json"),
+  tradeIridiumOsmiumRuthenium: path.join(root, "data", "collected", "trade-iridium-osmium-ruthenium.json"),
   clientState: path.join(root, "data", "collected", "client.json"),
   commodityPrices: path.join(root, "data", "collected", "commodity-prices.json"),
   production: path.join(root, "data", "collected", "production.json"),
@@ -73,6 +74,7 @@ export const platinumDatasetId = "un-comtrade-platinum";
 export const silverDatasetId = "un-comtrade-silver";
 export const palladiumDatasetId = "un-comtrade-palladium";
 export const rhodiumDatasetId = "un-comtrade-rhodium";
+export const iridiumOsmiumRutheniumDatasetId = "un-comtrade-iridium-osmium-ruthenium";
 export const priceDatasetId = "worldbank-pink-sheet";
 export const productionDatasetId = "faostat-qcl";
 export const fishProductionDatasetId = "fao-fishstat";
@@ -488,6 +490,21 @@ export const rhodiumProducts = [
   },
 ];
 
+export const iridiumOsmiumRutheniumProducts = [
+  {
+    hs: "711041",
+    name: "Iridium, osmium and ruthenium, unwrought or in powder form",
+    category: "Metals & minerals",
+    observatoryProduct: "Iridium, osmium, dan ruthenium",
+  },
+  {
+    hs: "711049",
+    name: "Iridium, osmium and ruthenium, in other semi-manufactured forms",
+    category: "Metals & minerals",
+    observatoryProduct: "Iridium, osmium, dan ruthenium",
+  },
+];
+
 export const fishProductionItems = [
   {
     itemCode: "FISH-CAPTURE",
@@ -880,7 +897,7 @@ export const commoditySeries = [
     category: "Metals & minerals",
     observatoryProduct: "Platina",
     unit: "USD per troy oz",
-    detail: "World Bank Pink Sheet: platinum, 99.95% minimum purity, plate or ingot form, spot average of daily rates from June 2025; previously UK, 99.9% refined, London afternoon fixing. Nominal US dollars per troy ounce. Not gold, not silver, not palladium, not mine production, and not the HS 711011 or HS 711019 customs unit value. Customs weight is kilograms, not troy ounces. The two platinum codes must not be added, and neither is the HS 7110 heading.",
+    detail: "World Bank Pink Sheet: platinum, 99.95% minimum purity, plate or ingot form, spot average of daily rates from June 2025; previously UK, 99.9% refined, London afternoon fixing. Nominal US dollars per troy ounce. Not gold, not silver, not palladium, not iridium, not osmium, not ruthenium, not mine production, and not the HS 711011 or HS 711019 customs unit value. Customs weight is kilograms, not troy ounces. The two platinum codes must not be added, and neither is the HS 7110 heading. HS 711041 and HS 711049 are a combined iridium, osmium, and ruthenium category and are not this platinum price.",
   },
   {
     column: "Silver",

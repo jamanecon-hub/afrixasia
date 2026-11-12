@@ -50,6 +50,8 @@ import {
   palladiumProducts,
   rhodiumDatasetId,
   rhodiumProducts,
+  iridiumOsmiumRutheniumDatasetId,
+  iridiumOsmiumRutheniumProducts,
   horticultureDatasetId,
   horticultureProducts,
   marketDatasetId,
@@ -122,6 +124,7 @@ export function buildDatabase() {
   const silver = fs.existsSync(paths.tradeSilver) ? readJson(paths.tradeSilver) : null;
   const palladium = fs.existsSync(paths.tradePalladium) ? readJson(paths.tradePalladium) : null;
   const rhodium = fs.existsSync(paths.tradeRhodium) ? readJson(paths.tradeRhodium) : null;
+  const iridiumGroup = fs.existsSync(paths.tradeIridiumOsmiumRuthenium) ? readJson(paths.tradeIridiumOsmiumRuthenium) : null;
   const prices = fs.existsSync(paths.commodityPrices) ? readJson(paths.commodityPrices) : null;
   const production = fs.existsSync(paths.production) ? readJson(paths.production) : null;
   const fish = fs.existsSync(paths.fishProduction) ? readJson(paths.fishProduction) : null;
@@ -542,6 +545,20 @@ export function buildDatabase() {
       note: rhodium.note,
     });
   }
+  if (iridiumGroup) {
+    insertDataset(db, {
+      id: iridiumGroup.datasetId || iridiumOsmiumRutheniumDatasetId,
+      title: iridiumGroup.title,
+      source: iridiumGroup.source,
+      sourceUrl: iridiumGroup.sourceUrl,
+      license: iridiumGroup.license,
+      licenseUrl: iridiumGroup.licenseUrl,
+      frequency: iridiumGroup.frequency,
+      updatedAt: iridiumGroup.retrievedAt,
+      retrievedAt: iridiumGroup.retrievedAt,
+      note: iridiumGroup.note,
+    });
+  }
   if (production) {
     insertDataset(db, {
       id: production.datasetId || productionDatasetId,
@@ -636,7 +653,7 @@ export function buildDatabase() {
   const insertProduct = db.prepare(`
     INSERT INTO hs_products (hs_code, name, category, observatory_product) VALUES (?, ?, ?, ?)
   `);
-  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts, ...silverProducts, ...palladiumProducts, ...rhodiumProducts];
+  const productList = [...tradeProducts, ...horticultureProducts, ...specialtyProducts, ...fisheryProducts, ...rubberProducts, ...groundnutProducts, ...maizeProducts, ...tobaccoProducts, ...sugarProducts, ...phosphateProducts, ...copperProducts, ...cobaltProducts, ...ironProducts, ...manganeseProducts, ...chromiumProducts, ...bauxiteProducts, ...titaniumProducts, ...crudeProducts, ...coalProducts, ...gasProducts, ...refinedProducts, ...goldProducts, ...platinumProducts, ...silverProducts, ...palladiumProducts, ...rhodiumProducts, ...iridiumOsmiumRutheniumProducts];
   for (const product of productList) {
     insertProduct.run(product.hs, product.name, product.category, product.observatoryProduct);
   }
@@ -692,6 +709,7 @@ export function buildDatabase() {
   insertFlows(silver, silverDatasetId);
   insertFlows(palladium, palladiumDatasetId);
   insertFlows(rhodium, rhodiumDatasetId);
+  insertFlows(iridiumGroup, iridiumOsmiumRutheniumDatasetId);
   db.exec("COMMIT");
 
   const insertQuery = db.prepare(`
@@ -741,6 +759,7 @@ export function buildDatabase() {
   insertQueries(silver, silverDatasetId);
   insertQueries(palladium, palladiumDatasetId);
   insertQueries(rhodium, rhodiumDatasetId);
+  insertQueries(iridiumGroup, iridiumOsmiumRutheniumDatasetId);
 
   const insertSeries = db.prepare(`
     INSERT INTO commodity_series (series, product, category, observatory_product, unit, detail)
@@ -903,6 +922,13 @@ export function buildDatabase() {
   `).get();
   if (excludedPrecious.n) {
     throw new Error("Palladium or rhodium was stored. The Pink Sheet has no palladium or rhodium series, and neither is the silver benchmark.");
+  }
+  const excludedIridiumGroup = db.prepare(`
+    SELECT COUNT(*) AS n FROM commodity_series
+    WHERE series LIKE '%ridium%' OR series LIKE '%smium%' OR series LIKE '%uthenium%'
+  `).get();
+  if (excludedIridiumGroup.n) {
+    throw new Error("An iridium, osmium, or ruthenium price was stored. The Pink Sheet has no series for that combined customs category, and it is not the platinum benchmark.");
   }
   if (prices?.series?.some((series) => series.series === "Silver")) {
     const silverPrice = db.prepare(`
@@ -1905,10 +1931,10 @@ export function buildDatabase() {
   expectNoPlatinumYear(platinum?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
   const otherPlatinumGroup = db.prepare(`
     SELECT COUNT(*) AS n FROM trade_flows
-    WHERE hs_code IN ('7110', '711041', '711049', '2616', '7112', '7113')
+    WHERE hs_code IN ('7110', '2616', '7112', '7113')
   `).get();
   if (otherPlatinumGroup.n) {
-    throw new Error("A platinum-group heading, iridium, ore, scrap, or jewelry code was stored. Platinum stays HS 711011 and HS 711019. Palladium stays HS 711021 and HS 711029. Rhodium stays HS 711031 and HS 711039.");
+    throw new Error("A platinum-group heading, precious-metal ore, scrap, or jewelry code was stored. Platinum stays HS 711011 and HS 711019. Palladium stays HS 711021 and HS 711029. Rhodium stays HS 711031 and HS 711039. Iridium, osmium, and ruthenium stay HS 711041 and HS 711049.");
   }
 
   function expectSilver(query, reporter, partner, year, value, netWeight, qty, unitCode, label) {
@@ -2132,6 +2158,117 @@ export function buildDatabase() {
   `).get();
   if (rhodiumMixed.n) {
     throw new Error("Rhodium codes were stored on another dataset. HS 711031 and HS 711039 stay on the rhodium dataset and must not be added to platinum or palladium.");
+  }
+
+  function expectIridiumGroup(query, reporter, partner, year, hs, value, netWeight, qty, unitCode, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd, net_weight_kg, qty, qty_unit_code FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = ? AND year = ? AND flow = 'export'
+    `).get(reporter, partner, hs, year);
+    if (!row) throw new Error(`${label} is missing from the database.`);
+    if (Math.abs(row.trade_value_usd - value) > 1) {
+      throw new Error(`${label} value ${row.trade_value_usd} does not match the Comtrade preview.`);
+    }
+    if (row.net_weight_kg !== netWeight) {
+      throw new Error(`${label} net weight ${row.net_weight_kg} does not match the Comtrade preview.`);
+    }
+    if (row.qty !== qty) {
+      throw new Error(`${label} quantity ${row.qty} does not match the Comtrade preview.`);
+    }
+    if (row.qty_unit_code !== unitCode) {
+      throw new Error(`${label} quantity unit ${row.qty_unit_code} does not match the Comtrade preview.`);
+    }
+  }
+  function expectNoIridiumGroup(query, reporter, partner, year, hs, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT trade_value_usd FROM trade_flows
+      WHERE reporter_iso3 = ? AND partner_iso3 = ? AND hs_code = ? AND year = ? AND flow = 'export'
+    `).get(reporter, partner, hs, year);
+    if (row) throw new Error(`${label} was stored. The Comtrade preview must not be kept.`);
+  }
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "JPN", 2024, "711041", 461784446.407, 7879.71, 7879.71, 8, "South Africa 2024 unwrought iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "JPN", 2023, "711041", 281096020.009, 4466.43, 4466.43, 8, "South Africa 2023 unwrought iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "JPN", 2025, "711041", 396455132.054, 6814.51, 6814.51, 8, "South Africa 2025 unwrought iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "JPN", 2024, "711049", 80477800.028, 2917.32, 2917.32, 8, "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "JPN", 2023, "711049", 89298202.035, 1800.99, 1800.99, 8, "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "JPN", 2025, "711049", 110202300.539, 2828.62, 2828.62, 8, "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to Japan");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "HKG", 2024, "711041", 250397183.056, 8248.43, 8248.43, 8, "South Africa 2024 unwrought iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "HKG", 2023, "711041", 226245050.539, 8224.99, 8224.99, 8, "South Africa 2023 unwrought iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "HKG", 2025, "711041", 305305245.853, 6714.54, 6714.54, 8, "South Africa 2025 unwrought iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "HKG", 2024, "711049", 5389755.72, 453.8, 453.8, 8, "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "HKG", 2023, "711049", 1226674.443, 96.1, 96.1, 8, "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "HKG", 2025, "711049", 40628807.068, 522.36, 522.36, 8, "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to Hong Kong");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "CHN", 2024, "711041", 24085291.992, 2438.66, 2438.66, 8, "South Africa 2024 unwrought iridium, osmium, and ruthenium export to China");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "CHN", 2023, "711041", 32867100.631, 2499.36, 2499.36, 8, "South Africa 2023 unwrought iridium, osmium, and ruthenium export to China");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "CHN", 2025, "711041", 97640945.27, 2855.38, 2855.38, 8, "South Africa 2025 unwrought iridium, osmium, and ruthenium export to China");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "KOR", 2024, "711041", 1250400.808, 115.43, 115.43, 8, "South Africa 2024 unwrought iridium, osmium, and ruthenium export to Korea");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "KOR", 2023, "711041", 2548919.22, 132.11, 132.11, 8, "South Africa 2023 unwrought iridium, osmium, and ruthenium export to Korea");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "KOR", 2025, "711041", 1194218.571, 69.21, 69.21, 8, "South Africa 2025 unwrought iridium, osmium, and ruthenium export to Korea");
+  expectIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "IND", 2023, "711041", 1734512.6, 134.13, 134.13, 8, "South Africa 2023 unwrought iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "IND", 2024, "711041", "South Africa 2024 unwrought iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "IND", 2025, "711041", "South Africa 2025 unwrought iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "ARE", 2024, "711041", "South Africa 2024 unwrought iridium, osmium, and ruthenium export to the United Arab Emirates");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "ARE", 2025, "711049", "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to the United Arab Emirates");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "CHN", 2023, "711049", "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to China");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "CHN", 2024, "711049", "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to China");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "CHN", 2025, "711049", "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to China");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "IND", 2023, "711049", "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "IND", 2024, "711049", "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "IND", 2025, "711049", "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to India");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "KOR", 2023, "711049", "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to Korea");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "KOR", 2024, "711049", "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to Korea");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "KOR", 2025, "711049", "South Africa 2025 semi-manufactured iridium, osmium, and ruthenium export to Korea");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "ARE", 2023, "711041", "South Africa 2023 unwrought iridium, osmium, and ruthenium export to the United Arab Emirates");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2023"], "ZAF", "ARE", 2023, "711049", "South Africa 2023 semi-manufactured iridium, osmium, and ruthenium export to the United Arab Emirates");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2024"], "ZAF", "ARE", 2024, "711049", "South Africa 2024 semi-manufactured iridium, osmium, and ruthenium export to the United Arab Emirates");
+  expectNoIridiumGroup(iridiumGroup?.completedQueries?.["ZAF:2025"], "ZAF", "ARE", 2025, "711041", "South Africa 2025 unwrought iridium, osmium, and ruthenium export to the United Arab Emirates");
+  function expectNoIridiumGroupYear(query, reporter, year, label) {
+    if (query?.status !== "ok") return;
+    const row = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows
+      WHERE reporter_iso3 = ? AND year = ? AND flow = 'export' AND hs_code IN ('711041', '711049')
+    `).get(reporter, year);
+    if (row.n) throw new Error(`${label} stored ${row.n} iridium, osmium, and ruthenium flows. The Comtrade preview kept none.`);
+  }
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ZWE:2023"], "ZWE", 2023, "Zimbabwe 2023");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ZWE:2024"], "ZWE", 2024, "Zimbabwe 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ZWE:2025"], "ZWE", 2025, "Zimbabwe 2025");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ARE:2023"], "ARE", 2023, "United Arab Emirates 2023");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ARE:2024"], "ARE", 2024, "United Arab Emirates 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["ARE:2025"], "ARE", 2025, "United Arab Emirates 2025");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["CHN:2023"], "CHN", 2023, "China 2023");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["CHN:2024"], "CHN", 2024, "China 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["CHN:2025"], "CHN", 2025, "China 2025");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["IND:2023"], "IND", 2023, "India 2023");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["IND:2024"], "IND", 2024, "India 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["IND:2025"], "IND", 2025, "India 2025");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["RWA:2024"], "RWA", 2024, "Rwanda 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["JPN:2023"], "JPN", 2023, "Japan 2023");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["JPN:2024"], "JPN", 2024, "Japan 2024");
+  expectNoIridiumGroupYear(iridiumGroup?.completedQueries?.["JPN:2025"], "JPN", 2025, "Japan 2025");
+  if (iridiumGroup?.completedQueries?.["ZAF:2024"]?.status === "ok") {
+    const iridiumCount = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows WHERE hs_code IN ('711041', '711049')
+    `).get();
+    if (iridiumCount.n !== 19) {
+      throw new Error(`Iridium, osmium, and ruthenium stored ${iridiumCount.n} flows. The 12 November 2026 sweep kept 19.`);
+    }
+    const iridiumOtherReporter = db.prepare(`
+      SELECT COUNT(*) AS n FROM trade_flows
+      WHERE hs_code IN ('711041', '711049') AND reporter_iso3 != 'ZAF'
+    `).get();
+    if (iridiumOtherReporter.n) {
+      throw new Error("An iridium, osmium, and ruthenium flow from a reporter other than South Africa was stored. The 12 November 2026 sweep kept South Africa only.");
+    }
+  }
+  const iridiumGroupMixed = db.prepare(`
+    SELECT COUNT(*) AS n FROM trade_flows
+    WHERE hs_code IN ('711041', '711049') AND dataset_id != 'un-comtrade-iridium-osmium-ruthenium'
+  `).get();
+  if (iridiumGroupMixed.n) {
+    throw new Error("Iridium, osmium, and ruthenium codes were stored on another dataset. HS 711041 and HS 711049 stay on their own dataset and must not be added to platinum, palladium, or rhodium.");
   }
 
   const tea = db.prepare(`

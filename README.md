@@ -23,6 +23,7 @@ npm run preview
 - Research filters carried across pages in the URL (`ctx=1`) and session storage
 - World Bank WDI snapshot (2015–2025, 104 economies, 17 indicators) and the 10 October 2026 market reference snapshot
 - Public JSON/CSV endpoints under `/api/*`
+- SQLite trade reference for Africa–Asia product corridors the observatory already tracks (`npm run collect`, then `/api/observatory`)
 - Circle membership on `/daftar` accepts a local Google sign-in (sample profiles, no Google API and no client secret) or a manual identity form. Interest, segment, and capabilities are stored on the member and shown publicly. Email and phone stay private unless the member opts in.
 
 Market figures are historical references, not live orders or inventory. A missing row is not zero demand.

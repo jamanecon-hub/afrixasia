@@ -14,6 +14,8 @@ const examples = [
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
+  ["/api/observatory", "Bilateral trade database: products, coverage, and limits", "Basis data perdagangan bilateral: produk, cakupan, dan batas", "Base de commerce bilatéral : produits, couverture et limites"],
+  ["/api/observatory/trade?reporter=KEN&partner=PAK&hs=0902&year=2024&flow=export", "Kenya tea export statement to Pakistan, 2024", "Pernyataan ekspor teh Kenya ke Pakistan, 2024", "Déclaration d’export de thé du Kenya vers le Pakistan, 2024"],
 ];
 
 export default function DocsPage({ mode }) {
@@ -175,6 +177,17 @@ export default function DocsPage({ mode }) {
                   "Reference CSV includes all filtered results. Invalid countries, indicators or ranges return HTTP 400. Latest values may refer to different reporting years. Missing years are omitted, not estimated.",
                   "CSV reference memuat seluruh hasil filter. Negara, indikator, atau rentang tidak valid menerima HTTP 400. Nilai terakhir dapat memiliki tahun berbeda. Tahun kosong tidak diestimasi.",
                   "Le CSV reference inclut tous les résultats filtrés. Pays, indicateurs ou plages invalides renvoient HTTP 400. Les dernières valeurs peuvent avoir des années différentes. Les années absentes ne sont pas estimées.",
+                )}
+              </p>
+              <h3>{t("Trade database", "Basis data perdagangan", "Base commerciale")}</h3>
+              <p>
+                <code>GET /api/observatory/trade · reporter · partner · origin · target · flow=export|import · hs=0902[,1006] · category · year · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "reporter and partner are who filed the trade statement. origin and target follow the goods. Export and import rows are separate statements. HS 610910 sits inside chapter 61, so those rows must not be added. CSV is refused above 20,000 rows.",
+                  "reporter dan partner adalah pihak yang melaporkan. origin dan target mengikuti arah barang. Baris ekspor dan impor adalah pernyataan terpisah. HS 610910 berada di dalam bab 61, jadi keduanya tidak dijumlahkan. CSV ditolak di atas 20.000 baris.",
+                  "reporter et partner désignent le déclarant. origin et target suivent la marchandise. Les lignes d’export et d’import sont des déclarations distinctes. Le SH 610910 est déjà dans le chapitre 61 : ne les additionnez pas. Le CSV est refusé au-delà de 20 000 lignes.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

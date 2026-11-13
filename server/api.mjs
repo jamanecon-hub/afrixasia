@@ -17,6 +17,13 @@ import {
   intelligence,
 } from "../shared/reference.mjs";
 import { dossier } from "./dossier.mjs";
+import {
+  knownCategory,
+  knownHs,
+  observatoryStatus,
+  openObservatory,
+  queryTrade,
+} from "../shared/observatory-db.mjs";
 import { sendWelcomeEmail } from "./welcome-mail.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
 import { membershipCardPdf } from "../shared/card-pdf.mjs";
@@ -283,6 +290,91 @@ function enrichObservation(row) {
   };
 }
 
+function countryParam(url, name) {
+  const token = url.searchParams.get(name);
+  if (!token) return { iso3: null };
+  const country = findCountry(token);
+  if (!country) return { error: `Unknown country: ${token}` };
+  return { iso3: country.iso3 };
+}
+
+function observatoryTrade(url) {
+  const db = openObservatory({ readOnly: true });
+  if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
+  try {
+    const reporter = countryParam(url, "reporter");
+    const partner = countryParam(url, "partner");
+    const origin = countryParam(url, "origin");
+    const target = countryParam(url, "target");
+    const unknown = [reporter, partner, origin, target].find((item) => item.error);
+    if (unknown) return { status: 400, body: { error: unknown.error } };
+    const flow = url.searchParams.get("flow") || "";
+    if (flow && flow !== "export" && flow !== "import") {
+      return { status: 400, body: { error: "flow must be export or import." } };
+    }
+    const yearParam = url.searchParams.get("year");
+    const year = yearParam ? Number(yearParam) : null;
+    if (yearParam && (!Number.isInteger(year) || year < 1990 || year > 2100)) {
+      return { status: 400, body: { error: "year must be an integer." } };
+    }
+    const hsCodes = (url.searchParams.get("hs") || url.searchParams.get("hsCode") || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    for (const code of hsCodes) {
+      if (!knownHs(db, code)) return { status: 400, body: { error: `Unknown HS code: ${code}` } };
+    }
+    const category = url.searchParams.get("category") || "";
+    if (category && !knownCategory(db, category)) {
+      return { status: 400, body: { error: "Unknown category for the trade database." } };
+    }
+    const page = Math.max(1, Number(url.searchParams.get("page") || 1));
+    const perPage = Math.min(500, Math.max(1, Number(url.searchParams.get("per_page") || 50)));
+    if (!Number.isFinite(page) || !Number.isFinite(perPage)) {
+      return { status: 400, body: { error: "Invalid page." } };
+    }
+    const filters = {
+      reporterIso3: reporter.iso3,
+      partnerIso3: partner.iso3,
+      originIso3: origin.iso3,
+      targetIso3: target.iso3,
+      flow: flow || null,
+      year,
+      category: category || null,
+      hsCodes,
+      page,
+      perPage,
+    };
+    const queried = queryTrade(db, filters);
+    if (url.searchParams.get("format") === "csv" && queried.total > 20000) {
+      return {
+        status: 400,
+        body: { error: "More than 20000 rows. Filter by reporter, partner, origin, target, hs, category, year, or flow." },
+      };
+    }
+    const csv = url.searchParams.get("format") === "csv"
+      ? queryTrade(db, { ...filters, page: 1, perPage: Math.max(1, queried.total) }).rows
+      : queried.rows;
+    const retrievedAt = db.prepare("SELECT value FROM meta WHERE key = 'retrieved_at'").get()?.value || null;
+    return {
+      status: 200,
+      csv,
+      body: {
+        datasetId: "afrixasia-observatory-trade",
+        retrievedAt,
+        total: queried.total,
+        page: queried.page,
+        perPage: queried.perPage,
+        pages: queried.pages,
+        flows: queried.rows,
+        note: "Historical UN Comtrade extracts for Africa–Asia corridors. A missing row is not zero trade. The USD figure is the reported trade value. Quantity or weight flagged as estimated is omitted. Do not add an export statement to the mirror import, or add HS 610910 to chapter 61. Values are not orders or inventory.",
+      },
+    };
+  } finally {
+    db.close();
+  }
+}
+
 function referencePayload(url) {
   const view = url.searchParams.get("view") || "series";
   const countryParam = url.searchParams.get("country");
@@ -460,6 +552,32 @@ async function route(req, res, url) {
     }
     const body = intelligence(country, url.searchParams.get("category") || "");
     send(res, body.error ? 400 : 200, body);
+    return;
+  }
+  if (url.pathname === "/api/observatory" && req.method === "GET") {
+    const db = openObservatory({ readOnly: true });
+    if (!db) {
+      send(res, 503, { error: "Observatory database is not built." });
+      return;
+    }
+    try {
+      send(res, 200, observatoryStatus(db));
+    } finally {
+      db.close();
+    }
+    return;
+  }
+  if (url.pathname === "/api/observatory/trade" && req.method === "GET") {
+    const result = observatoryTrade(url);
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      send(res, 200, toCsv(result.csv), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
     return;
   }
   if (url.pathname === "/api/reference" && req.method === "GET") {

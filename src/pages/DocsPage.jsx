@@ -14,6 +14,9 @@ const examples = [
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
+  ["/api/observatory", "Bilateral trade database: products, prices, coverage, and limits", "Basis data perdagangan bilateral: produk, harga, cakupan, dan batas", "Base de commerce bilatéral : produits, prix, couverture et limites"],
+  ["/api/observatory/trade?reporter=KEN&partner=PAK&hs=0902&year=2024&flow=export", "Kenya tea export statement to Pakistan, 2024", "Pernyataan ekspor teh Kenya ke Pakistan, 2024", "Déclaration d’export de thé du Kenya vers le Pakistan, 2024"],
+  ["/api/observatory/prices?series=cocoa,tea-mombasa&from=2024-01", "Cocoa and Mombasa tea reference prices", "Harga referensi kakao dan teh Mombasa", "Prix de référence du cacao et du thé de Mombasa"],
 ];
 
 export default function DocsPage({ mode }) {
@@ -175,6 +178,28 @@ export default function DocsPage({ mode }) {
                   "Reference CSV includes all filtered results. Invalid countries, indicators or ranges return HTTP 400. Latest values may refer to different reporting years. Missing years are omitted, not estimated.",
                   "CSV reference memuat seluruh hasil filter. Negara, indikator, atau rentang tidak valid menerima HTTP 400. Nilai terakhir dapat memiliki tahun berbeda. Tahun kosong tidak diestimasi.",
                   "Le CSV reference inclut tous les résultats filtrés. Pays, indicateurs ou plages invalides renvoient HTTP 400. Les dernières valeurs peuvent avoir des années différentes. Les années absentes ne sont pas estimées.",
+                )}
+              </p>
+              <h3>{t("Trade database", "Basis data perdagangan", "Base commerciale")}</h3>
+              <p>
+                <code>GET /api/observatory/trade · reporter · partner · origin · target · flow=export|import · hs=0902[,1006] · category · year · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "reporter and partner are who filed the trade statement. origin and target follow the goods. Export and import rows are separate statements. HS 610910 sits inside chapter 61, and shelled cashew, cocoa paste, butter, and powder are separate from in-shell cashew and cocoa beans. Do not add those rows. CSV is refused above 20,000 rows.",
+                  "reporter dan partner adalah pihak yang melaporkan. origin dan target mengikuti arah barang. Baris ekspor dan impor adalah pernyataan terpisah. HS 610910 berada di dalam bab 61, dan mete kupas, pasta kakao, mentega kakao, serta bubuk kakao terpisah dari mete berkulit dan biji kakao. Jangan jumlahkan baris itu. CSV ditolak di atas 20.000 baris.",
+                  "reporter et partner désignent le déclarant. origin et target suivent la marchandise. Les lignes d’export et d’import sont des déclarations distinctes. Le SH 610910 est déjà dans le chapitre 61, et la noix de cajou décortiquée, la pâte, le beurre et la poudre de cacao sont distincts de la noix en coque et des fèves. Ne les additionnez pas. Le CSV est refusé au-delà de 20 000 lignes.",
+                )}
+              </p>
+              <h3>{t("Reference prices", "Harga referensi", "Prix de référence")}</h3>
+              <p>
+                <code>GET /api/observatory/prices · series=cocoa,tea-mombasa · hs=0902 · from=YYYY-MM · to=YYYY-MM · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "Monthly World Bank Pink Sheet quotes in nominal US dollars, from January 2015. A missing month was not published. Several rice, wheat, tea, or coffee series in one month are alternative benchmarks, not parts of one price.",
+                  "Kutipan bulanan Pink Sheet Bank Dunia dalam dolar AS nominal, sejak Januari 2015. Bulan yang kosong tidak dipublikasikan. Beberapa seri beras, gandum, teh, atau kopi pada bulan yang sama adalah patokan alternatif, bukan bagian dari satu harga.",
+                  "Cotations mensuelles du Pink Sheet de la Banque mondiale en dollars nominaux, depuis janvier 2015. Un mois absent n’a pas été publié. Plusieurs séries de riz, de blé, de thé ou de café pour un même mois sont des références alternatives, pas les parties d’un seul prix.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

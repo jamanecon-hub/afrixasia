@@ -17,6 +17,15 @@ import {
   intelligence,
 } from "../shared/reference.mjs";
 import { dossier } from "./dossier.mjs";
+import {
+  knownCategory,
+  knownHs,
+  knownPriceSeries,
+  observatoryStatus,
+  openObservatory,
+  queryPrices,
+  queryTrade,
+} from "../shared/observatory-db.mjs";
 import { sendWelcomeEmail } from "./welcome-mail.mjs";
 import { localGoogleProfiles } from "../shared/google-local.mjs";
 import { membershipCardPdf } from "../shared/card-pdf.mjs";
@@ -268,6 +277,152 @@ function listingCsvRow(member) {
   return row;
 }
 
+function countryParam(url, name) {
+  const token = url.searchParams.get(name);
+  if (!token) return { iso3: null };
+  const country = findCountry(token);
+  if (!country) return { error: `Unknown country: ${token}` };
+  return { iso3: country.iso3 };
+}
+
+function pageParams(url) {
+  const page = Math.max(1, Number(url.searchParams.get("page") || 1));
+  const perPage = Math.min(500, Math.max(1, Number(url.searchParams.get("per_page") || 50)));
+  if (!Number.isFinite(page) || !Number.isFinite(perPage)) return null;
+  return { page, perPage };
+}
+
+function observatoryTrade(url) {
+  const db = openObservatory({ readOnly: true });
+  if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
+  try {
+    const reporter = countryParam(url, "reporter");
+    const partner = countryParam(url, "partner");
+    const origin = countryParam(url, "origin");
+    const target = countryParam(url, "target");
+    const unknown = [reporter, partner, origin, target].find((item) => item.error);
+    if (unknown) return { status: 400, body: { error: unknown.error } };
+    const flow = url.searchParams.get("flow") || "";
+    if (flow && flow !== "export" && flow !== "import") {
+      return { status: 400, body: { error: "flow must be export or import." } };
+    }
+    const yearParam = url.searchParams.get("year");
+    const year = yearParam ? Number(yearParam) : null;
+    if (yearParam && (!Number.isInteger(year) || year < 1990 || year > 2100)) {
+      return { status: 400, body: { error: "year must be an integer." } };
+    }
+    const hsCodes = (url.searchParams.get("hs") || url.searchParams.get("hsCode") || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    for (const code of hsCodes) {
+      if (!knownHs(db, code)) return { status: 400, body: { error: `Unknown HS code: ${code}` } };
+    }
+    const category = url.searchParams.get("category") || "";
+    if (category && !knownCategory(db, category)) {
+      return { status: 400, body: { error: "Unknown category for the trade database." } };
+    }
+    const paging = pageParams(url);
+    if (!paging) return { status: 400, body: { error: "Invalid page." } };
+    const filters = {
+      reporterIso3: reporter.iso3,
+      partnerIso3: partner.iso3,
+      originIso3: origin.iso3,
+      targetIso3: target.iso3,
+      flow: flow || null,
+      year,
+      category: category || null,
+      hsCodes,
+      page: paging.page,
+      perPage: paging.perPage,
+    };
+    const queried = queryTrade(db, filters);
+    if (url.searchParams.get("format") === "csv" && queried.total > 20000) {
+      return {
+        status: 400,
+        body: { error: "More than 20000 rows. Filter by reporter, partner, origin, target, hs, category, year, or flow." },
+      };
+    }
+    const csv = url.searchParams.get("format") === "csv"
+      ? queryTrade(db, { ...filters, page: 1, perPage: Math.max(1, queried.total) }).rows
+      : queried.rows;
+    const retrievedAt = db.prepare("SELECT value FROM meta WHERE key = 'retrieved_at'").get()?.value || null;
+    return {
+      status: 200,
+      csv,
+      body: {
+        datasetId: "afrixasia-observatory-trade",
+        retrievedAt,
+        total: queried.total,
+        page: queried.page,
+        perPage: queried.perPage,
+        pages: queried.pages,
+        flows: queried.rows,
+        note: "Historical UN Comtrade extracts for Africa–Asia corridors. A missing row is not zero trade. The USD figure is the reported trade value. Quantity or weight flagged as estimated is omitted. Do not add an export statement to the mirror import, HS 610910 to chapter 61, shelled cashew 080132 to in-shell 080131, or cocoa paste, butter, or powder to cocoa beans. Values are not orders or inventory.",
+      },
+    };
+  } finally {
+    db.close();
+  }
+}
+
+function observatoryPrices(url) {
+  const db = openObservatory({ readOnly: true });
+  if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
+  try {
+    const codes = (url.searchParams.get("series") || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    for (const code of codes) {
+      if (!knownPriceSeries(db, code)) return { status: 400, body: { error: `Unknown price series: ${code}` } };
+    }
+    const hs = (url.searchParams.get("hs") || url.searchParams.get("hsCode") || "").trim();
+    if (hs.includes(",")) return { status: 400, body: { error: "prices accepts one hs code." } };
+    if (hs && !knownHs(db, hs)) return { status: 400, body: { error: `Unknown HS code: ${hs}` } };
+    const from = url.searchParams.get("from") || "";
+    const to = url.searchParams.get("to") || "";
+    const period = /^\d{4}-(0[1-9]|1[0-2])$/;
+    if ((from && !period.test(from)) || (to && !period.test(to))) {
+      return { status: 400, body: { error: "from and to must be YYYY-MM." } };
+    }
+    const paging = pageParams(url);
+    if (!paging) return { status: 400, body: { error: "Invalid page." } };
+    const filters = {
+      codes,
+      hsCode: hs || null,
+      from: from || null,
+      to: to || null,
+      page: paging.page,
+      perPage: paging.perPage,
+    };
+    const queried = queryPrices(db, filters);
+    if (!queried) return { status: 503, body: { error: "Price series are not loaded." } };
+    if (url.searchParams.get("format") === "csv" && queried.total > 20000) {
+      return { status: 400, body: { error: "More than 20000 rows. Filter by series, hs, from, or to." } };
+    }
+    const csv = url.searchParams.get("format") === "csv"
+      ? queryPrices(db, { ...filters, page: 1, perPage: Math.max(1, queried.total) }).rows
+      : queried.rows;
+    return {
+      status: 200,
+      csv,
+      body: {
+        datasetId: "afrixasia-observatory-prices",
+        updatedOn: db.prepare("SELECT value FROM meta WHERE key = 'price_updated_on'").get()?.value || null,
+        total: queried.total,
+        page: queried.page,
+        perPage: queried.perPage,
+        pages: queried.pages,
+        prices: queried.rows,
+        note: "World Bank Pink Sheet monthly nominal US dollars, January 2015 onward, for commodities the observatory tracks. A missing month was not published. These are reference quotes, not bilateral unit values, orders, or inventory. Rice, wheat, tea, and coffee quotes for the same month are alternative benchmarks and are not added together.",
+      },
+    };
+  } finally {
+    db.close();
+  }
+}
+
 function enrichObservation(row) {
   const country = countryByIso3.get(row.country);
   const indicator = indicatorByCode.get(row.indicator);
@@ -450,6 +605,45 @@ async function route(req, res, url) {
       providers,
       note: "Public organization references checked against official websites. Not registered members or endorsed partners.",
     });
+    return;
+  }
+  if (url.pathname === "/api/observatory" && req.method === "GET") {
+    const db = openObservatory({ readOnly: true });
+    if (!db) {
+      send(res, 503, { error: "Observatory database is not built." });
+      return;
+    }
+    try {
+      send(res, 200, observatoryStatus(db));
+    } finally {
+      db.close();
+    }
+    return;
+  }
+  if (url.pathname === "/api/observatory/trade" && req.method === "GET") {
+    const result = observatoryTrade(url);
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      send(res, 200, toCsv(result.csv), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
+    return;
+  }
+  if (url.pathname === "/api/observatory/prices" && req.method === "GET") {
+    const result = observatoryPrices(url);
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      send(res, 200, toCsv(result.csv), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
     return;
   }
   if (url.pathname === "/api/intelligence" && req.method === "GET") {

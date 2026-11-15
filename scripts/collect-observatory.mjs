@@ -5,10 +5,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import wdi from "../data/wdi.json" with { type: "json" };
 import {
+  FX_INDICATOR,
+  LOGISTICS_SERIES,
   OBSERVATORY_DB_PATH,
   PRICE_SERIES,
   PRICE_SOURCE_ID,
   SOURCE_ID,
+  WDI_SOURCE_ID,
   ensureSchema,
   openObservatory,
 } from "../shared/observatory-db.mjs";
@@ -21,6 +24,7 @@ const LICENSE_URL = "https://comtradeplus.un.org/";
 const PINK_SHEET_URL = "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx";
 const PINK_SHEET_PAGE = "https://www.worldbank.org/en/research/commodity-markets";
 const PINK_LICENSE_URL = "https://data.worldbank.org/summary-terms-of-use";
+const WDI_LICENSE_URL = "https://data.worldbank.org/summary-terms-of-use";
 const USER_AGENT = "AfriXAsiaMarketObservatory/1.0";
 const BATCHES = [
   [
@@ -101,7 +105,21 @@ function positiveOrNull(value, estimated) {
   return number;
 }
 
+function closeObservatory(db) {
+  db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+  db.exec("PRAGMA journal_mode = DELETE");
+  db.close();
+}
+
 async function main() {
+  const db = openObservatory();
+  ensureSchema(db);
+  await ingestMacro(db);
+  if (process.env.OBSERVATORY_SKIP_TRADE === "1") {
+    closeObservatory(db);
+    console.log("skipped trade and Pink Sheet refresh");
+    return;
+  }
   if (!years.length) throw new Error("OBSERVATORY_YEARS did not include an integer year.");
   const reporters = await withRetry(() => getJson(REPORTERS_URL));
   const chosen = new Map();
@@ -113,8 +131,6 @@ async function main() {
     }
   }
   const byIso3 = new Map([...chosen].map(([iso3, row]) => [iso3, row.reporterCode]));
-  const db = openObservatory();
-  ensureSchema(db);
   const upsertEconomy = db.prepare(`
     INSERT INTO economies (iso3, iso2, name, region, comtrade_code)
     VALUES (?, ?, ?, ?, ?)
@@ -213,11 +229,104 @@ async function main() {
       (SELECT COUNT(*) FROM trade_flows) AS flows,
       (SELECT COUNT(*) FROM fetches WHERE status = 'error') AS errors
   `).get();
-  db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
-  db.exec("PRAGMA journal_mode = DELETE");
-  db.close();
+  closeObservatory(db);
   console.log(`wrote ${OBSERVATORY_DB_PATH} flows=${summary.flows} fetch_errors=${summary.errors}`);
   if (!summary.flows) process.exitCode = 1;
+}
+
+async function readWdi(indicator, iso3List) {
+  const url = `https://api.worldbank.org/v2/en/indicator/${indicator}?downloadformat=csv`;
+  const response = await fetch(url, {
+    headers: { "user-agent": USER_AGENT },
+    signal: AbortSignal.timeout(120000),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${indicator}`);
+  const file = path.join(os.tmpdir(), `afrixasia-${indicator}.zip`);
+  fs.writeFileSync(file, Buffer.from(await response.arrayBuffer()));
+  const parsed = spawnSync("python3", [
+    path.join(root, "scripts", "wdi-bulk.py"),
+    file,
+    iso3List,
+    "2015",
+    "2025",
+  ], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
+  if (parsed.status !== 0) throw new Error((parsed.stderr || parsed.stdout || `${indicator} parse failed`).trim());
+  return JSON.parse(parsed.stdout);
+}
+
+async function ingestMacro(db) {
+  const iso3List = wdi.countries.map((country) => country.iso3).join(",");
+  const allowed = new Set(wdi.countries.map((country) => country.iso3));
+  const exchange = await readWdi(FX_INDICATOR, iso3List);
+  if (exchange.indicator !== FX_INDICATOR) throw new Error(`Expected ${FX_INDICATOR} and parsed ${exchange.indicator}`);
+  const logistics = [];
+  for (const series of LOGISTICS_SERIES) {
+    const payload = await readWdi(series.indicator, iso3List);
+    if (payload.indicator !== series.indicator) throw new Error(`Expected ${series.indicator} and parsed ${payload.indicator}`);
+    logistics.push({ series, payload });
+  }
+  const retrievedAt = new Date().toISOString();
+  const insertRate = db.prepare(`
+    INSERT INTO exchange_rates (iso3, year, lcu_per_usd, source_id, retrieved_at)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  const insertLogistics = db.prepare(`
+    INSERT INTO logistics_observations (series_code, iso3, year, value, source_id, retrieved_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  const setMeta = db.prepare(`
+    INSERT INTO meta (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `);
+  let rates = 0;
+  let points = 0;
+  db.exec("BEGIN");
+  try {
+    db.prepare("DELETE FROM exchange_rates").run();
+    db.prepare("DELETE FROM logistics_observations").run();
+    for (const row of exchange.rows) {
+      if (!allowed.has(row.iso3)) continue;
+      insertRate.run(row.iso3, row.year, row.value, WDI_SOURCE_ID, retrievedAt);
+      rates += 1;
+    }
+    for (const item of logistics) {
+      for (const row of item.payload.rows) {
+        if (!allowed.has(row.iso3)) continue;
+        insertLogistics.run(item.series.code, row.iso3, row.year, row.value, WDI_SOURCE_ID, retrievedAt);
+        points += 1;
+      }
+    }
+    if (!rates || !points) throw new Error("World Bank extract did not include exchange rates and logistics observations.");
+    const dates = [
+      `official exchange rate file updated ${exchange.updatedOn}`,
+      ...logistics.map((item) => `${item.series.code} file updated ${item.payload.updatedOn}`),
+    ];
+    db.prepare(`
+      INSERT INTO sources (id, publisher, title, url, license, license_url, retrieved_at, note)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        url = excluded.url,
+        retrieved_at = excluded.retrieved_at,
+        note = excluded.note
+    `).run(
+      WDI_SOURCE_ID,
+      "World Bank",
+      "World Development Indicators: official exchange rate, liner shipping connectivity, and logistics performance",
+      "https://data.worldbank.org/",
+      "World Bank open data terms (generally CC BY 4.0; source-specific exceptions may apply)",
+      WDI_LICENSE_URL,
+      retrievedAt,
+      `Annual observations for the observatory economies, 2015–2025. ${dates.join(". ")}. PA.NUS.FCRF is local currency units per US dollar, an annual average. IS.SHP.GCNW.XQ is the UNCTAD liner shipping connectivity index with 2004 = 100. LP.LPI.OVRL.XQ is a 1-to-5 survey score; its 2022 column is the survey fielded from 6 September to 5 November 2022. A missing economy-year was not published. These are not freight quotes, spot rates for a contract date, orders, or forecasts.`,
+    );
+    setMeta.run("fx_updated_on", exchange.updatedOn);
+    setMeta.run("logistics_updated_on", logistics.map((item) => `${item.series.code}:${item.payload.updatedOn}`).join(","));
+    setMeta.run("macro_retrieved_at", retrievedAt);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  console.log(`wdi exchange_rates=${rates} logistics=${points} fx_updated=${exchange.updatedOn}`);
 }
 
 async function ingestPrices(db) {

@@ -11,6 +11,8 @@ export const OBSERVATORY_DB_PATH = process.env.OBSERVATORY_DB
 
 export const SOURCE_ID = "un-comtrade-preview";
 export const PRICE_SOURCE_ID = "world-bank-pink-sheet";
+export const WDI_SOURCE_ID = "world-bank-wdi";
+export const FX_INDICATOR = "PA.NUS.FCRF";
 
 export const PRODUCTS = [
   {
@@ -314,6 +316,23 @@ export const PRICE_SERIES = [
   },
 ];
 
+export const LOGISTICS_SERIES = [
+  {
+    code: "lsci",
+    indicator: "IS.SHP.GCNW.XQ",
+    name: "Liner shipping connectivity index",
+    unit: "index, 2004 = 100",
+    note: "UNCTAD liner shipping connectivity index as republished in World Bank WDI. A higher index means a closer connection to container liner networks. Not a freight rate or a transit time. A year absent from the extract was not published.",
+  },
+  {
+    code: "lpi-overall",
+    indicator: "LP.LPI.OVRL.XQ",
+    name: "Logistics performance index, overall",
+    unit: "score, 1 = low to 5 = high",
+    note: "World Bank survey score of customs, infrastructure, shipments, logistics services, tracking, and timeliness. The 2022 column is the survey fielded from 6 September to 5 November 2022. Not a freight rate. A missing survey year is not a score of zero, and scores are not added across economies.",
+  },
+];
+
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
@@ -387,6 +406,32 @@ CREATE TABLE IF NOT EXISTS commodity_prices (
   PRIMARY KEY (series_code, period)
 );
 CREATE INDEX IF NOT EXISTS price_period ON commodity_prices (period);
+CREATE TABLE IF NOT EXISTS exchange_rates (
+  iso3 TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  lcu_per_usd REAL NOT NULL,
+  source_id TEXT NOT NULL,
+  retrieved_at TEXT NOT NULL,
+  PRIMARY KEY (iso3, year)
+);
+CREATE INDEX IF NOT EXISTS exchange_year ON exchange_rates (year);
+CREATE TABLE IF NOT EXISTS logistics_series (
+  code TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  indicator TEXT NOT NULL,
+  note TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS logistics_observations (
+  series_code TEXT NOT NULL,
+  iso3 TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  value REAL NOT NULL,
+  source_id TEXT NOT NULL,
+  retrieved_at TEXT NOT NULL,
+  PRIMARY KEY (series_code, iso3, year)
+);
+CREATE INDEX IF NOT EXISTS logistics_iso_year ON logistics_observations (iso3, year);
 `;
 
 export function openObservatory({ readOnly = false } = {}) {
@@ -435,6 +480,22 @@ export function ensureSchema(db) {
   const priceMarks = priceCodes.map(() => "?").join(",");
   db.prepare(`DELETE FROM commodity_prices WHERE series_code NOT IN (${priceMarks})`).run(...priceCodes);
   db.prepare(`DELETE FROM price_series WHERE code NOT IN (${priceMarks})`).run(...priceCodes);
+  const insertLogistics = db.prepare(`
+    INSERT INTO logistics_series (code, name, unit, indicator, note)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(code) DO UPDATE SET
+      name = excluded.name,
+      unit = excluded.unit,
+      indicator = excluded.indicator,
+      note = excluded.note
+  `);
+  for (const series of LOGISTICS_SERIES) {
+    insertLogistics.run(series.code, series.name, series.unit, series.indicator, series.note);
+  }
+  const logisticsCodes = LOGISTICS_SERIES.map((series) => series.code);
+  const logisticsMarks = logisticsCodes.map(() => "?").join(",");
+  db.prepare(`DELETE FROM logistics_observations WHERE series_code NOT IN (${logisticsMarks})`).run(...logisticsCodes);
+  db.prepare(`DELETE FROM logistics_series WHERE code NOT IN (${logisticsMarks})`).run(...logisticsCodes);
 }
 
 function metaMap(db) {
@@ -466,6 +527,8 @@ export function observatoryStatus(db) {
     `).all(),
     economies: db.prepare("SELECT COUNT(*) AS total FROM economies").get().total,
     prices: priceStatus(db),
+    exchangeRates: exchangeStatus(db),
+    logistics: logisticsStatus(db),
     limits: [
       "A missing reporter–partner–product–year was not in the extract. It is not zero trade.",
       "Export and import rows are different reporters' statements. Do not add them as one shipment.",
@@ -474,14 +537,53 @@ export function observatoryStatus(db) {
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow.",
+      "Official exchange rates are annual averages of local currency units per US dollar. A missing year was not published and is not a rate of zero.",
+      "The shipping index and the logistics score are not freight rates. Do not add scores across economies or treat a shared currency's identical rate as two different rates to sum.",
     ],
     tradeApi: "/api/observatory/trade",
     pricesApi: "/api/observatory/prices",
+    exchangeRatesApi: "/api/observatory/exchange-rates",
+    logisticsApi: "/api/observatory/logistics",
   };
 }
 
 function hasTable(db, name) {
   return Boolean(db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(name));
+}
+
+function exchangeStatus(db) {
+  if (!hasTable(db, "exchange_rates")) return null;
+  const span = db.prepare(`
+    SELECT COUNT(*) AS points, COUNT(DISTINCT iso3) AS economies,
+      MIN(year) AS firstYear, MAX(year) AS lastYear
+    FROM exchange_rates
+  `).get();
+  return {
+    ...span,
+    indicator: FX_INDICATOR,
+    unit: "LCU per USD, period average",
+    updatedOn: metaMap(db).fx_updated_on || null,
+    source: db.prepare("SELECT * FROM sources WHERE id = ?").get(WDI_SOURCE_ID) || null,
+  };
+}
+
+function logisticsStatus(db) {
+  if (!hasTable(db, "logistics_observations")) return null;
+  return {
+    updatedOn: metaMap(db).logistics_updated_on || null,
+    source: db.prepare("SELECT * FROM sources WHERE id = ?").get(WDI_SOURCE_ID) || null,
+    series: db.prepare(`
+      SELECT
+        s.code, s.name, s.unit, s.indicator, s.note,
+        COUNT(o.year) AS points,
+        MIN(o.year) AS firstYear,
+        MAX(o.year) AS lastYear
+      FROM logistics_series s
+      LEFT JOIN logistics_observations o ON o.series_code = s.code
+      GROUP BY s.code
+      ORDER BY s.code
+    `).all(),
+  };
 }
 
 function priceStatus(db) {
@@ -664,9 +766,120 @@ export function knownHs(db, code) {
   return db.prepare("SELECT hs_code FROM products WHERE hs_code = ?").get(code) || null;
 }
 
+const EXCHANGE_SELECT = `
+  SELECT
+    r.iso3,
+    e.iso2,
+    e.name,
+    e.region,
+    r.year,
+    r.lcu_per_usd AS lcuPerUsd,
+    'LCU per USD, period average' AS unit,
+    'reported' AS status,
+    r.retrieved_at AS retrievedAt,
+    'World Bank WDI' AS source,
+    'https://data.worldbank.org/indicator/PA.NUS.FCRF' AS sourceUrl
+  FROM exchange_rates r
+  JOIN economies e ON e.iso3 = r.iso3
+`;
+
+export function queryExchangeRates(db, filters) {
+  if (!hasTable(db, "exchange_rates")) return null;
+  const where = [];
+  const params = [];
+  if (filters.iso3) {
+    where.push("r.iso3 = ?");
+    params.push(filters.iso3);
+  }
+  if (filters.year) {
+    where.push("r.year = ?");
+    params.push(filters.year);
+  }
+  if (filters.from) {
+    where.push("r.year >= ?");
+    params.push(filters.from);
+  }
+  if (filters.to) {
+    where.push("r.year <= ?");
+    params.push(filters.to);
+  }
+  const sqlWhere = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const total = db.prepare(`SELECT COUNT(*) AS total FROM exchange_rates r ${sqlWhere}`).get(...params).total;
+  const rows = db.prepare(`
+    ${EXCHANGE_SELECT}
+    ${sqlWhere}
+    ORDER BY r.year DESC, e.name
+    LIMIT ? OFFSET ?
+  `).all(...params, filters.perPage, (filters.page - 1) * filters.perPage);
+  return { total, page: filters.page, perPage: filters.perPage, pages: Math.max(1, Math.ceil(total / filters.perPage)), rows };
+}
+
+const LOGISTICS_SELECT = `
+  SELECT
+    o.iso3,
+    e.iso2,
+    e.name,
+    e.region,
+    o.series_code AS seriesCode,
+    s.name AS series,
+    s.indicator,
+    o.year,
+    o.value,
+    s.unit,
+    'reported' AS status,
+    o.retrieved_at AS retrievedAt,
+    'World Bank WDI' AS source,
+    'https://data.worldbank.org/' AS sourceUrl
+  FROM logistics_observations o
+  JOIN logistics_series s ON s.code = o.series_code
+  JOIN economies e ON e.iso3 = o.iso3
+`;
+
+export function queryLogistics(db, filters) {
+  if (!hasTable(db, "logistics_observations")) return null;
+  const where = [];
+  const params = [];
+  if (filters.iso3) {
+    where.push("o.iso3 = ?");
+    params.push(filters.iso3);
+  }
+  if (filters.codes?.length) {
+    where.push(`o.series_code IN (${filters.codes.map(() => "?").join(",")})`);
+    params.push(...filters.codes);
+  }
+  if (filters.year) {
+    where.push("o.year = ?");
+    params.push(filters.year);
+  }
+  if (filters.from) {
+    where.push("o.year >= ?");
+    params.push(filters.from);
+  }
+  if (filters.to) {
+    where.push("o.year <= ?");
+    params.push(filters.to);
+  }
+  const sqlWhere = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const total = db.prepare(`
+    SELECT COUNT(*) AS total FROM logistics_observations o ${sqlWhere}
+  `).get(...params).total;
+  const rows = db.prepare(`
+    ${LOGISTICS_SELECT}
+    ${sqlWhere}
+    ORDER BY o.year DESC, o.series_code, e.name
+    LIMIT ? OFFSET ?
+  `).all(...params, filters.perPage, (filters.page - 1) * filters.perPage);
+  return { total, page: filters.page, perPage: filters.perPage, pages: Math.max(1, Math.ceil(total / filters.perPage)), rows };
+}
+
 export function knownPriceSeries(db, code) {
   if (!hasTable(db, "price_series")) return null;
   return db.prepare("SELECT code FROM price_series WHERE code = ?").get(code) || null;
+}
+
+export function knownLogisticsSeries(db, code) {
+  if (!hasTable(db, "logistics_series")) return null;
+  return db.prepare("SELECT code FROM logistics_series WHERE code = ?").get(code) || null;
 }
 
 export function knownCategory(db, category) {

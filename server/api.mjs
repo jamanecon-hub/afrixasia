@@ -20,9 +20,12 @@ import { dossier } from "./dossier.mjs";
 import {
   knownCategory,
   knownHs,
+  knownLogisticsSeries,
   knownPriceSeries,
   observatoryStatus,
   openObservatory,
+  queryExchangeRates,
+  queryLogistics,
   queryPrices,
   queryTrade,
 } from "../shared/observatory-db.mjs";
@@ -366,6 +369,121 @@ function observatoryTrade(url) {
   }
 }
 
+function yearWindow(url) {
+  const yearParam = url.searchParams.get("year");
+  const year = yearParam ? Number(yearParam) : null;
+  if (yearParam && (!Number.isInteger(year) || year < 1990 || year > 2100)) {
+    return { error: "year must be an integer." };
+  }
+  const fromParam = url.searchParams.get("from");
+  const toParam = url.searchParams.get("to");
+  const from = fromParam ? Number(fromParam) : null;
+  const to = toParam ? Number(toParam) : null;
+  if ((fromParam && (!Number.isInteger(from) || from < 1990 || from > 2100))
+    || (toParam && (!Number.isInteger(to) || to < 1990 || to > 2100))) {
+    return { error: "from and to must be calendar years." };
+  }
+  return { year, from, to };
+}
+
+function observatoryExchangeRates(url) {
+  const db = openObservatory({ readOnly: true });
+  if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
+  try {
+    const country = countryParam(url, "country");
+    if (country.error) return { status: 400, body: { error: country.error } };
+    const window = yearWindow(url);
+    if (window.error) return { status: 400, body: { error: window.error } };
+    const paging = pageParams(url);
+    if (!paging) return { status: 400, body: { error: "Invalid page." } };
+    const filters = {
+      iso3: country.iso3,
+      year: window.year,
+      from: window.from,
+      to: window.to,
+      page: paging.page,
+      perPage: paging.perPage,
+    };
+    const queried = queryExchangeRates(db, filters);
+    if (!queried) return { status: 503, body: { error: "Exchange rates are not loaded." } };
+    if (url.searchParams.get("format") === "csv" && queried.total > 20000) {
+      return { status: 400, body: { error: "More than 20000 rows. Filter by country, year, from, or to." } };
+    }
+    const csv = url.searchParams.get("format") === "csv"
+      ? queryExchangeRates(db, { ...filters, page: 1, perPage: Math.max(1, queried.total) }).rows
+      : queried.rows;
+    return {
+      status: 200,
+      csv,
+      body: {
+        datasetId: "afrixasia-observatory-exchange-rates",
+        updatedOn: db.prepare("SELECT value FROM meta WHERE key = 'fx_updated_on'").get()?.value || null,
+        total: queried.total,
+        page: queried.page,
+        perPage: queried.perPage,
+        pages: queried.pages,
+        rates: queried.rows,
+        note: "World Bank official exchange rate, local currency units per US dollar, annual average, for the observatory economies. A missing year was not published and is not zero. This is not a spot rate for a contract date, a forecast, or a bilateral trade unit value. Economies that share a currency can show the same rate.",
+      },
+    };
+  } finally {
+    db.close();
+  }
+}
+
+function observatoryLogistics(url) {
+  const db = openObservatory({ readOnly: true });
+  if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
+  try {
+    const country = countryParam(url, "country");
+    if (country.error) return { status: 400, body: { error: country.error } };
+    const codes = (url.searchParams.get("series") || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    for (const code of codes) {
+      if (!knownLogisticsSeries(db, code)) return { status: 400, body: { error: `Unknown logistics series: ${code}` } };
+    }
+    const window = yearWindow(url);
+    if (window.error) return { status: 400, body: { error: window.error } };
+    const paging = pageParams(url);
+    if (!paging) return { status: 400, body: { error: "Invalid page." } };
+    const filters = {
+      iso3: country.iso3,
+      codes,
+      year: window.year,
+      from: window.from,
+      to: window.to,
+      page: paging.page,
+      perPage: paging.perPage,
+    };
+    const queried = queryLogistics(db, filters);
+    if (!queried) return { status: 503, body: { error: "Logistics series are not loaded." } };
+    if (url.searchParams.get("format") === "csv" && queried.total > 20000) {
+      return { status: 400, body: { error: "More than 20000 rows. Filter by country, series, year, from, or to." } };
+    }
+    const csv = url.searchParams.get("format") === "csv"
+      ? queryLogistics(db, { ...filters, page: 1, perPage: Math.max(1, queried.total) }).rows
+      : queried.rows;
+    return {
+      status: 200,
+      csv,
+      body: {
+        datasetId: "afrixasia-observatory-logistics",
+        updatedOn: db.prepare("SELECT value FROM meta WHERE key = 'logistics_updated_on'").get()?.value || null,
+        total: queried.total,
+        page: queried.page,
+        perPage: queried.perPage,
+        pages: queried.pages,
+        observations: queried.rows,
+        note: "Liner shipping connectivity is an index with 2004 = 100. The logistics performance score runs from 1 to 5; its 2022 column is the September–November 2022 survey. Neither series is a freight rate or a transit time. A missing economy-year was not published. Do not add scores across economies.",
+      },
+    };
+  } finally {
+    db.close();
+  }
+}
+
 function observatoryPrices(url) {
   const db = openObservatory({ readOnly: true });
   if (!db) return { status: 503, body: { error: "Observatory database is not built." } };
@@ -635,6 +753,32 @@ async function route(req, res, url) {
   }
   if (url.pathname === "/api/observatory/prices" && req.method === "GET") {
     const result = observatoryPrices(url);
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      send(res, 200, toCsv(result.csv), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
+    return;
+  }
+  if (url.pathname === "/api/observatory/exchange-rates" && req.method === "GET") {
+    const result = observatoryExchangeRates(url);
+    if (result.status !== 200) {
+      send(res, result.status, result.body);
+      return;
+    }
+    if (format === "csv") {
+      send(res, 200, toCsv(result.csv), "text/csv; charset=utf-8");
+      return;
+    }
+    send(res, 200, result.body);
+    return;
+  }
+  if (url.pathname === "/api/observatory/logistics" && req.method === "GET") {
+    const result = observatoryLogistics(url);
     if (result.status !== 200) {
       send(res, result.status, result.body);
       return;

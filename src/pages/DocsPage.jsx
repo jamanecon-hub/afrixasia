@@ -17,6 +17,8 @@ const examples = [
   ["/api/observatory", "Bilateral trade database: products, prices, coverage, and limits", "Basis data perdagangan bilateral: produk, harga, cakupan, dan batas", "Base de commerce bilatéral : produits, prix, couverture et limites"],
   ["/api/observatory/trade?reporter=KEN&partner=PAK&hs=0902&year=2024&flow=export", "Kenya tea export statement to Pakistan, 2024", "Pernyataan ekspor teh Kenya ke Pakistan, 2024", "Déclaration d’export de thé du Kenya vers le Pakistan, 2024"],
   ["/api/observatory/prices?series=cocoa,tea-mombasa&from=2024-01", "Cocoa and Mombasa tea reference prices", "Harga referensi kakao dan teh Mombasa", "Prix de référence du cacao et du thé de Mombasa"],
+  ["/api/observatory/exchange-rates?country=KEN&from=2024", "Kenya official exchange rate, local currency per US dollar", "Kurs resmi Kenya, mata uang lokal per dolar AS", "Taux de change officiel du Kenya, monnaie locale pour un dollar"],
+  ["/api/observatory/logistics?country=SGP&series=lsci&year=2021", "Singapore liner shipping connectivity", "Konektivitas pelayaran liner Singapura", "Connectivité maritime de ligne de Singapour"],
 ];
 
 export default function DocsPage({ mode }) {
@@ -200,6 +202,20 @@ export default function DocsPage({ mode }) {
                   "Monthly World Bank Pink Sheet quotes in nominal US dollars, from January 2015. A missing month was not published. Several rice, wheat, tea, or coffee series in one month are alternative benchmarks, not parts of one price.",
                   "Kutipan bulanan Pink Sheet Bank Dunia dalam dolar AS nominal, sejak Januari 2015. Bulan yang kosong tidak dipublikasikan. Beberapa seri beras, gandum, teh, atau kopi pada bulan yang sama adalah patokan alternatif, bukan bagian dari satu harga.",
                   "Cotations mensuelles du Pink Sheet de la Banque mondiale en dollars nominaux, depuis janvier 2015. Un mois absent n’a pas été publié. Plusieurs séries de riz, de blé, de thé ou de café pour un même mois sont des références alternatives, pas les parties d’un seul prix.",
+                )}
+              </p>
+              <h3>{t("Exchange rates and logistics", "Kurs dan logistik", "Taux de change et logistique")}</h3>
+              <p>
+                <code>GET /api/observatory/exchange-rates · country · year · from · to · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                <code>GET /api/observatory/logistics · country · series=lsci,lpi-overall · year · from · to · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "Exchange rates are annual averages of local currency units per US dollar. lsci is the liner shipping connectivity index, with 2004 = 100. lpi-overall is a survey score from 1 to 5; 2022 is the late-2022 survey. A missing economy-year was not published. These are not freight quotes or spot rates for a contract date.",
+                  "Kurs adalah rata-rata tahunan satuan mata uang lokal per dolar AS. lsci adalah indeks konektivitas pelayaran liner, dengan 2004 = 100. lpi-overall adalah skor survei dari 1 sampai 5; 2022 adalah survei akhir 2022. Tahun yang kosong tidak dipublikasikan. Ini bukan tarif angkutan atau kurs spot untuk tanggal kontrak.",
+                  "Les taux sont des moyennes annuelles d’unités de monnaie locale pour un dollar. lsci est l’indice de connectivité du transport maritime de ligne, base 100 en 2004. lpi-overall est un score d’enquête de 1 à 5 ; 2022 correspond à l’enquête de fin 2022. Une année absente n’a pas été publiée. Ce ne sont ni des tarifs de fret ni des cours au comptant pour une date de contrat.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

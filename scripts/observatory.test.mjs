@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { openObservatory, queryPrices, queryTrade } from "../shared/observatory-db.mjs";
+import { openObservatory, queryExchangeRates, queryLogistics, queryPrices, queryTrade } from "../shared/observatory-db.mjs";
 
 const db = openObservatory({ readOnly: true });
 assert.ok(db, "observatory database is missing");
@@ -133,6 +133,47 @@ for (const row of flows) {
 const prices = db.prepare("SELECT price_usd FROM commodity_prices").all();
 assert.ok(prices.length > 0);
 for (const row of prices) assert.ok(row.price_usd > 0);
+
+const chinaRate = queryExchangeRates(db, { iso3: "CHN", year: 2025, page: 1, perPage: 5 });
+assert.equal(chinaRate.total, 1);
+assert.ok(Math.abs(chinaRate.rows[0].lcuPerUsd - 7.18984737402171) < 1e-9, chinaRate.rows[0].lcuPerUsd);
+assert.equal(chinaRate.rows[0].unit, "LCU per USD, period average");
+
+const kenyaRate = queryExchangeRates(db, { iso3: "KEN", year: 2025, page: 1, perPage: 5 });
+assert.equal(kenyaRate.total, 1);
+assert.ok(Math.abs(kenyaRate.rows[0].lcuPerUsd - 129.302572099377) < 1e-9);
+
+const vietnamRate = queryExchangeRates(db, { iso3: "VNM", year: 2025, page: 1, perPage: 5 });
+assert.equal(vietnamRate.total, 0);
+const koreaRate = queryExchangeRates(db, { iso3: "PRK", from: 2015, to: 2025, page: 1, perPage: 5 });
+assert.equal(koreaRate.total, 0);
+
+const cfa = db.prepare(`
+  SELECT a.lcu_per_usd AS benin, b.lcu_per_usd AS senegal
+  FROM exchange_rates a
+  JOIN exchange_rates b ON b.year = a.year AND b.iso3 = 'SEN'
+  WHERE a.iso3 = 'BEN' AND a.year = 2025
+`).get();
+assert.equal(cfa.benin, cfa.senegal);
+
+const singaporeShipping = queryLogistics(db, { iso3: "SGP", codes: ["lsci"], year: 2021, page: 1, perPage: 5 });
+assert.equal(singaporeShipping.total, 1);
+assert.ok(Math.abs(singaporeShipping.rows[0].value - 110.6756480462) < 1e-9, singaporeShipping.rows[0].value);
+assert.equal(singaporeShipping.rows[0].unit, "index, 2004 = 100");
+
+const chinaLogistics = queryLogistics(db, { iso3: "CHN", codes: ["lpi-overall"], year: 2022, page: 1, perPage: 5 });
+assert.equal(chinaLogistics.total, 1);
+assert.equal(chinaLogistics.rows[0].value, 3.7);
+
+const kenyaLogistics = queryLogistics(db, { iso3: "KEN", codes: ["lpi-overall"], year: 2022, page: 1, perPage: 5 });
+assert.equal(kenyaLogistics.total, 0);
+
+const rateCount = db.prepare("SELECT COUNT(*) AS n FROM exchange_rates").get().n;
+const logisticsCount = db.prepare("SELECT COUNT(*) AS n FROM logistics_observations").get().n;
+assert.equal(rateCount, 1060);
+assert.equal(logisticsCount, 757);
+for (const row of db.prepare("SELECT lcu_per_usd AS value FROM exchange_rates").all()) assert.ok(row.value > 0);
+for (const row of db.prepare("SELECT value FROM logistics_observations").all()) assert.ok(row.value > 0);
 db.close();
 
 console.log("observatory tests passed", {
@@ -142,4 +183,8 @@ console.log("observatory tests passed", {
   cocoaUsdPerKg: cocoa.rows[0].priceUsd,
   flows: flows.length,
   prices: prices.length,
+  chinaLcuPerUsd: chinaRate.rows[0].lcuPerUsd,
+  singaporeLsci: singaporeShipping.rows[0].value,
+  rates: rateCount,
+  logistics: logisticsCount,
 });

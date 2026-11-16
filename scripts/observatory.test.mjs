@@ -91,6 +91,33 @@ assert.equal(paste.total, 1);
 assert.equal(paste.rows[0].product, "Cocoa paste");
 assert.ok(Math.abs(paste.rows[0].valueUsd - 1245225.41) < 0.01, paste.rows[0].valueUsd);
 
+const dapTrade = queryTrade(db, {
+  reporterIso3: "MAR",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["310530"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(dapTrade.total, 1);
+assert.equal(dapTrade.rows[0].product, "Diammonium phosphate");
+assert.equal(dapTrade.rows[0].category, "Fertilizers");
+assert.ok(Math.abs(dapTrade.rows[0].valueUsd - 1206751491.601) < 0.01, dapTrade.rows[0].valueUsd);
+
+const phosphateRock = queryTrade(db, {
+  reporterIso3: "MAR",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2510"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(phosphateRock.total, 1);
+assert.equal(phosphateRock.rows[0].product, "Phosphate rock");
+assert.ok(Math.abs(phosphateRock.rows[0].valueUsd - 217187614.907) < 0.01, phosphateRock.rows[0].valueUsd);
+
 const cocoa = queryPrices(db, {
   codes: ["cocoa"],
   from: "2026-10",
@@ -121,6 +148,38 @@ const riceQuotes = queryPrices(db, {
   perPage: 10,
 });
 assert.equal(riceQuotes.total, 4);
+
+const urea = queryPrices(db, {
+  codes: ["urea"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(urea.total, 1);
+assert.equal(urea.rows[0].priceUsd, 420);
+assert.equal(urea.rows[0].unit, "USD/mt");
+assert.equal(urea.rows[0].relatedHs, "310210");
+
+const dapPrice = queryPrices(db, {
+  codes: ["dap"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(dapPrice.rows[0].priceUsd, 803.1);
+assert.equal(dapPrice.rows[0].relatedHs, "310530");
+
+const potash = queryPrices(db, {
+  codes: ["potassium-chloride"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(potash.rows[0].priceUsd, 357.5);
+assert.equal(potash.rows[0].name, "Potassium chloride");
 
 const flows = db.prepare("SELECT value_usd, quantity, net_weight_kg FROM trade_flows").all();
 assert.ok(flows.length > 0);
@@ -181,6 +240,8 @@ console.log("observatory tests passed", {
   riceUsd: senegalImport.valueUsd,
   cottonUsd: cotton.rows[0].valueUsd,
   cocoaUsdPerKg: cocoa.rows[0].priceUsd,
+  dapUsd: dapTrade.rows[0].valueUsd,
+  ureaUsdPerMt: urea.rows[0].priceUsd,
   flows: flows.length,
   prices: prices.length,
   chinaLcuPerUsd: chinaRate.rows[0].lcuPerUsd,

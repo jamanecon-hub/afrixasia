@@ -32,6 +32,7 @@ const BATCHES = [
     "070200", "080510", "03", "61", "62", "610910",
   ],
   ["080132", "1803", "1804", "1805", "1511", "120740", "5201"],
+  ["2510", "310210", "310311", "310420", "310530"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -175,7 +176,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks. Preview rows are published trade values. A pair absent from a completed extract is not zero trade.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Fertilizer lines are not added together.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");

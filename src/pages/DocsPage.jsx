@@ -16,7 +16,9 @@ const examples = [
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
   ["/api/observatory", "Bilateral trade database: products, prices, coverage, and limits", "Basis data perdagangan bilateral: produk, harga, cakupan, dan batas", "Base de commerce bilatéral : produits, prix, couverture et limites"],
   ["/api/observatory/trade?reporter=KEN&partner=PAK&hs=0902&year=2024&flow=export", "Kenya tea export statement to Pakistan, 2024", "Pernyataan ekspor teh Kenya ke Pakistan, 2024", "Déclaration d’export de thé du Kenya vers le Pakistan, 2024"],
+  ["/api/observatory/trade?reporter=MAR&partner=IND&hs=310530&year=2024&flow=export", "Morocco diammonium phosphate export statement to India, 2024", "Pernyataan ekspor diammonium fosfat Maroko ke India, 2024", "Déclaration d’export de phosphate diammonique du Maroc vers l’Inde, 2024"],
   ["/api/observatory/prices?series=cocoa,tea-mombasa&from=2024-01", "Cocoa and Mombasa tea reference prices", "Harga referensi kakao dan teh Mombasa", "Prix de référence du cacao et du thé de Mombasa"],
+  ["/api/observatory/prices?series=urea,dap&from=2026-01", "Urea and diammonium phosphate reference prices", "Harga referensi urea dan diammonium fosfat", "Prix de référence de l’urée et du phosphate diammonique"],
   ["/api/observatory/exchange-rates?country=KEN&from=2024", "Kenya official exchange rate, local currency per US dollar", "Kurs resmi Kenya, mata uang lokal per dolar AS", "Taux de change officiel du Kenya, monnaie locale pour un dollar"],
   ["/api/observatory/logistics?country=SGP&series=lsci&year=2021", "Singapore liner shipping connectivity", "Konektivitas pelayaran liner Singapura", "Connectivité maritime de ligne de Singapour"],
 ];
@@ -188,9 +190,9 @@ export default function DocsPage({ mode }) {
               </p>
               <p>
                 {t(
-                  "reporter and partner are who filed the trade statement. origin and target follow the goods. Export and import rows are separate statements. HS 610910 sits inside chapter 61, and shelled cashew, cocoa paste, butter, and powder are separate from in-shell cashew and cocoa beans. Do not add those rows. CSV is refused above 20,000 rows.",
-                  "reporter dan partner adalah pihak yang melaporkan. origin dan target mengikuti arah barang. Baris ekspor dan impor adalah pernyataan terpisah. HS 610910 berada di dalam bab 61, dan mete kupas, pasta kakao, mentega kakao, serta bubuk kakao terpisah dari mete berkulit dan biji kakao. Jangan jumlahkan baris itu. CSV ditolak di atas 20.000 baris.",
-                  "reporter et partner désignent le déclarant. origin et target suivent la marchandise. Les lignes d’export et d’import sont des déclarations distinctes. Le SH 610910 est déjà dans le chapitre 61, et la noix de cajou décortiquée, la pâte, le beurre et la poudre de cacao sont distincts de la noix en coque et des fèves. Ne les additionnez pas. Le CSV est refusé au-delà de 20 000 lignes.",
+                  "reporter and partner are who filed the trade statement. origin and target follow the goods. Export and import rows are separate statements. HS 610910 sits inside chapter 61, and shelled cashew, cocoa paste, butter, and powder are separate from in-shell cashew and cocoa beans. Phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate are separate fertilizer lines. Do not add those rows. CSV is refused above 20,000 rows.",
+                  "reporter dan partner adalah pihak yang melaporkan. origin dan target mengikuti arah barang. Baris ekspor dan impor adalah pernyataan terpisah. HS 610910 berada di dalam bab 61, dan mete kupas, pasta kakao, mentega kakao, serta bubuk kakao terpisah dari mete berkulit dan biji kakao. Batuan fosfat, urea, triple superphosphate, kalium klorida, dan diammonium fosfat adalah baris pupuk yang terpisah. Jangan jumlahkan baris itu. CSV ditolak di atas 20.000 baris.",
+                  "reporter et partner désignent le déclarant. origin et target suivent la marchandise. Les lignes d’export et d’import sont des déclarations distinctes. Le SH 610910 est déjà dans le chapitre 61, et la noix de cajou décortiquée, la pâte, le beurre et la poudre de cacao sont distincts de la noix en coque et des fèves. La roche phosphatée, l’urée, le superphosphate triple, le chlorure de potassium et le phosphate diammonique sont des lignes d’engrais distinctes. Ne les additionnez pas. Le CSV est refusé au-delà de 20 000 lignes.",
                 )}
               </p>
               <h3>{t("Reference prices", "Harga referensi", "Prix de référence")}</h3>
@@ -199,9 +201,9 @@ export default function DocsPage({ mode }) {
               </p>
               <p>
                 {t(
-                  "Monthly World Bank Pink Sheet quotes in nominal US dollars, from January 2015. A missing month was not published. Several rice, wheat, tea, or coffee series in one month are alternative benchmarks, not parts of one price.",
-                  "Kutipan bulanan Pink Sheet Bank Dunia dalam dolar AS nominal, sejak Januari 2015. Bulan yang kosong tidak dipublikasikan. Beberapa seri beras, gandum, teh, atau kopi pada bulan yang sama adalah patokan alternatif, bukan bagian dari satu harga.",
-                  "Cotations mensuelles du Pink Sheet de la Banque mondiale en dollars nominaux, depuis janvier 2015. Un mois absent n’a pas été publié. Plusieurs séries de riz, de blé, de thé ou de café pour un même mois sont des références alternatives, pas les parties d’un seul prix.",
+                  "Monthly World Bank Pink Sheet quotes in nominal US dollars, from January 2015. A missing month was not published. Several rice, wheat, tea, coffee, or fertilizer series in one month are alternative benchmarks, not parts of one price.",
+                  "Kutipan bulanan Pink Sheet Bank Dunia dalam dolar AS nominal, sejak Januari 2015. Bulan yang kosong tidak dipublikasikan. Beberapa seri beras, gandum, teh, kopi, atau pupuk pada bulan yang sama adalah patokan alternatif, bukan bagian dari satu harga.",
+                  "Cotations mensuelles du Pink Sheet de la Banque mondiale en dollars nominaux, depuis janvier 2015. Un mois absent n’a pas été publié. Plusieurs séries de riz, de blé, de thé, de café ou d’engrais pour un même mois sont des références alternatives, pas les parties d’un seul prix.",
                 )}
               </p>
               <h3>{t("Exchange rates and logistics", "Kurs dan logistik", "Taux de change et logistique")}</h3>

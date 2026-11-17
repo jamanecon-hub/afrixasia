@@ -105,6 +105,60 @@ assert.equal(dapTrade.rows[0].product, "Diammonium phosphate");
 assert.equal(dapTrade.rows[0].category, "Fertilizers");
 assert.ok(Math.abs(dapTrade.rows[0].valueUsd - 1206751491.601) < 0.01, dapTrade.rows[0].valueUsd);
 
+const maize = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["1005"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(maize.total, 1);
+assert.equal(maize.rows[0].product, "Maize");
+assert.equal(maize.rows[0].category, "Food & agriculture");
+assert.ok(Math.abs(maize.rows[0].valueUsd - 4678490.638) < 0.01, maize.rows[0].valueUsd);
+
+const groundnuts = queryTrade(db, {
+  reporterIso3: "SEN",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["1202"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(groundnuts.total, 1);
+assert.equal(groundnuts.rows[0].product, "Groundnuts");
+assert.ok(Math.abs(groundnuts.rows[0].valueUsd - 92525200.621) < 0.01, groundnuts.rows[0].valueUsd);
+
+const sugar = queryTrade(db, {
+  reporterIso3: "IND",
+  partnerIso3: "SDN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["1701"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(sugar.total, 1);
+assert.equal(sugar.rows[0].product, "Cane or beet sugar");
+assert.ok(Math.abs(sugar.rows[0].valueUsd - 284509889.827) < 0.01, sugar.rows[0].valueUsd);
+
+const rubber = queryTrade(db, {
+  reporterIso3: "CIV",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["4001"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(rubber.total, 1);
+assert.equal(rubber.rows[0].product, "Natural rubber");
+assert.equal(rubber.rows[0].category, "Agricultural raw materials");
+assert.ok(Math.abs(rubber.rows[0].valueUsd - 578969668.137) < 0.01, rubber.rows[0].valueUsd);
+
 const phosphateRock = queryTrade(db, {
   reporterIso3: "MAR",
   partnerIso3: "IND",
@@ -170,6 +224,53 @@ const dapPrice = queryPrices(db, {
 });
 assert.equal(dapPrice.rows[0].priceUsd, 803.1);
 assert.equal(dapPrice.rows[0].relatedHs, "310530");
+
+const maizePrice = queryPrices(db, {
+  codes: ["maize"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(maizePrice.total, 1);
+assert.equal(maizePrice.rows[0].priceUsd, 226.5);
+assert.equal(maizePrice.rows[0].unit, "USD/mt");
+assert.equal(maizePrice.rows[0].relatedHs, "1005");
+
+const sugarQuotes = queryPrices(db, {
+  hsCode: "1701",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(sugarQuotes.total, 3);
+const sugarWorld = sugarQuotes.rows.find((row) => row.seriesCode === "sugar-world");
+assert.equal(sugarWorld.priceUsd, 0.43);
+assert.equal(sugarWorld.unit, "USD/kg");
+
+const groundnutPrice = queryPrices(db, {
+  codes: ["groundnuts"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(groundnutPrice.rows[0].priceUsd, 1600);
+
+const rubberQuotes = queryPrices(db, {
+  hsCode: "4001",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(rubberQuotes.total, 2);
+const tsr20 = rubberQuotes.rows.find((row) => row.seriesCode === "rubber-tsr20");
+const rss3 = rubberQuotes.rows.find((row) => row.seriesCode === "rubber-rss3");
+assert.equal(tsr20.priceUsd, 2.55);
+assert.equal(rss3.priceUsd, 2.83);
+assert.equal(tsr20.name, "Rubber, TSR20");
 
 const potash = queryPrices(db, {
   codes: ["potassium-chloride"],

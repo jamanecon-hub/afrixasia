@@ -159,6 +159,100 @@ assert.equal(rubber.rows[0].product, "Natural rubber");
 assert.equal(rubber.rows[0].category, "Agricultural raw materials");
 assert.ok(Math.abs(rubber.rows[0].valueUsd - 578969668.137) < 0.01, rubber.rows[0].valueUsd);
 
+const ironOre = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2601"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(ironOre.total, 1);
+assert.equal(ironOre.rows[0].product, "Iron ores and concentrates");
+assert.equal(ironOre.rows[0].category, "Minerals & energy");
+assert.ok(Math.abs(ironOre.rows[0].valueUsd - 3315436104.443) < 0.01, ironOre.rows[0].valueUsd);
+assert.equal(ironOre.rows[0].quantityUnit, "kg");
+
+const coal = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2701"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(coal.total, 1);
+assert.equal(coal.rows[0].product, "Coal");
+assert.ok(Math.abs(coal.rows[0].valueUsd - 2780458353.603) < 0.01, coal.rows[0].valueUsd);
+
+const angolaCrude = queryTrade(db, {
+  reporterIso3: "AGO",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2709"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(angolaCrude.total, 1);
+assert.equal(angolaCrude.rows[0].product, "Crude petroleum");
+assert.ok(Math.abs(angolaCrude.rows[0].valueUsd - 16194452099.296) < 0.01, angolaCrude.rows[0].valueUsd);
+
+const chinaCrude = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "AGO",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["2709"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaCrude.total, 1);
+assert.notEqual(chinaCrude.rows[0].valueUsd, angolaCrude.rows[0].valueUsd);
+
+const nigeriaCrude = queryTrade(db, {
+  reporterIso3: "NGA",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2709"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(nigeriaCrude.total, 1);
+assert.equal(nigeriaCrude.rows[0].netWeightKg, null);
+assert.equal(nigeriaCrude.rows[0].quantity, null);
+assert.ok(Math.abs(nigeriaCrude.rows[0].valueUsd - 2211847998.896) < 0.01, nigeriaCrude.rows[0].valueUsd);
+
+const copperOre = queryTrade(db, {
+  reporterIso3: "COD",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2603"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(copperOre.total, 1);
+assert.equal(copperOre.rows[0].product, "Copper ores and concentrates");
+assert.ok(Math.abs(copperOre.rows[0].valueUsd - 2141522675.196) < 0.01, copperOre.rows[0].valueUsd);
+
+const cathodes = queryTrade(db, {
+  reporterIso3: "COD",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["740311"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(cathodes.total, 1);
+assert.equal(cathodes.rows[0].product, "Copper cathodes");
+assert.ok(Math.abs(cathodes.rows[0].valueUsd - 14303219693.7) < 0.01, cathodes.rows[0].valueUsd);
+assert.notEqual(cathodes.rows[0].valueUsd, copperOre.rows[0].valueUsd);
+
 const phosphateRock = queryTrade(db, {
   reporterIso3: "MAR",
   partnerIso3: "IND",
@@ -272,6 +366,72 @@ assert.equal(tsr20.priceUsd, 2.55);
 assert.equal(rss3.priceUsd, 2.83);
 assert.equal(tsr20.name, "Rubber, TSR20");
 
+const brent = queryPrices(db, {
+  codes: ["crude-brent"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(brent.total, 1);
+assert.equal(brent.rows[0].priceUsd, 125);
+assert.equal(brent.rows[0].unit, "USD/bbl");
+assert.equal(brent.rows[0].relatedHs, "2709");
+
+const crudeQuotes = queryPrices(db, {
+  hsCode: "2709",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(crudeQuotes.total, 2);
+const dubai = crudeQuotes.rows.find((row) => row.seriesCode === "crude-dubai");
+assert.equal(dubai.priceUsd, 102.7);
+assert.equal(dubai.unit, "USD/bbl");
+
+const ironPrice = queryPrices(db, {
+  codes: ["iron-ore"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(ironPrice.rows[0].priceUsd, 90.8);
+assert.equal(ironPrice.rows[0].unit, "USD/dry mt");
+assert.equal(ironPrice.rows[0].relatedHs, "2601");
+
+const copperPrice = queryPrices(db, {
+  hsCode: "740311",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(copperPrice.total, 1);
+assert.equal(copperPrice.rows[0].priceUsd, 14508);
+assert.equal(copperPrice.rows[0].unit, "USD/mt");
+
+const orePrice = queryPrices(db, {
+  hsCode: "2603",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(orePrice.total, 0);
+
+const coalPrice = queryPrices(db, {
+  codes: ["coal-south-african"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(coalPrice.rows[0].priceUsd, 100);
+assert.equal(coalPrice.rows[0].name, "Coal, South African");
+assert.equal(coalPrice.rows[0].relatedHs, "2701");
+
 const potash = queryPrices(db, {
   codes: ["potassium-chloride"],
   from: "2026-10",
@@ -349,4 +509,7 @@ console.log("observatory tests passed", {
   singaporeLsci: singaporeShipping.rows[0].value,
   rates: rateCount,
   logistics: logisticsCount,
+  ironOreUsd: ironOre.rows[0].valueUsd,
+  brentUsdPerBbl: brent.rows[0].priceUsd,
+  cathodeUsd: cathodes.rows[0].valueUsd,
 });

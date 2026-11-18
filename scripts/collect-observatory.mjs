@@ -34,6 +34,7 @@ const BATCHES = [
   ["080132", "1803", "1804", "1805", "1511", "120740", "5201"],
   ["2510", "310210", "310311", "310420", "310530"],
   ["1005", "1202", "1701", "4001"],
+  ["2709", "2701", "2601", "2603", "740311"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -177,7 +178,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks, including maize, groundnuts, cane or beet sugar, and natural rubber. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together, and they are not added to rice, sesame, or the fertilizer lines.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, and copper cathodes. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together, and copper ore is not added to copper cathodes.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");
@@ -331,6 +332,17 @@ async function ingestMacro(db) {
   console.log(`wdi exchange_rates=${rates} logistics=${points} fx_updated=${exchange.updatedOn}`);
 }
 
+function priceUnit(series, published) {
+  if (series.code === "iron-ore") {
+    if (published !== "($/dmtu)") throw new Error(`Unit for ${series.header} is ${published}`);
+    return "USD/dry mt";
+  }
+  if (published === "($/kg)") return "USD/kg";
+  if (published === "($/mt)") return "USD/mt";
+  if (published === "($/bbl)") return "USD/bbl";
+  return "";
+}
+
 async function ingestPrices(db) {
   const response = await fetch(PINK_SHEET_URL, {
     headers: { "user-agent": USER_AGENT },
@@ -366,7 +378,7 @@ async function ingestPrices(db) {
     for (const series of PRICE_SERIES) {
       const column = byHeader.get(series.header);
       if (!column) throw new Error(`Missing Pink Sheet column ${series.header}`);
-      const unit = column.unit === "($/kg)" ? "USD/kg" : column.unit === "($/mt)" ? "USD/mt" : "";
+      const unit = priceUnit(series, column.unit);
       if (unit !== series.unit) throw new Error(`Unit for ${series.header} is ${column.unit}`);
       for (const row of column.rows) {
         replace.run(series.code, row.period, row.price, PRICE_SOURCE_ID, retrievedAt);

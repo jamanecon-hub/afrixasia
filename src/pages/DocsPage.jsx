@@ -14,6 +14,19 @@ const examples = [
   ["/api/brief", "Media Brief, source status and dated headlines", "Media Brief, status sumber, dan tanggal berita", "Media Brief, état des sources et articles datés"],
   ["/api/listings", "Public member profiles", "Profil anggota publik", "Profils publics des membres"],
   ["/api/listings?format=csv", "Public member CSV export", "Ekspor CSV anggota publik", "Export CSV public des membres"],
+  ["/api/observatory", "Bilateral trade database: products, prices, coverage, and limits", "Basis data perdagangan bilateral: produk, harga, cakupan, dan batas", "Base de commerce bilatéral : produits, prix, couverture et limites"],
+  ["/api/observatory/trade?reporter=KEN&partner=PAK&hs=0902&year=2024&flow=export", "Kenya tea export statement to Pakistan, 2024", "Pernyataan ekspor teh Kenya ke Pakistan, 2024", "Déclaration d’export de thé du Kenya vers le Pakistan, 2024"],
+  ["/api/observatory/trade?reporter=MAR&partner=IND&hs=310530&year=2024&flow=export", "Morocco diammonium phosphate export statement to India, 2024", "Pernyataan ekspor diammonium fosfat Maroko ke India, 2024", "Déclaration d’export de phosphate diammonique du Maroc vers l’Inde, 2024"],
+  ["/api/observatory/prices?series=cocoa,tea-mombasa&from=2024-01", "Cocoa and Mombasa tea reference prices", "Harga referensi kakao dan teh Mombasa", "Prix de référence du cacao et du thé de Mombasa"],
+  ["/api/observatory/trade?reporter=CIV&partner=CHN&hs=4001&year=2024&flow=export", "Côte d’Ivoire natural rubber export statement to China, 2024", "Pernyataan ekspor karet alam Pantai Gading ke Tiongkok, 2024", "Déclaration d’export de caoutchouc naturel de la Côte d’Ivoire vers la Chine, 2024"],
+  ["/api/observatory/prices?series=maize,sugar-world&from=2026-01", "Maize and world sugar reference prices", "Harga referensi jagung dan gula dunia", "Prix de référence du maïs et du sucre mondial"],
+  ["/api/observatory/trade?reporter=ZAF&partner=CHN&hs=2601&year=2024&flow=export", "South Africa iron ore export statement to China, 2024", "Pernyataan ekspor bijih besi Afrika Selatan ke Tiongkok, 2024", "Déclaration d’export de minerai de fer d’Afrique du Sud vers la Chine, 2024"],
+  ["/api/observatory/prices?series=crude-brent,iron-ore&from=2026-10", "Brent crude and iron ore reference prices", "Harga referensi minyak Brent dan bijih besi", "Prix de référence du Brent et du minerai de fer"],
+  ["/api/observatory/trade?reporter=CHN&partner=ZAF&hs=710812&year=2024&flow=import", "China unwrought gold import statement from South Africa, 2024", "Pernyataan impor emas belum diolah Tiongkok dari Afrika Selatan, 2024", "Déclaration d’import d’or non façonné de la Chine depuis l’Afrique du Sud, 2024"],
+  ["/api/observatory/prices?series=gold,platinum&from=2026-10", "Gold and platinum reference prices", "Harga referensi emas dan platina", "Prix de référence de l’or et du platine"],
+  ["/api/observatory/prices?series=urea,dap&from=2026-01", "Urea and diammonium phosphate reference prices", "Harga referensi urea dan diammonium fosfat", "Prix de référence de l’urée et du phosphate diammonique"],
+  ["/api/observatory/exchange-rates?country=KEN&from=2024", "Kenya official exchange rate, local currency per US dollar", "Kurs resmi Kenya, mata uang lokal per dolar AS", "Taux de change officiel du Kenya, monnaie locale pour un dollar"],
+  ["/api/observatory/logistics?country=SGP&series=lsci&year=2021", "Singapore liner shipping connectivity", "Konektivitas pelayaran liner Singapura", "Connectivité maritime de ligne de Singapour"],
 ];
 
 export default function DocsPage({ mode }) {
@@ -175,6 +188,42 @@ export default function DocsPage({ mode }) {
                   "Reference CSV includes all filtered results. Invalid countries, indicators or ranges return HTTP 400. Latest values may refer to different reporting years. Missing years are omitted, not estimated.",
                   "CSV reference memuat seluruh hasil filter. Negara, indikator, atau rentang tidak valid menerima HTTP 400. Nilai terakhir dapat memiliki tahun berbeda. Tahun kosong tidak diestimasi.",
                   "Le CSV reference inclut tous les résultats filtrés. Pays, indicateurs ou plages invalides renvoient HTTP 400. Les dernières valeurs peuvent avoir des années différentes. Les années absentes ne sont pas estimées.",
+                )}
+              </p>
+              <h3>{t("Trade database", "Basis data perdagangan", "Base commerciale")}</h3>
+              <p>
+                <code>GET /api/observatory/trade · reporter · partner · origin · target · flow=export|import · hs=0902[,1006] · category · year · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "reporter and partner are who filed the trade statement. origin and target follow the goods. Export and import rows are separate statements. HS 610910 sits inside chapter 61, and shelled cashew, cocoa paste, butter, and powder are separate from in-shell cashew and cocoa beans. Phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate are separate fertilizer lines. Maize, groundnuts, cane or beet sugar, and natural rubber are separate lines too. Crude petroleum, coal, iron ore, copper ore, and copper cathodes are separate lines as well. Unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver are separate lines too. Do not add those rows. CSV is refused above 20,000 rows.",
+                  "reporter dan partner adalah pihak yang melaporkan. origin dan target mengikuti arah barang. Baris ekspor dan impor adalah pernyataan terpisah. HS 610910 berada di dalam bab 61, dan mete kupas, pasta kakao, mentega kakao, serta bubuk kakao terpisah dari mete berkulit dan biji kakao. Batuan fosfat, urea, triple superphosphate, kalium klorida, dan diammonium fosfat adalah baris pupuk yang terpisah. Jagung, kacang tanah, gula tebu atau bit, dan karet alam juga baris yang terpisah. Minyak mentah, batu bara, bijih besi, bijih tembaga, dan katoda tembaga juga baris yang terpisah. Emas belum diolah, emas setengah jadi, platina belum diolah, platina setengah jadi, dan perak belum diolah juga baris yang terpisah. Jangan jumlahkan baris itu. CSV ditolak di atas 20.000 baris.",
+                  "reporter et partner désignent le déclarant. origin et target suivent la marchandise. Les lignes d’export et d’import sont des déclarations distinctes. Le SH 610910 est déjà dans le chapitre 61, et la noix de cajou décortiquée, la pâte, le beurre et la poudre de cacao sont distincts de la noix en coque et des fèves. La roche phosphatée, l’urée, le superphosphate triple, le chlorure de potassium et le phosphate diammonique sont des lignes d’engrais distinctes. Le maïs, l’arachide, le sucre de canne ou de betterave et le caoutchouc naturel sont aussi des lignes distinctes. Le pétrole brut, le charbon, le minerai de fer, le minerai de cuivre et les cathodes de cuivre sont également des lignes distinctes. L’or non façonné, l’or mi-ouvré, le platine non façonné, le platine mi-ouvré et l’argent non façonné sont aussi des lignes distinctes. Ne les additionnez pas. Le CSV est refusé au-delà de 20 000 lignes.",
+                )}
+              </p>
+              <h3>{t("Reference prices", "Harga referensi", "Prix de référence")}</h3>
+              <p>
+                <code>GET /api/observatory/prices · series=cocoa,tea-mombasa · hs=0902 · from=YYYY-MM · to=YYYY-MM · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "Monthly World Bank Pink Sheet quotes in nominal US dollars, from January 2015. A missing month was not published. Several rice, wheat, tea, coffee, fertilizer, sugar, rubber, or crude series in one month are alternative benchmarks, not parts of one price. Iron ore is dollars per dry metric ton. The copper quote is refined metal, not copper ore. Gold, platinum, and silver are dollars per troy ounce and are not added together.",
+                  "Kutipan bulanan Pink Sheet Bank Dunia dalam dolar AS nominal, sejak Januari 2015. Bulan yang kosong tidak dipublikasikan. Beberapa seri beras, gandum, teh, kopi, pupuk, gula, karet, atau minyak mentah pada bulan yang sama adalah patokan alternatif, bukan bagian dari satu harga. Bijih besi dalam dolar per ton metrik kering. Kutipan tembaga adalah logam olahan, bukan bijih tembaga. Emas, platina, dan perak dalam dolar per troy ons dan tidak dijumlahkan.",
+                  "Cotations mensuelles du Pink Sheet de la Banque mondiale en dollars nominaux, depuis janvier 2015. Un mois absent n’a pas été publié. Plusieurs séries de riz, de blé, de thé, de café, d’engrais, de sucre, de caoutchouc ou de pétrole brut pour un même mois sont des références alternatives, pas les parties d’un seul prix. Le minerai de fer est en dollars par tonne métrique sèche. La cotation du cuivre est le métal affiné, pas le minerai. L’or, le platine et l’argent sont en dollars par once troy et ne s’additionnent pas.",
+                )}
+              </p>
+              <h3>{t("Exchange rates and logistics", "Kurs dan logistik", "Taux de change et logistique")}</h3>
+              <p>
+                <code>GET /api/observatory/exchange-rates · country · year · from · to · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                <code>GET /api/observatory/logistics · country · series=lsci,lpi-overall · year · from · to · page · per_page=1…500 · format=csv</code>
+              </p>
+              <p>
+                {t(
+                  "Exchange rates are annual averages of local currency units per US dollar. lsci is the liner shipping connectivity index, with 2004 = 100. lpi-overall is a survey score from 1 to 5; 2022 is the late-2022 survey. A missing economy-year was not published. These are not freight quotes or spot rates for a contract date.",
+                  "Kurs adalah rata-rata tahunan satuan mata uang lokal per dolar AS. lsci adalah indeks konektivitas pelayaran liner, dengan 2004 = 100. lpi-overall adalah skor survei dari 1 sampai 5; 2022 adalah survei akhir 2022. Tahun yang kosong tidak dipublikasikan. Ini bukan tarif angkutan atau kurs spot untuk tanggal kontrak.",
+                  "Les taux sont des moyennes annuelles d’unités de monnaie locale pour un dollar. lsci est l’indice de connectivité du transport maritime de ligne, base 100 en 2004. lpi-overall est un score d’enquête de 1 à 5 ; 2022 correspond à l’enquête de fin 2022. Une année absente n’a pas été publiée. Ce ne sont ni des tarifs de fret ni des cours au comptant pour une date de contrat.",
                 )}
               </p>
               <h3>{t("Member export pagination", "Paginasi ekspor anggota", "Pagination de l’export des membres")}</h3>

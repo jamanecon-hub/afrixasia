@@ -279,6 +279,46 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Cathodes and sections of cathodes of refined copper. Not copper ores (2603), not wire bars (740312), and not other unwrought copper. The LME quote also covers wire bar and is not this line's bilateral unit value.",
   },
+  {
+    hsCode: "710812",
+    name: "Gold, unwrought",
+    category: "Precious metals",
+    parentHs: null,
+    level: "subheading",
+    note: "Non-monetary gold in other unwrought forms. Not powder (710811), not semi-manufactured gold (710813), and not monetary gold (710820).",
+  },
+  {
+    hsCode: "710813",
+    name: "Gold, semi-manufactured",
+    category: "Precious metals",
+    parentHs: null,
+    level: "subheading",
+    note: "Non-monetary gold in other semi-manufactured forms. Not unwrought gold (710812). Ghana's export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "711011",
+    name: "Platinum, unwrought",
+    category: "Precious metals",
+    parentHs: null,
+    level: "subheading",
+    note: "Platinum, unwrought or in powder form. Not semi-manufactured platinum (711019), not palladium (711021), and not gold.",
+  },
+  {
+    hsCode: "711019",
+    name: "Platinum, semi-manufactured",
+    category: "Precious metals",
+    parentHs: null,
+    level: "subheading",
+    note: "Platinum in other semi-manufactured forms. Not unwrought platinum (711011) and not gold.",
+  },
+  {
+    hsCode: "710691",
+    name: "Silver, unwrought",
+    category: "Precious metals",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought silver, including silver plated with gold or platinum. Not semi-manufactured silver (710692) and not gold.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -579,6 +619,33 @@ export const PRICE_SERIES = [
     category: "Minerals & energy",
     note: "LME grade A, minimum 99.9935% purity, cathodes and wire bar, settlement price. A refined-copper benchmark linked to HS 740311. It also covers wire bar, which is not in that trade line, and it is not a price for copper ores (2603).",
   },
+  {
+    code: "gold",
+    name: "Gold",
+    unit: "USD/troy oz",
+    header: "Gold",
+    relatedHs: "710812",
+    category: "Precious metals",
+    note: "Spot average of daily rates from June 2025; previously 99.5% fine, London afternoon fixing. US dollars per troy ounce. Linked to unwrought gold (710812). Not the unit value of semi-manufactured gold (710813), and not additive with platinum or silver.",
+  },
+  {
+    code: "platinum",
+    name: "Platinum",
+    unit: "USD/troy oz",
+    header: "Platinum",
+    relatedHs: "711011",
+    category: "Precious metals",
+    note: "99.95% minimum, plate or ingot, spot average of daily rates from June 2025; previously 99.9% refined, London afternoon fixing. US dollars per troy ounce. Linked to unwrought platinum (711011). Semi-manufactured platinum (711019) is a separate trade line. Not additive with gold or silver.",
+  },
+  {
+    code: "silver",
+    name: "Silver",
+    unit: "USD/troy oz",
+    header: "Silver",
+    relatedHs: "710691",
+    category: "Precious metals",
+    note: "99.9% refined, London afternoon fixing. US dollars per troy ounce. Linked to unwrought silver (710691). Not semi-manufactured silver (710692), and not additive with gold or platinum.",
+  },
 ];
 
 export const LOGISTICS_SERIES = [
@@ -802,6 +869,7 @@ export function observatoryStatus(db) {
       "Phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate are separate fertilizer lines. Do not add them.",
       "Maize, groundnuts, cane or beet sugar, and natural rubber are separate lines. Do not add them to rice, sesame, or each other. World, EU, and US sugar quotes are alternative benchmarks. TSR20 and RSS3 are alternative rubber benchmarks.",
       "Crude petroleum, coal, iron ore, copper ore, and copper cathodes are separate lines. Do not add crude to coal, or copper ore to copper cathodes. Brent and Dubai are alternative crude benchmarks. The copper quote is refined metal, not ore. Iron ore is dollars per dry metric ton.",
+      "Unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver are separate lines. Do not add them to each other or to copper. Gold, platinum, and silver quotes are US dollars per troy ounce and are not added together. The gold quote is linked to unwrought gold, not semi-manufactured gold.",
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow. Fertilizer quotes for the same month are separate benchmarks and are not added together.",

@@ -412,6 +412,137 @@ assert.equal(copperPrice.total, 1);
 assert.equal(copperPrice.rows[0].priceUsd, 14508);
 assert.equal(copperPrice.rows[0].unit, "USD/mt");
 
+const chinaGold = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710812"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaGold.total, 1);
+assert.equal(chinaGold.rows[0].product, "Gold, unwrought");
+assert.equal(chinaGold.rows[0].category, "Precious metals");
+assert.equal(chinaGold.rows[0].quantityUnit, "kg");
+assert.ok(Math.abs(chinaGold.rows[0].valueUsd - 8851243166) < 0.01, chinaGold.rows[0].valueUsd);
+
+const saGoldExport = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710812"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(saGoldExport.total, 0);
+
+const ghanaGold = queryTrade(db, {
+  reporterIso3: "GHA",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710813"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(ghanaGold.total, 1);
+assert.equal(ghanaGold.rows[0].product, "Gold, semi-manufactured");
+assert.ok(Math.abs(ghanaGold.rows[0].valueUsd - 4067603545.566) < 0.01, ghanaGold.rows[0].valueUsd);
+assert.notEqual(ghanaGold.rows[0].valueUsd, chinaGold.rows[0].valueUsd);
+
+const saPlatinum = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "JPN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["711011"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(saPlatinum.total, 1);
+assert.equal(saPlatinum.rows[0].product, "Platinum, unwrought");
+assert.ok(Math.abs(saPlatinum.rows[0].valueUsd - 544774293.664) < 0.01, saPlatinum.rows[0].valueUsd);
+
+const saPlatinumChina = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["711011"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(saPlatinumChina.total, 0);
+
+const chinaPlatinum = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["711011"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaPlatinum.total, 1);
+assert.ok(Math.abs(chinaPlatinum.rows[0].valueUsd - 2106514761) < 0.01, chinaPlatinum.rows[0].valueUsd);
+
+const saSilver = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710691"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(saSilver.total, 1);
+assert.equal(saSilver.rows[0].product, "Silver, unwrought");
+assert.ok(Math.abs(saSilver.rows[0].valueUsd - 13484597.359) < 0.01, saSilver.rows[0].valueUsd);
+
+const goldPrice = queryPrices(db, {
+  codes: ["gold"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(goldPrice.total, 1);
+assert.equal(goldPrice.rows[0].priceUsd, 4105);
+assert.equal(goldPrice.rows[0].unit, "USD/troy oz");
+assert.equal(goldPrice.rows[0].relatedHs, "710812");
+
+const platinumPrice = queryPrices(db, {
+  codes: ["platinum"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(platinumPrice.rows[0].priceUsd, 1621);
+assert.equal(platinumPrice.rows[0].unit, "USD/troy oz");
+assert.equal(platinumPrice.rows[0].relatedHs, "711011");
+
+const silverPrice = queryPrices(db, {
+  codes: ["silver"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(silverPrice.rows[0].priceUsd, 57);
+assert.equal(silverPrice.rows[0].relatedHs, "710691");
+
+const semiGoldPrice = queryPrices(db, {
+  hsCode: "710813",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(semiGoldPrice.total, 0);
+
 const orePrice = queryPrices(db, {
   hsCode: "2603",
   from: "2026-10",
@@ -512,4 +643,6 @@ console.log("observatory tests passed", {
   ironOreUsd: ironOre.rows[0].valueUsd,
   brentUsdPerBbl: brent.rows[0].priceUsd,
   cathodeUsd: cathodes.rows[0].valueUsd,
+  chinaGoldUsd: chinaGold.rows[0].valueUsd,
+  goldUsdPerOz: goldPrice.rows[0].priceUsd,
 });

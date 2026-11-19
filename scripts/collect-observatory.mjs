@@ -35,6 +35,7 @@ const BATCHES = [
   ["2510", "310210", "310311", "310420", "310530"],
   ["1005", "1202", "1701", "4001"],
   ["2709", "2701", "2601", "2603", "740311"],
+  ["710812", "710813", "711011", "711019", "710691"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -178,7 +179,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, and copper cathodes. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together, and copper ore is not added to copper cathodes.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, and unwrought silver. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, and unwrought gold is not added to semi-manufactured gold.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");
@@ -340,6 +341,7 @@ function priceUnit(series, published) {
   if (published === "($/kg)") return "USD/kg";
   if (published === "($/mt)") return "USD/mt";
   if (published === "($/bbl)") return "USD/bbl";
+  if (published === "($/troy oz)") return "USD/troy oz";
   return "";
 }
 

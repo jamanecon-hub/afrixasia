@@ -361,7 +361,7 @@ function observatoryTrade(url) {
         perPage: queried.perPage,
         pages: queried.pages,
         flows: queried.rows,
-        note: "Historical UN Comtrade extracts for Africa–Asia corridors. A missing row is not zero trade. The USD figure is the reported trade value. Quantity or weight flagged as estimated is omitted. Do not add an export statement to the mirror import, HS 610910 to chapter 61, shelled cashew 080132 to in-shell 080131, cocoa paste, butter, or powder to cocoa beans, phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate to one another, maize, groundnuts, cane or beet sugar, and natural rubber to one another, crude petroleum, coal, iron ore, copper ore, and copper cathodes to one another, or unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver to one another. Values are not orders or inventory.",
+        note: "Historical UN Comtrade extracts for Africa–Asia corridors. A missing row is not zero trade. The USD figure is the reported trade value. Quantity or weight flagged as estimated is omitted. Do not add an export statement to the mirror import, HS 610910 to chapter 61, shelled cashew 080132 to in-shell 080131, cocoa paste, butter, or powder to cocoa beans, phosphate rock, urea, triple superphosphate, potassium chloride, and diammonium phosphate to one another, maize, groundnuts, cane or beet sugar, and natural rubber to one another, crude petroleum, coal, iron ore, copper ore, and copper cathodes to one another, unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver to one another, or wood in the rough to sawnwood. A cubic-meter volume is not the net weight. Values are not orders or inventory.",
       },
     };
   } finally {
@@ -533,7 +533,7 @@ function observatoryPrices(url) {
         perPage: queried.perPage,
         pages: queried.pages,
         prices: queried.rows,
-        note: "World Bank Pink Sheet monthly nominal US dollars, January 2015 onward, for commodities the observatory tracks. A missing month was not published. These are reference quotes, not bilateral unit values, orders, or inventory. Rice, wheat, tea, coffee, fertilizer, sugar, rubber, and crude quotes for the same month are alternative benchmarks and are not added together. Iron ore is dollars per dry metric ton. The copper quote is refined metal, not copper ore. Gold, platinum, and silver are US dollars per troy ounce and are not added together. The gold quote is linked to unwrought gold, not semi-manufactured gold.",
+        note: "World Bank Pink Sheet monthly nominal US dollars, January 2015 onward, for commodities the observatory tracks. A missing month was not published. These are reference quotes, not bilateral unit values, orders, or inventory. Rice, wheat, tea, coffee, fertilizer, sugar, rubber, and crude quotes for the same month are alternative benchmarks and are not added together. Iron ore is dollars per dry metric ton. The copper quote is refined metal, not copper ore. Gold, platinum, and silver are US dollars per troy ounce and are not added together. The gold quote is linked to unwrought gold, not semi-manufactured gold. Cameroon and Malaysian log quotes are dollars per cubic meter and are not added together or to the sawnwood quotes.",
       },
     };
   } finally {

@@ -36,6 +36,7 @@ const BATCHES = [
   ["1005", "1202", "1701", "4001"],
   ["2709", "2701", "2601", "2603", "740311"],
   ["710812", "710813", "711011", "711019", "710691"],
+  ["4403", "4407"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -179,7 +180,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, and unwrought silver. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, and unwrought gold is not added to semi-manufactured gold.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, unwrought silver, wood in the rough, and sawnwood. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, unwrought gold is not added to semi-manufactured gold, and logs are not added to sawnwood.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");
@@ -342,6 +343,7 @@ function priceUnit(series, published) {
   if (published === "($/mt)") return "USD/mt";
   if (published === "($/bbl)") return "USD/bbl";
   if (published === "($/troy oz)") return "USD/troy oz";
+  if (published === "($/cubic meter)") return "USD/cubic meter";
   return "";
 }
 
@@ -469,6 +471,7 @@ async function fetchBatch(db, job, byCode, seen, recordFetch, insertFlow) {
       const hasUnit = Number.isInteger(unitCode) && unitCode > 0;
       const quantityEstimated = Boolean(row.isQtyEstimated);
       const weightEstimated = Boolean(row.isNetWgtEstimated);
+      const quantityUnit = !quantityEstimated && unitCode === 8 ? "kg" : !quantityEstimated && unitCode === 12 ? "m3" : null;
       insertFlow.run(
         reporter.iso3,
         partner.iso3,
@@ -478,7 +481,7 @@ async function fetchBatch(db, job, byCode, seen, recordFetch, insertFlow) {
         value,
         positiveOrNull(row.qty, quantityEstimated),
         hasUnit ? unitCode : null,
-        hasUnit && unitCode === 8 && !quantityEstimated ? "kg" : null,
+        quantityUnit,
         positiveOrNull(row.netWgt, weightEstimated),
         Number(row.legacyEstimationFlag) || 0,
         SOURCE_ID,

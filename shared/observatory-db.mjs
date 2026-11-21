@@ -319,6 +319,22 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Unwrought silver, including silver plated with gold or platinum. Not semi-manufactured silver (710692) and not gold.",
   },
+  {
+    hsCode: "4403",
+    name: "Wood in the rough",
+    category: "Forestry",
+    parentHs: null,
+    level: "heading",
+    note: "Logs, whether or not stripped of bark or sapwood, or roughly squared. Not sawnwood (4407), fuel wood (4401), charcoal (4402), veneer (4408), or plywood (4412). A reported volume in cubic meters is not the net weight in kilograms.",
+  },
+  {
+    hsCode: "4407",
+    name: "Sawnwood",
+    category: "Forestry",
+    parentHs: null,
+    level: "heading",
+    note: "Wood sawn or chipped lengthwise, of a thickness exceeding 6 mm. Not wood in the rough (4403) and not plywood (4412). Do not add this heading to logs.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -646,6 +662,42 @@ export const PRICE_SERIES = [
     category: "Precious metals",
     note: "99.9% refined, London afternoon fixing. US dollars per troy ounce. Linked to unwrought silver (710691). Not semi-manufactured silver (710692), and not additive with gold or platinum.",
   },
+  {
+    code: "logs-cameroon",
+    name: "Logs, Cameroon",
+    unit: "USD/cubic meter",
+    header: "Logs, Cameroon",
+    relatedHs: "4403",
+    category: "Forestry",
+    note: "Sapele logs, high quality (loyal and marchand), 80 cm or more, f.o.b. Douala, from January 1996. US dollars per cubic meter. Linked to wood in the rough (4403). Not the Malaysian log quote, not sawnwood, and not the unit value of a bilateral flow.",
+  },
+  {
+    code: "logs-malaysian",
+    name: "Logs, Malaysian",
+    unit: "USD/cubic meter",
+    header: "Logs, Malaysian",
+    relatedHs: "4403",
+    category: "Forestry",
+    note: "Meranti logs, Sarawak, sale price charged by importers in Tokyo, from February 1993. US dollars per cubic meter. A Southeast Asian benchmark for HS 4403. Not the Cameroon log quote and not a bilateral unit value.",
+  },
+  {
+    code: "sawnwood-cameroon",
+    name: "Sawnwood, Cameroon",
+    unit: "USD/cubic meter",
+    header: "Sawnwood, Cameroon",
+    relatedHs: "4407",
+    category: "Forestry",
+    note: "Sapele sawnwood, width 6 inches or more, length 6 feet or more, f.a.s. Cameroonian ports. US dollars per cubic meter. Linked to sawnwood (4407). Not the Malaysian sawnwood quote, not logs, and not the unit value of a bilateral flow.",
+  },
+  {
+    code: "sawnwood-malaysian",
+    name: "Sawnwood, Malaysian",
+    unit: "USD/cubic meter",
+    header: "Sawnwood, Malaysian",
+    relatedHs: "4407",
+    category: "Forestry",
+    note: "Dark red seraya or meranti, select and better quality, kiln dry, c. & f. UK ports, including the premium for certified sustainable forest from January 2005. US dollars per cubic meter. Not the Cameroon sawnwood quote and not logs.",
+  },
 ];
 
 export const LOGISTICS_SERIES = [
@@ -870,6 +922,7 @@ export function observatoryStatus(db) {
       "Maize, groundnuts, cane or beet sugar, and natural rubber are separate lines. Do not add them to rice, sesame, or each other. World, EU, and US sugar quotes are alternative benchmarks. TSR20 and RSS3 are alternative rubber benchmarks.",
       "Crude petroleum, coal, iron ore, copper ore, and copper cathodes are separate lines. Do not add crude to coal, or copper ore to copper cathodes. Brent and Dubai are alternative crude benchmarks. The copper quote is refined metal, not ore. Iron ore is dollars per dry metric ton.",
       "Unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver are separate lines. Do not add them to each other or to copper. Gold, platinum, and silver quotes are US dollars per troy ounce and are not added together. The gold quote is linked to unwrought gold, not semi-manufactured gold.",
+      "Wood in the rough and sawnwood are separate lines. Do not add them, and do not add a cubic-meter volume to the net weight. Cameroon and Malaysian log quotes are alternative benchmarks, as are the two sawnwood quotes. Log quotes are not sawnwood quotes.",
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow. Fertilizer quotes for the same month are separate benchmarks and are not added together.",

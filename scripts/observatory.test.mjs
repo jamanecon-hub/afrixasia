@@ -534,6 +534,122 @@ const silverPrice = queryPrices(db, {
 assert.equal(silverPrice.rows[0].priceUsd, 57);
 assert.equal(silverPrice.rows[0].relatedHs, "710691");
 
+const chinaLogs = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "CMR",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["4403"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaLogs.total, 1);
+assert.equal(chinaLogs.rows[0].product, "Wood in the rough");
+assert.equal(chinaLogs.rows[0].category, "Forestry");
+assert.equal(chinaLogs.rows[0].quantityUnit, "m3");
+assert.equal(chinaLogs.rows[0].quantity, 331308);
+assert.equal(chinaLogs.rows[0].netWeightKg, 323716223);
+assert.ok(Math.abs(chinaLogs.rows[0].valueUsd - 91630634) < 0.01, chinaLogs.rows[0].valueUsd);
+assert.notEqual(chinaLogs.rows[0].quantity, chinaLogs.rows[0].netWeightKg);
+
+const cameroonLogExport = queryTrade(db, {
+  reporterIso3: "CMR",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["4403"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(cameroonLogExport.total, 0);
+
+const congoLogs = queryTrade(db, {
+  reporterIso3: "COG",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["4403"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(congoLogs.total, 1);
+assert.equal(congoLogs.rows[0].quantity, null);
+assert.equal(congoLogs.rows[0].quantityUnit, null);
+assert.equal(congoLogs.rows[0].netWeightKg, 148648458);
+assert.ok(Math.abs(congoLogs.rows[0].valueUsd - 52257757.52) < 0.01, congoLogs.rows[0].valueUsd);
+
+const chinaCongoLogs = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "COG",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["4403"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaCongoLogs.total, 1);
+assert.notEqual(chinaCongoLogs.rows[0].valueUsd, congoLogs.rows[0].valueUsd);
+assert.ok(Math.abs(chinaCongoLogs.rows[0].valueUsd - 118245378) < 0.01, chinaCongoLogs.rows[0].valueUsd);
+
+const gabonSawn = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "GAB",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["4407"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(gabonSawn.total, 1);
+assert.equal(gabonSawn.rows[0].product, "Sawnwood");
+assert.equal(gabonSawn.rows[0].quantityUnit, "m3");
+assert.equal(gabonSawn.rows[0].quantity, 768491);
+assert.ok(Math.abs(gabonSawn.rows[0].valueUsd - 274106985) < 0.01, gabonSawn.rows[0].valueUsd);
+assert.notEqual(gabonSawn.rows[0].valueUsd, chinaLogs.rows[0].valueUsd);
+
+const gabonSawnExport = queryTrade(db, {
+  reporterIso3: "GAB",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["4407"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(gabonSawnExport.total, 0);
+
+const logQuotes = queryPrices(db, {
+  hsCode: "4403",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(logQuotes.total, 2);
+const cameroonLogsPrice = logQuotes.rows.find((row) => row.seriesCode === "logs-cameroon");
+const malaysianLogsPrice = logQuotes.rows.find((row) => row.seriesCode === "logs-malaysian");
+assert.equal(cameroonLogsPrice.priceUsd, 392.1);
+assert.equal(malaysianLogsPrice.priceUsd, 188.5);
+assert.equal(cameroonLogsPrice.unit, "USD/cubic meter");
+assert.equal(cameroonLogsPrice.relatedHs, "4403");
+assert.notEqual(cameroonLogsPrice.priceUsd, malaysianLogsPrice.priceUsd);
+
+const sawnQuotes = queryPrices(db, {
+  hsCode: "4407",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(sawnQuotes.total, 2);
+const cameroonSawnPrice = sawnQuotes.rows.find((row) => row.seriesCode === "sawnwood-cameroon");
+const malaysianSawnPrice = sawnQuotes.rows.find((row) => row.seriesCode === "sawnwood-malaysian");
+assert.equal(cameroonSawnPrice.priceUsd, 636.8);
+assert.equal(malaysianSawnPrice.priceUsd, 724.3);
+assert.equal(cameroonSawnPrice.unit, "USD/cubic meter");
+assert.equal(cameroonSawnPrice.relatedHs, "4407");
+assert.notEqual(cameroonSawnPrice.priceUsd, cameroonLogsPrice.priceUsd);
+
 const semiGoldPrice = queryPrices(db, {
   hsCode: "710813",
   from: "2026-10",
@@ -645,4 +761,7 @@ console.log("observatory tests passed", {
   cathodeUsd: cathodes.rows[0].valueUsd,
   chinaGoldUsd: chinaGold.rows[0].valueUsd,
   goldUsdPerOz: goldPrice.rows[0].priceUsd,
+  chinaLogsUsd: chinaLogs.rows[0].valueUsd,
+  cameroonLogsUsdPerM3: cameroonLogsPrice.priceUsd,
+  gabonSawnwoodUsd: gabonSawn.rows[0].valueUsd,
 });

@@ -335,6 +335,30 @@ export const PRODUCTS = [
     level: "heading",
     note: "Wood sawn or chipped lengthwise, of a thickness exceeding 6 mm. Not wood in the rough (4403) and not plywood (4412). Do not add this heading to logs.",
   },
+  {
+    hsCode: "2606",
+    name: "Aluminum ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Bauxite and other aluminum ores and concentrates. Not alumina (281820), not unwrought aluminum (760110 or 760120), and not the LME aluminum quote.",
+  },
+  {
+    hsCode: "760110",
+    name: "Aluminum, unwrought, not alloyed",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought aluminum, not alloyed. Not aluminum alloys (760120), not bauxite (2606), and not scrap (7602). The LME quote is this grade and is not a bilateral unit value.",
+  },
+  {
+    hsCode: "760120",
+    name: "Aluminum alloys, unwrought",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought aluminum alloys. Not unalloyed aluminum (760110) and not bauxite (2606). The LME unalloyed quote is not this line.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -698,6 +722,15 @@ export const PRICE_SERIES = [
     category: "Forestry",
     note: "Dark red seraya or meranti, select and better quality, kiln dry, c. & f. UK ports, including the premium for certified sustainable forest from January 2005. US dollars per cubic meter. Not the Cameroon sawnwood quote and not logs.",
   },
+  {
+    code: "aluminum",
+    name: "Aluminum",
+    unit: "USD/mt",
+    header: "Aluminum",
+    relatedHs: "760110",
+    category: "Minerals & energy",
+    note: "LME unalloyed primary ingots, high grade, minimum 99.7% purity, settlement price from 2005; previously cash price. US dollars per metric ton. Linked to unwrought aluminum, not alloyed (760110). Not aluminum alloys (760120), not bauxite (2606), and not a bilateral unit value.",
+  },
 ];
 
 export const LOGISTICS_SERIES = [
@@ -923,6 +956,7 @@ export function observatoryStatus(db) {
       "Crude petroleum, coal, iron ore, copper ore, and copper cathodes are separate lines. Do not add crude to coal, or copper ore to copper cathodes. Brent and Dubai are alternative crude benchmarks. The copper quote is refined metal, not ore. Iron ore is dollars per dry metric ton.",
       "Unwrought gold, semi-manufactured gold, unwrought platinum, semi-manufactured platinum, and unwrought silver are separate lines. Do not add them to each other or to copper. Gold, platinum, and silver quotes are US dollars per troy ounce and are not added together. The gold quote is linked to unwrought gold, not semi-manufactured gold.",
       "Wood in the rough and sawnwood are separate lines. Do not add them, and do not add a cubic-meter volume to the net weight. Cameroon and Malaysian log quotes are alternative benchmarks, as are the two sawnwood quotes. Log quotes are not sawnwood quotes.",
+      "Bauxite, unwrought unalloyed aluminum, and unwrought aluminum alloys are separate lines. Do not add them. The aluminum quote is LME unalloyed metal, not bauxite and not alloys.",
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow. Fertilizer quotes for the same month are separate benchmarks and are not added together.",

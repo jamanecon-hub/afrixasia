@@ -650,6 +650,106 @@ assert.equal(cameroonSawnPrice.unit, "USD/cubic meter");
 assert.equal(cameroonSawnPrice.relatedHs, "4407");
 assert.notEqual(cameroonSawnPrice.priceUsd, cameroonLogsPrice.priceUsd);
 
+const chinaBauxite = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "GIN",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["2606"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaBauxite.total, 1);
+assert.equal(chinaBauxite.rows[0].product, "Aluminum ores and concentrates");
+assert.equal(chinaBauxite.rows[0].category, "Minerals & energy");
+assert.equal(chinaBauxite.rows[0].quantityUnit, "kg");
+assert.equal(chinaBauxite.rows[0].quantity, 110091480000);
+assert.equal(chinaBauxite.rows[0].netWeightKg, 110091480000);
+assert.ok(Math.abs(chinaBauxite.rows[0].valueUsd - 7589399727) < 0.01, chinaBauxite.rows[0].valueUsd);
+
+const guineaBauxiteExport = queryTrade(db, {
+  reporterIso3: "GIN",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2606"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(guineaBauxiteExport.total, 0);
+
+const chinaAluminum = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "TZA",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["760110"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaAluminum.total, 1);
+assert.equal(chinaAluminum.rows[0].product, "Aluminum, unwrought, not alloyed");
+assert.equal(chinaAluminum.rows[0].quantityUnit, "kg");
+assert.equal(chinaAluminum.rows[0].quantity, 4259810);
+assert.ok(Math.abs(chinaAluminum.rows[0].valueUsd - 12230380) < 0.01, chinaAluminum.rows[0].valueUsd);
+assert.notEqual(chinaAluminum.rows[0].valueUsd, chinaBauxite.rows[0].valueUsd);
+
+const mozambiqueAlloy = queryTrade(db, {
+  reporterIso3: "MOZ",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["760120"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(mozambiqueAlloy.total, 1);
+assert.equal(mozambiqueAlloy.rows[0].product, "Aluminum alloys, unwrought");
+assert.equal(mozambiqueAlloy.rows[0].quantity, 315534);
+assert.ok(Math.abs(mozambiqueAlloy.rows[0].valueUsd - 2328628.5) < 0.01, mozambiqueAlloy.rows[0].valueUsd);
+
+const mozambiqueUnalloyed = queryTrade(db, {
+  reporterIso3: "MOZ",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["760110"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(mozambiqueUnalloyed.total, 1);
+assert.notEqual(mozambiqueUnalloyed.rows[0].valueUsd, mozambiqueAlloy.rows[0].valueUsd);
+assert.ok(Math.abs(mozambiqueUnalloyed.rows[0].valueUsd - 97902.8) < 0.01, mozambiqueUnalloyed.rows[0].valueUsd);
+
+const aluminumPrice = queryPrices(db, {
+  codes: ["aluminum"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(aluminumPrice.total, 1);
+assert.equal(aluminumPrice.rows[0].priceUsd, 3061);
+assert.equal(aluminumPrice.rows[0].unit, "USD/mt");
+assert.equal(aluminumPrice.rows[0].relatedHs, "760110");
+
+const bauxitePrice = queryPrices(db, {
+  hsCode: "2606",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(bauxitePrice.total, 0);
+const alloyPrice = queryPrices(db, {
+  hsCode: "760120",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(alloyPrice.total, 0);
+
 const semiGoldPrice = queryPrices(db, {
   hsCode: "710813",
   from: "2026-10",
@@ -764,4 +864,7 @@ console.log("observatory tests passed", {
   chinaLogsUsd: chinaLogs.rows[0].valueUsd,
   cameroonLogsUsdPerM3: cameroonLogsPrice.priceUsd,
   gabonSawnwoodUsd: gabonSawn.rows[0].valueUsd,
+  chinaBauxiteUsd: chinaBauxite.rows[0].valueUsd,
+  chinaAluminumUsd: chinaAluminum.rows[0].valueUsd,
+  aluminumUsdPerMt: aluminumPrice.rows[0].priceUsd,
 });

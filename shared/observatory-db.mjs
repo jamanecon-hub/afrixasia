@@ -359,6 +359,46 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Unwrought aluminum alloys. Not unalloyed aluminum (760110) and not bauxite (2606). The LME unalloyed quote is not this line.",
   },
+  {
+    hsCode: "2602",
+    name: "Manganese ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Manganese ores and concentrates. Not ferro-manganese (7202), not manganese oxides (2820), and not chromium or cobalt ore. Customs weight is not contained manganese. The Pink Sheet has no manganese series. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "2610",
+    name: "Chromium ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Chromium ores and concentrates. Not ferro-chromium (7202) and not chromium oxides (2819). Customs weight is not contained chromium. The Pink Sheet has no chromium series. Do not add this heading to manganese ore.",
+  },
+  {
+    hsCode: "2605",
+    name: "Cobalt ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Cobalt ores and concentrates. Not cobalt oxides and hydroxides (282200) and not unwrought cobalt, mattes, or powders (810520). Customs weight is not contained cobalt. The Pink Sheet has no cobalt series.",
+  },
+  {
+    hsCode: "282200",
+    name: "Cobalt oxides and hydroxides",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Cobalt oxides and hydroxides, and commercial cobalt oxides. Not cobalt ore (2605) and not unwrought cobalt, mattes, or powders (810520). The weight is the oxide or hydroxide weight, not contained metal. The DRC export statement is not China's import statement.",
+  },
+  {
+    hsCode: "810520",
+    name: "Cobalt, unwrought, mattes, and powders",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Cobalt mattes and other intermediate products of cobalt metallurgy, unwrought cobalt, and powders. Not scrap (810530), not oxides and hydroxides (282200), and not ore (2605). China's import classification is not the exporter's classification.",
+  },
 ];
 
 export const PRICE_SERIES = [

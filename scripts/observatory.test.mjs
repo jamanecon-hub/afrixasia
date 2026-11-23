@@ -789,6 +789,179 @@ const potash = queryPrices(db, {
 assert.equal(potash.rows[0].priceUsd, 357.5);
 assert.equal(potash.rows[0].name, "Potassium chloride");
 
+const southAfricaManganese = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2602"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(southAfricaManganese.total, 1);
+assert.equal(southAfricaManganese.rows[0].product, "Manganese ores and concentrates");
+assert.equal(southAfricaManganese.rows[0].category, "Minerals & energy");
+assert.equal(southAfricaManganese.rows[0].quantityUnit, "kg");
+assert.equal(southAfricaManganese.rows[0].quantity, 15727923706);
+assert.equal(southAfricaManganese.rows[0].netWeightKg, 15727923706);
+assert.ok(Math.abs(southAfricaManganese.rows[0].valueUsd - 1796078789.258) < 0.01, southAfricaManganese.rows[0].valueUsd);
+
+const chinaManganese = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["2602"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaManganese.total, 1);
+assert.equal(chinaManganese.rows[0].quantity, 15919700000);
+assert.equal(chinaManganese.rows[0].valueUsd, 2294343551);
+assert.notEqual(chinaManganese.rows[0].valueUsd, southAfricaManganese.rows[0].valueUsd);
+
+const gabonManganeseExport = queryTrade(db, {
+  reporterIso3: "GAB",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2602"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(gabonManganeseExport.total, 0);
+
+const chinaGabonManganese = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "GAB",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["2602"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaGabonManganese.total, 1);
+assert.equal(chinaGabonManganese.rows[0].quantity, 4161535700);
+assert.equal(chinaGabonManganese.rows[0].valueUsd, 837431559);
+
+const ghanaManganese = queryTrade(db, {
+  reporterIso3: "GHA",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2602"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(ghanaManganese.total, 1);
+assert.ok(Math.abs(ghanaManganese.rows[0].quantity - 1773100209.54) < 0.01, ghanaManganese.rows[0].quantity);
+assert.ok(Math.abs(ghanaManganese.rows[0].netWeightKg - 3833806022.22) < 0.01, ghanaManganese.rows[0].netWeightKg);
+assert.notEqual(ghanaManganese.rows[0].quantity, ghanaManganese.rows[0].netWeightKg);
+assert.ok(Math.abs(ghanaManganese.rows[0].valueUsd - 237863347.401) < 0.01, ghanaManganese.rows[0].valueUsd);
+
+const southAfricaChromium = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2610"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(southAfricaChromium.total, 1);
+assert.equal(southAfricaChromium.rows[0].product, "Chromium ores and concentrates");
+assert.equal(southAfricaChromium.rows[0].quantityUnit, "kg");
+assert.ok(Math.abs(southAfricaChromium.rows[0].quantity - 10112636146.12) < 0.01, southAfricaChromium.rows[0].quantity);
+assert.ok(Math.abs(southAfricaChromium.rows[0].valueUsd - 2245975887.595) < 0.01, southAfricaChromium.rows[0].valueUsd);
+assert.notEqual(southAfricaChromium.rows[0].valueUsd, southAfricaManganese.rows[0].valueUsd);
+
+const chinaChromium = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["2610"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaChromium.total, 1);
+assert.equal(chinaChromium.rows[0].quantity, 16998620000);
+assert.equal(chinaChromium.rows[0].valueUsd, 4724628862);
+assert.notEqual(chinaChromium.rows[0].valueUsd, southAfricaChromium.rows[0].valueUsd);
+
+const drcHydroxide = queryTrade(db, {
+  reporterIso3: "COD",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["282200"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(drcHydroxide.total, 1);
+assert.equal(drcHydroxide.rows[0].product, "Cobalt oxides and hydroxides");
+assert.equal(drcHydroxide.rows[0].quantityUnit, "kg");
+assert.equal(drcHydroxide.rows[0].quantity, 368551016);
+assert.equal(drcHydroxide.rows[0].netWeightKg, 368551016);
+assert.ok(Math.abs(drcHydroxide.rows[0].valueUsd - 3319809009.513) < 0.01, drcHydroxide.rows[0].valueUsd);
+
+const chinaHydroxide = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "COD",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["282200"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaHydroxide.total, 0);
+
+const drcUnwrought = queryTrade(db, {
+  reporterIso3: "COD",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["810520"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(drcUnwrought.total, 0);
+
+const chinaUnwroughtCobalt = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "COD",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["810520"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaUnwroughtCobalt.total, 1);
+assert.equal(chinaUnwroughtCobalt.rows[0].product, "Cobalt, unwrought, mattes, and powders");
+assert.equal(chinaUnwroughtCobalt.rows[0].quantity, 628191018);
+assert.equal(chinaUnwroughtCobalt.rows[0].valueUsd, 3019487639);
+assert.notEqual(chinaUnwroughtCobalt.rows[0].valueUsd, drcHydroxide.rows[0].valueUsd);
+
+const zimbabweChromium = queryTrade(db, {
+  reporterIso3: "ZWE",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["2610"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(zimbabweChromium.total, 1);
+assert.equal(zimbabweChromium.rows[0].quantity, null);
+assert.equal(zimbabweChromium.rows[0].quantityUnit, null);
+assert.ok(Math.abs(zimbabweChromium.rows[0].netWeightKg - 843.8) < 0.01, zimbabweChromium.rows[0].netWeightKg);
+assert.ok(Math.abs(zimbabweChromium.rows[0].valueUsd - 84.377) < 0.01, zimbabweChromium.rows[0].valueUsd);
+
+for (const code of ["2602", "2610", "2605", "282200", "810520"]) {
+  const quote = queryPrices(db, { hsCode: code, from: "2015-01", to: "2026-10", page: 1, perPage: 5 });
+  assert.equal(quote.total, 0, code);
+}
+
 const flows = db.prepare("SELECT value_usd, quantity, net_weight_kg FROM trade_flows").all();
 assert.ok(flows.length > 0);
 for (const row of flows) {
@@ -867,4 +1040,8 @@ console.log("observatory tests passed", {
   chinaBauxiteUsd: chinaBauxite.rows[0].valueUsd,
   chinaAluminumUsd: chinaAluminum.rows[0].valueUsd,
   aluminumUsdPerMt: aluminumPrice.rows[0].priceUsd,
+  manganeseUsd: southAfricaManganese.rows[0].valueUsd,
+  chromiumUsd: southAfricaChromium.rows[0].valueUsd,
+  cobaltHydroxideUsd: drcHydroxide.rows[0].valueUsd,
+  chinaCobaltUsd: chinaUnwroughtCobalt.rows[0].valueUsd,
 });

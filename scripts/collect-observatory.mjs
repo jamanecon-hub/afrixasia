@@ -38,6 +38,7 @@ const BATCHES = [
   ["710812", "710813", "711011", "711019", "710691"],
   ["4403", "4407"],
   ["2606", "760110", "760120"],
+  ["2602", "2610", "2605", "282200", "810520"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -181,7 +182,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, unwrought silver, wood in the rough, sawnwood, bauxite, unwrought unalloyed aluminum, and unwrought aluminum alloys. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, unwrought gold is not added to semi-manufactured gold, logs are not added to sawnwood, and bauxite is not added to either aluminum line.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, unwrought silver, wood in the rough, sawnwood, bauxite, unwrought unalloyed aluminum, unwrought aluminum alloys, manganese ores, chromium ores, cobalt ores, cobalt oxides and hydroxides, and unwrought cobalt, mattes, and powders. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, unwrought gold is not added to semi-manufactured gold, logs are not added to sawnwood, bauxite is not added to either aluminum line, and manganese ore, chromium ore, and the three cobalt lines are not added to one another.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");

@@ -962,6 +962,242 @@ for (const code of ["2602", "2610", "2605", "282200", "810520"]) {
   assert.equal(quote.total, 0, code);
 }
 
+const nigeriaLng = queryTrade(db, {
+  reporterIso3: "NGA",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(nigeriaLng.total, 1);
+assert.equal(nigeriaLng.rows[0].product, "Liquefied natural gas");
+assert.equal(nigeriaLng.rows[0].quantityUnit, "kg");
+assert.equal(nigeriaLng.rows[0].quantity, 93786150);
+assert.equal(nigeriaLng.rows[0].netWeightKg, 93786150);
+assert.ok(Math.abs(nigeriaLng.rows[0].valueUsd - 575504965.914) < 0.01, nigeriaLng.rows[0].valueUsd);
+
+const chinaLng = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "NGA",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaLng.total, 1);
+assert.equal(chinaLng.rows[0].quantity, 1373241700);
+assert.equal(chinaLng.rows[0].valueUsd, 822467736);
+assert.notEqual(chinaLng.rows[0].valueUsd, nigeriaLng.rows[0].valueUsd);
+assert.notEqual(chinaLng.rows[0].quantity, nigeriaLng.rows[0].quantity);
+
+const angolaLng = queryTrade(db, {
+  reporterIso3: "AGO",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(angolaLng.total, 1);
+assert.equal(angolaLng.rows[0].quantity, 1901549675);
+assert.ok(Math.abs(angolaLng.rows[0].valueUsd - 1090986397.99) < 0.01, angolaLng.rows[0].valueUsd);
+
+const angolaLngToChina = queryTrade(db, {
+  reporterIso3: "AGO",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(angolaLngToChina.total, 1);
+assert.ok(Math.abs(angolaLngToChina.rows[0].valueUsd - 49115786.27) < 0.01, angolaLngToChina.rows[0].valueUsd);
+
+const chinaLngFromAngola = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "AGO",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaLngFromAngola.total, 0);
+
+const chinaPropaneFromAngola = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "AGO",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["271112"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaPropaneFromAngola.total, 1);
+assert.equal(chinaPropaneFromAngola.rows[0].product, "Propane, liquefied");
+assert.equal(chinaPropaneFromAngola.rows[0].quantityUnit, "kg");
+assert.equal(chinaPropaneFromAngola.rows[0].valueUsd, 311035655);
+assert.notEqual(chinaPropaneFromAngola.rows[0].valueUsd, angolaLngToChina.rows[0].valueUsd);
+
+const nigeriaButane = queryTrade(db, {
+  reporterIso3: "NGA",
+  partnerIso3: "THA",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271113"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(nigeriaButane.total, 1);
+assert.equal(nigeriaButane.rows[0].product, "Butanes, liquefied");
+assert.ok(Math.abs(nigeriaButane.rows[0].quantity - 51572.2) < 0.01, nigeriaButane.rows[0].quantity);
+assert.ok(Math.abs(nigeriaButane.rows[0].valueUsd - 33886728.137) < 0.01, nigeriaButane.rows[0].valueUsd);
+
+const nigeriaLngToThailand = queryTrade(db, {
+  reporterIso3: "NGA",
+  partnerIso3: "THA",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(nigeriaLngToThailand.total, 1);
+assert.notEqual(nigeriaLngToThailand.rows[0].valueUsd, nigeriaButane.rows[0].valueUsd);
+
+const nigeriaGaseous = queryTrade(db, {
+  reporterIso3: "NGA",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271121"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(nigeriaGaseous.total, 0);
+
+const chinaMozambiqueLng = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "MOZ",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaMozambiqueLng.total, 1);
+assert.equal(chinaMozambiqueLng.rows[0].valueUsd, 439450173);
+assert.equal(chinaMozambiqueLng.rows[0].quantity, 842273300);
+
+const mozambiqueLng = queryTrade(db, {
+  reporterIso3: "MOZ",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271111"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(mozambiqueLng.total, 1);
+assert.equal(mozambiqueLng.rows[0].quantity, null);
+assert.equal(mozambiqueLng.rows[0].netWeightKg, null);
+assert.ok(Math.abs(mozambiqueLng.rows[0].valueUsd - 312000604.6) < 0.01, mozambiqueLng.rows[0].valueUsd);
+assert.notEqual(mozambiqueLng.rows[0].valueUsd, chinaMozambiqueLng.rows[0].valueUsd);
+
+const mozambiqueGaseous = queryTrade(db, {
+  reporterIso3: "MOZ",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["271121"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(mozambiqueGaseous.total, 1);
+assert.equal(mozambiqueGaseous.rows[0].product, "Natural gas, gaseous");
+assert.equal(mozambiqueGaseous.rows[0].quantity, null);
+assert.ok(Math.abs(mozambiqueGaseous.rows[0].valueUsd - 259233773.2) < 0.01, mozambiqueGaseous.rows[0].valueUsd);
+assert.notEqual(mozambiqueGaseous.rows[0].valueUsd, mozambiqueLng.rows[0].valueUsd);
+
+const chinaGaseousFromMozambique = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "MOZ",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["271121"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaGaseousFromMozambique.total, 0);
+
+const japanLng = queryPrices(db, {
+  codes: ["lng-japan"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(japanLng.total, 1);
+assert.equal(japanLng.rows[0].priceUsd, 16.59);
+assert.equal(japanLng.rows[0].unit, "USD/mmbtu");
+assert.equal(japanLng.rows[0].relatedHs, "271111");
+
+const usGas = queryPrices(db, {
+  codes: ["gas-us"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(usGas.total, 1);
+assert.equal(usGas.rows[0].priceUsd, 2.96);
+assert.equal(usGas.rows[0].relatedHs, null);
+
+const europeGas = queryPrices(db, {
+  codes: ["gas-europe"],
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(europeGas.total, 1);
+assert.equal(europeGas.rows[0].priceUsd, 28.5);
+assert.equal(europeGas.rows[0].relatedHs, null);
+assert.notEqual(europeGas.rows[0].priceUsd, japanLng.rows[0].priceUsd);
+assert.notEqual(usGas.rows[0].priceUsd, europeGas.rows[0].priceUsd);
+
+const lngByHs = queryPrices(db, {
+  hsCode: "271111",
+  from: "2026-10",
+  to: "2026-10",
+  page: 1,
+  perPage: 10,
+});
+assert.equal(lngByHs.total, 1);
+assert.equal(lngByHs.rows[0].seriesCode, "lng-japan");
+
+for (const code of ["271112", "271113", "271121"]) {
+  const quote = queryPrices(db, { hsCode: code, from: "2015-01", to: "2026-10", page: 1, perPage: 5 });
+  assert.equal(quote.total, 0, code);
+}
+const gasIndex = queryPrices(db, {
+  codes: ["natural-gas-index"],
+  from: "2015-01",
+  to: "2026-10",
+  page: 1,
+  perPage: 5,
+});
+assert.equal(gasIndex.total, 0);
+for (const code of ["gas-us", "gas-europe", "lng-japan"]) {
+  const series = queryPrices(db, { codes: [code], from: "2015-01", to: "2026-10", page: 1, perPage: 1 });
+  assert.equal(series.total, 142, code);
+}
+
 const flows = db.prepare("SELECT value_usd, quantity, net_weight_kg FROM trade_flows").all();
 assert.ok(flows.length > 0);
 for (const row of flows) {
@@ -1044,4 +1280,8 @@ console.log("observatory tests passed", {
   chromiumUsd: southAfricaChromium.rows[0].valueUsd,
   cobaltHydroxideUsd: drcHydroxide.rows[0].valueUsd,
   chinaCobaltUsd: chinaUnwroughtCobalt.rows[0].valueUsd,
+  nigeriaLngUsd: nigeriaLng.rows[0].valueUsd,
+  chinaLngUsd: chinaLng.rows[0].valueUsd,
+  angolaLngUsd: angolaLng.rows[0].valueUsd,
+  japanLngUsdPerMmbtu: japanLng.rows[0].priceUsd,
 });

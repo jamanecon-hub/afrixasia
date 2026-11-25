@@ -431,6 +431,38 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Cobalt mattes and other intermediate products of cobalt metallurgy, unwrought cobalt, and powders. Not scrap (810530), not oxides and hydroxides (282200), and not ore (2605). China's import classification is not the exporter's classification.",
   },
+  {
+    hsCode: "2604",
+    name: "Nickel ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Nickel ores and concentrates. Not unwrought unalloyed nickel (750210), not nickel mattes (750110), not nickel oxide sinters (750120), not ferronickel (720260), and not nickel alloys (750220). Customs weight is not contained nickel. The LME nickel quote is not this heading. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "750210",
+    name: "Nickel, unwrought, not alloyed",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought nickel, not alloyed. Not nickel ore (2604), not nickel alloys (750220), not ferronickel (720260), and not scrap (7503). The LME quote is cathodes of at least 99.8% purity and is not a bilateral unit value.",
+  },
+  {
+    hsCode: "2609",
+    name: "Tin ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Tin ores and concentrates. Not unwrought unalloyed tin (800110) and not tin alloys (800120). Customs weight is not contained tin. The LME tin quote is not this heading. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "800110",
+    name: "Tin, unwrought, not alloyed",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought tin, not alloyed. Not tin ore (2609), not tin alloys (800120), and not scrap (8002). The LME quote is refined tin of 99.85% purity and is not a bilateral unit value.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -829,6 +861,24 @@ export const PRICE_SERIES = [
     relatedHs: "760110",
     category: "Minerals & energy",
     note: "LME unalloyed primary ingots, high grade, minimum 99.7% purity, settlement price from 2005; previously cash price. US dollars per metric ton. Linked to unwrought aluminum, not alloyed (760110). Not aluminum alloys (760120), not bauxite (2606), and not a bilateral unit value.",
+  },
+  {
+    code: "nickel",
+    name: "Nickel",
+    unit: "USD/mt",
+    header: "Nickel",
+    relatedHs: "750210",
+    category: "Minerals & energy",
+    note: "LME cathodes, minimum 99.8% purity, settlement price from 2005; previously cash price. US dollars per metric ton. Linked to unwrought nickel, not alloyed (750210). Not nickel ores (2604), not ferronickel (720260), and not a bilateral unit value. Not additive with the tin quote.",
+  },
+  {
+    code: "tin",
+    name: "Tin",
+    unit: "USD/mt",
+    header: "Tin",
+    relatedHs: "800110",
+    category: "Minerals & energy",
+    note: "LME refined tin, 99.85% purity, settlement price. US dollars per metric ton. Linked to unwrought tin, not alloyed (800110). Not tin ores (2609), not tin alloys (800120), and not a bilateral unit value. Not additive with the nickel quote.",
   },
 ];
 

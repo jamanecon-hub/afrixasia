@@ -463,6 +463,38 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Unwrought tin, not alloyed. Not tin ore (2609), not tin alloys (800120), and not scrap (8002). The LME quote is refined tin of 99.85% purity and is not a bilateral unit value.",
   },
+  {
+    hsCode: "2608",
+    name: "Zinc ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Zinc ores and concentrates. Not unwrought zinc of at least 99.99% (790111), not unwrought zinc under 99.99% (790112), and not zinc alloys (790120). Customs weight is not contained zinc. The LME zinc quote is not this heading. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "790111",
+    name: "Zinc, unwrought, at least 99.99%",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought zinc, not alloyed, containing by weight 99.99% or more of zinc. Not zinc ore (2608), not unwrought zinc under 99.99% (790112), not zinc alloys (790120), and not scrap (7902). The Pink Sheet floor is 99.95%, so the quote is broader than this line, and it is not a bilateral unit value.",
+  },
+  {
+    hsCode: "2607",
+    name: "Lead ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Lead ores and concentrates. Not refined unwrought lead (780110) and not other unwrought lead (780191, 780199). Customs weight is not contained lead. The LME lead quote is not this heading. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "780110",
+    name: "Lead, unwrought, refined",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Unwrought refined lead. Not lead ore (2607), not unwrought lead with antimony as the principal other element (780191), not other unwrought lead (780199), and not scrap (7802). The LME quote is refined lead of 99.97% purity and is not a bilateral unit value.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -879,6 +911,24 @@ export const PRICE_SERIES = [
     relatedHs: "800110",
     category: "Minerals & energy",
     note: "LME refined tin, 99.85% purity, settlement price. US dollars per metric ton. Linked to unwrought tin, not alloyed (800110). Not tin ores (2609), not tin alloys (800120), and not a bilateral unit value. Not additive with the nickel quote.",
+  },
+  {
+    code: "zinc",
+    name: "Zinc",
+    unit: "USD/mt",
+    header: "Zinc",
+    relatedHs: "790111",
+    category: "Minerals & energy",
+    note: "LME high grade, minimum 99.95% purity, settlement price from April 1990; previously special high grade, minimum 99.995%, cash prices. US dollars per metric ton. Linked to unwrought zinc of at least 99.99% (790111). Metal from 99.95% up to but not including 99.99% is HS 790112 and is not in that trade line. Not zinc ore (2608), not zinc alloys (790120), and not a bilateral unit value. Not additive with the lead quote.",
+  },
+  {
+    code: "lead",
+    name: "Lead",
+    unit: "USD/mt",
+    header: "Lead",
+    relatedHs: "780110",
+    category: "Minerals & energy",
+    note: "LME refined lead, 99.97% purity, settlement price. US dollars per metric ton. Linked to unwrought refined lead (780110). Not lead ores (2607), not other unwrought lead (780191 or 780199), and not a bilateral unit value. Not additive with the zinc quote.",
   },
 ];
 

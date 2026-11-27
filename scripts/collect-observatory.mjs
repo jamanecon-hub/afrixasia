@@ -42,6 +42,7 @@ const BATCHES = [
   ["271111", "271112", "271113", "271121"],
   ["2604", "750210", "2609", "800110"],
   ["2608", "790111", "2607", "780110"],
+  ["710210", "710221", "710231", "710239"],
 ];
 const FLOWS = [
   ["export", "X"],
@@ -185,7 +186,7 @@ async function main() {
     "UN Comtrade terms of use. Attribute United Nations Comtrade.",
     LICENSE_URL,
     now,
-    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, liquefied natural gas, propane, butanes, gaseous natural gas, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, unwrought silver, wood in the rough, sawnwood, bauxite, unwrought unalloyed aluminum, unwrought aluminum alloys, manganese ores, chromium ores, cobalt ores, cobalt oxides and hydroxides, unwrought cobalt, mattes, and powders, nickel ores, unwrought unalloyed nickel, tin ores, unwrought unalloyed tin, zinc ores, unwrought zinc of at least 99.99 percent, lead ores, and refined unwrought lead. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, unwrought gold is not added to semi-manufactured gold, logs are not added to sawnwood, bauxite is not added to either aluminum line, manganese ore, chromium ore, and the three cobalt lines are not added to one another, liquefied natural gas, propane, butanes, and gaseous natural gas are not added to one another or to crude petroleum, nickel ore is not added to unwrought nickel, tin ore is not added to unwrought tin, zinc ore is not added to unwrought zinc, and lead ore is not added to refined lead.",
+    "Africa–Asia bilateral extracts for products the observatory already tracks, including crude petroleum, coal, liquefied natural gas, propane, butanes, gaseous natural gas, iron ore, copper ores, copper cathodes, unwrought and semi-manufactured gold, unwrought and semi-manufactured platinum, unwrought silver, wood in the rough, sawnwood, bauxite, unwrought unalloyed aluminum, unwrought aluminum alloys, manganese ores, chromium ores, cobalt ores, cobalt oxides and hydroxides, unwrought cobalt, mattes, and powders, nickel ores, unwrought unalloyed nickel, tin ores, unwrought unalloyed tin, zinc ores, unwrought zinc of at least 99.99 percent, lead ores, refined unwrought lead, unsorted diamonds, industrial unworked diamonds, non-industrial unworked diamonds, and non-industrial worked diamonds. Preview rows are published trade values. A pair absent from a completed extract is not zero trade. Those lines are not added together. Copper ore is not added to copper cathodes, unwrought gold is not added to semi-manufactured gold, logs are not added to sawnwood, bauxite is not added to either aluminum line, manganese ore, chromium ore, and the three cobalt lines are not added to one another, liquefied natural gas, propane, butanes, and gaseous natural gas are not added to one another or to crude petroleum, nickel ore is not added to unwrought nickel, tin ore is not added to unwrought tin, zinc ore is not added to unwrought zinc, lead ore is not added to refined lead, and the four diamond lines are not added to one another or to gold. A carat is not a kilogram. Worked industrial diamonds, synthetic diamonds, and diamond powder are not stored. The Pink Sheet has no diamond series.",
   );
 
   const seen = db.prepare("SELECT status FROM fetches WHERE query_key = ?");
@@ -477,7 +478,7 @@ async function fetchBatch(db, job, byCode, seen, recordFetch, insertFlow) {
       const hasUnit = Number.isInteger(unitCode) && unitCode > 0;
       const quantityEstimated = Boolean(row.isQtyEstimated);
       const weightEstimated = Boolean(row.isNetWgtEstimated);
-      const quantityUnit = !quantityEstimated && unitCode === 8 ? "kg" : !quantityEstimated && unitCode === 12 ? "m3" : null;
+      const quantityUnit = !quantityEstimated && unitCode === 8 ? "kg" : !quantityEstimated && unitCode === 12 ? "m3" : !quantityEstimated && unitCode === 13 ? "carat" : null;
       insertFlow.run(
         reporter.iso3,
         partner.iso3,

@@ -495,6 +495,38 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Unwrought refined lead. Not lead ore (2607), not unwrought lead with antimony as the principal other element (780191), not other unwrought lead (780199), and not scrap (7802). The LME quote is refined lead of 99.97% purity and is not a bilateral unit value.",
   },
+  {
+    hsCode: "710210",
+    name: "Diamonds, unsorted",
+    category: "Precious stones",
+    parentHs: null,
+    level: "subheading",
+    note: "Diamonds, unsorted. Not industrial unworked diamonds (710221), not non-industrial unworked diamonds (710231), and not non-industrial worked diamonds (710239). Worked industrial diamonds (710229), synthetic diamonds (710421, 710429), and diamond powder (710510) are not stored. Quantity is carats, not kilograms. The Pink Sheet has no diamond series. Do not add this line to gold. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "710221",
+    name: "Diamonds, industrial, unworked",
+    category: "Precious stones",
+    parentHs: null,
+    level: "subheading",
+    note: "Industrial diamonds, unworked or simply sawn, cleaved or bruted. Not unsorted diamonds (710210), not non-industrial unworked diamonds (710231), and not worked industrial diamonds (710229). Quantity is carats, not kilograms. The Pink Sheet has no diamond series. Do not add this line to a gem-diamond line.",
+  },
+  {
+    hsCode: "710231",
+    name: "Diamonds, non-industrial, unworked",
+    category: "Precious stones",
+    parentHs: null,
+    level: "subheading",
+    note: "Non-industrial diamonds, unworked or simply sawn, cleaved or bruted. Not unsorted diamonds (710210), not industrial unworked diamonds (710221), and not non-industrial worked diamonds (710239). Quantity is carats, not kilograms. The Pink Sheet has no diamond series. Do not add this line to gold or to a worked-diamond line. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "710239",
+    name: "Diamonds, non-industrial, worked",
+    category: "Precious stones",
+    parentHs: null,
+    level: "subheading",
+    note: "Non-industrial diamonds, other than unworked or simply sawn, cleaved or bruted. Not non-industrial unworked diamonds (710231) and not unsorted diamonds (710210). Quantity is carats, not kilograms. The Pink Sheet has no diamond series. Do not add this line to a rough-diamond line or to gold.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -1158,6 +1190,7 @@ export function observatoryStatus(db) {
       "Bauxite, unwrought unalloyed aluminum, and unwrought aluminum alloys are separate lines. Do not add them. The aluminum quote is LME unalloyed metal, not bauxite and not alloys.",
       "Liquefied natural gas, propane, butanes, and gaseous natural gas are separate lines. Do not add them to each other or to crude petroleum. US, Europe, and Japan gas quotes are dollars per million British thermal units and are not added together. The Japan quote is linked to liquefied natural gas. Customs weight in kilograms is not energy content. The natural gas index is not stored.",
       "Manganese ore, chromium ore, cobalt ore, cobalt oxides and hydroxides, and unwrought cobalt, mattes, and powders are separate lines. Do not add them. Customs weight is not contained metal. The Pink Sheet has no series for these lines.",
+      "Unsorted diamonds, industrial unworked diamonds, non-industrial unworked diamonds, and non-industrial worked diamonds are separate lines. Do not add them to each other or to gold. Quantity is carats and is not the net weight in kilograms. The Pink Sheet has no diamond series.",
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow. Fertilizer quotes for the same month are separate benchmarks and are not added together.",

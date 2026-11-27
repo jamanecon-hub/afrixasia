@@ -1830,7 +1830,269 @@ assert.equal(singaporeLead.rows[0].valueUsd, 9369127.893);
 assert.equal(singaporeLead.rows[0].quantity, 4426800);
 assert.notEqual(singaporeLead.rows[0].valueUsd, southAfricaRefinedLead.rows[0].valueUsd);
 
-for (const code of ["720260", "750110", "750220", "800120", "790112", "790120", "780191", "780199"]) {
+const botswanaRough = queryTrade(db, {
+  reporterIso3: "BWA",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(botswanaRough.total, 1);
+assert.equal(botswanaRough.rows[0].product, "Diamonds, non-industrial, unworked");
+assert.equal(botswanaRough.rows[0].category, "Precious stones");
+assert.equal(botswanaRough.rows[0].quantityUnit, "carat");
+assert.equal(botswanaRough.rows[0].quantity, 3159900);
+assert.equal(botswanaRough.rows[0].netWeightKg, 631.98);
+assert.notEqual(botswanaRough.rows[0].quantity, botswanaRough.rows[0].netWeightKg);
+assert.ok(Math.abs(botswanaRough.rows[0].valueUsd - 451944095.57) < 0.01, botswanaRough.rows[0].valueUsd);
+
+const indiaRough = queryTrade(db, {
+  reporterIso3: "IND",
+  partnerIso3: "BWA",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(indiaRough.total, 1);
+assert.equal(indiaRough.rows[0].quantity, 5378191);
+assert.equal(indiaRough.rows[0].netWeightKg, 1075.635);
+assert.ok(Math.abs(indiaRough.rows[0].valueUsd - 1140746274.389) < 0.01, indiaRough.rows[0].valueUsd);
+assert.notEqual(indiaRough.rows[0].valueUsd, botswanaRough.rows[0].valueUsd);
+
+const botswanaWorked = queryTrade(db, {
+  reporterIso3: "BWA",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710239"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(botswanaWorked.total, 1);
+assert.equal(botswanaWorked.rows[0].product, "Diamonds, non-industrial, worked");
+assert.equal(botswanaWorked.rows[0].quantityUnit, "carat");
+assert.equal(botswanaWorked.rows[0].quantity, 1442800);
+assert.equal(botswanaWorked.rows[0].netWeightKg, 288.56);
+assert.ok(Math.abs(botswanaWorked.rows[0].valueUsd - 67363839.623) < 0.01, botswanaWorked.rows[0].valueUsd);
+assert.notEqual(botswanaWorked.rows[0].valueUsd, botswanaRough.rows[0].valueUsd);
+
+const indiaWorked = queryTrade(db, {
+  reporterIso3: "IND",
+  partnerIso3: "BWA",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710239"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(indiaWorked.total, 1);
+assert.equal(indiaWorked.rows[0].quantity, 5985);
+assert.equal(indiaWorked.rows[0].netWeightKg, 1.197);
+assert.ok(Math.abs(indiaWorked.rows[0].valueUsd - 13492376.917) < 0.01, indiaWorked.rows[0].valueUsd);
+assert.notEqual(indiaWorked.rows[0].valueUsd, botswanaWorked.rows[0].valueUsd);
+
+const botswanaChinaRough = queryTrade(db, {
+  reporterIso3: "BWA",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(botswanaChinaRough.total, 0);
+
+const chinaBotswanaRough = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "BWA",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaBotswanaRough.total, 1);
+assert.equal(chinaBotswanaRough.rows[0].quantity, 2130);
+assert.equal(chinaBotswanaRough.rows[0].netWeightKg, 0.426);
+assert.equal(chinaBotswanaRough.rows[0].valueUsd, 632307);
+
+const uaeBotswanaRough = queryTrade(db, {
+  reporterIso3: "ARE",
+  partnerIso3: "BWA",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(uaeBotswanaRough.total, 0);
+
+const angolaIndustrial = queryTrade(db, {
+  reporterIso3: "AGO",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710221"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(angolaIndustrial.total, 1);
+assert.equal(angolaIndustrial.rows[0].product, "Diamonds, industrial, unworked");
+assert.equal(angolaIndustrial.rows[0].quantityUnit, "carat");
+assert.ok(Math.abs(angolaIndustrial.rows[0].quantity - 7971432.63) < 0.01, angolaIndustrial.rows[0].quantity);
+assert.equal(angolaIndustrial.rows[0].netWeightKg, null);
+assert.ok(Math.abs(angolaIndustrial.rows[0].valueUsd - 1189265315.6) < 0.01, angolaIndustrial.rows[0].valueUsd);
+assert.notEqual(angolaIndustrial.rows[0].valueUsd, botswanaRough.rows[0].valueUsd);
+
+const angolaGem = queryTrade(db, {
+  reporterIso3: "AGO",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(angolaGem.total, 0);
+
+const uaeAngolaIndustrial = queryTrade(db, {
+  reporterIso3: "ARE",
+  partnerIso3: "AGO",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710221"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(uaeAngolaIndustrial.total, 0);
+
+const southAfricaRough = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "IND",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(southAfricaRough.total, 1);
+assert.equal(southAfricaRough.rows[0].quantity, 24752.9);
+assert.equal(southAfricaRough.rows[0].netWeightKg, 4.951);
+assert.ok(Math.abs(southAfricaRough.rows[0].valueUsd - 10934523.395) < 0.01, southAfricaRough.rows[0].valueUsd);
+
+const indiaSouthAfricaRough = queryTrade(db, {
+  reporterIso3: "IND",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(indiaSouthAfricaRough.total, 1);
+assert.equal(indiaSouthAfricaRough.rows[0].quantity, 1760967);
+assert.equal(indiaSouthAfricaRough.rows[0].netWeightKg, 352.193);
+assert.ok(Math.abs(indiaSouthAfricaRough.rows[0].valueUsd - 427651142.36) < 0.01, indiaSouthAfricaRough.rows[0].valueUsd);
+assert.notEqual(indiaSouthAfricaRough.rows[0].valueUsd, southAfricaRough.rows[0].valueUsd);
+
+const southAfricaChinaRough = queryTrade(db, {
+  reporterIso3: "ZAF",
+  partnerIso3: "CHN",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(southAfricaChinaRough.total, 0);
+
+const chinaSouthAfricaRough = queryTrade(db, {
+  reporterIso3: "CHN",
+  partnerIso3: "ZAF",
+  flow: "import",
+  year: 2024,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(chinaSouthAfricaRough.total, 1);
+assert.equal(chinaSouthAfricaRough.rows[0].quantity, 103513);
+assert.equal(chinaSouthAfricaRough.rows[0].netWeightKg, 20.703);
+assert.equal(chinaSouthAfricaRough.rows[0].valueUsd, 31363508);
+
+const indiaWorkedToSouthAfrica = queryTrade(db, {
+  reporterIso3: "IND",
+  partnerIso3: "ZAF",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710239"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(indiaWorkedToSouthAfrica.total, 1);
+assert.equal(indiaWorkedToSouthAfrica.rows[0].product, "Diamonds, non-industrial, worked");
+assert.equal(indiaWorkedToSouthAfrica.rows[0].quantityUnit, "carat");
+assert.equal(indiaWorkedToSouthAfrica.rows[0].quantity, 15928);
+assert.equal(indiaWorkedToSouthAfrica.rows[0].netWeightKg, 3.186);
+assert.ok(Math.abs(indiaWorkedToSouthAfrica.rows[0].valueUsd - 16423585.868) < 0.01, indiaWorkedToSouthAfrica.rows[0].valueUsd);
+assert.notEqual(indiaWorkedToSouthAfrica.rows[0].valueUsd, indiaSouthAfricaRough.rows[0].valueUsd);
+
+const botswanaUnsorted = queryTrade(db, {
+  reporterIso3: "BWA",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2024,
+  hsCodes: ["710210"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(botswanaUnsorted.total, 1);
+assert.equal(botswanaUnsorted.rows[0].product, "Diamonds, unsorted");
+assert.equal(botswanaUnsorted.rows[0].quantityUnit, "carat");
+assert.equal(botswanaUnsorted.rows[0].quantity, 60000);
+assert.equal(botswanaUnsorted.rows[0].netWeightKg, 12);
+assert.ok(Math.abs(botswanaUnsorted.rows[0].valueUsd - 937558.188) < 0.01, botswanaUnsorted.rows[0].valueUsd);
+assert.notEqual(botswanaUnsorted.rows[0].valueUsd, botswanaRough.rows[0].valueUsd);
+
+const drcRough = queryTrade(db, {
+  reporterIso3: "COD",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2023,
+  hsCodes: ["710231"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(drcRough.total, 1);
+assert.equal(drcRough.rows[0].quantity, null);
+assert.equal(drcRough.rows[0].quantityUnit, null);
+assert.equal(drcRough.rows[0].netWeightKg, 781);
+assert.ok(Math.abs(drcRough.rows[0].valueUsd - 35893737.57) < 0.01, drcRough.rows[0].valueUsd);
+
+const centralAfricanIndustrial = queryTrade(db, {
+  reporterIso3: "CAF",
+  partnerIso3: "ARE",
+  flow: "export",
+  year: 2023,
+  hsCodes: ["710221"],
+  page: 1,
+  perPage: 5,
+});
+assert.equal(centralAfricanIndustrial.total, 1);
+assert.equal(centralAfricanIndustrial.rows[0].quantity, null);
+assert.equal(centralAfricanIndustrial.rows[0].netWeightKg, null);
+assert.ok(Math.abs(centralAfricanIndustrial.rows[0].valueUsd - 13446226.434) < 0.01, centralAfricanIndustrial.rows[0].valueUsd);
+
+for (const code of ["710210", "710221", "710231", "710239"]) {
+  const quote = queryPrices(db, { hsCode: code, from: "2015-01", to: "2026-10", page: 1, perPage: 5 });
+  assert.equal(quote.total, 0, code);
+}
+
+for (const code of ["720260", "750110", "750220", "800120", "790112", "790120", "780191", "780199", "710229", "710421", "710429", "710510"]) {
   const product = db.prepare("SELECT hs_code FROM products WHERE hs_code = ?").get(code);
   assert.equal(product, undefined, code);
 }
@@ -1931,4 +2193,7 @@ console.log("observatory tests passed", {
   southAfricaZincUsd: southAfricaZincOre.rows[0].valueUsd,
   moroccoLeadUsd: moroccoLead.rows[0].valueUsd,
   chinaEritreaZincUsd: chinaEritreaZinc.rows[0].valueUsd,
+  botswanaDiamondUsd: botswanaRough.rows[0].valueUsd,
+  indiaDiamondUsd: indiaRough.rows[0].valueUsd,
+  angolaIndustrialDiamondUsd: angolaIndustrial.rows[0].valueUsd,
 });

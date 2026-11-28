@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server/prod.mjs"
+    "start": "node server/prod.mjs",
+    "collect": "node scripts/collect-observatory.mjs"
   },
   "engines": {
     "node": ">=22"

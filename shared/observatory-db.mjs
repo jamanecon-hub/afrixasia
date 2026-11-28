@@ -527,6 +527,38 @@ export const PRODUCTS = [
     level: "subheading",
     note: "Non-industrial diamonds, other than unworked or simply sawn, cleaved or bruted. Not non-industrial unworked diamonds (710231) and not unsorted diamonds (710210). Quantity is carats, not kilograms. The Pink Sheet has no diamond series. Do not add this line to a rough-diamond line or to gold.",
   },
+  {
+    hsCode: "2504",
+    name: "Natural graphite",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Natural graphite in powder, flakes, or other forms. Not synthetic graphite (3801). Customs weight is not contained carbon. Not titanium ores (2614), zirconium ores (261510), or the niobium, tantalum, and vanadium ore line (261590). The Pink Sheet has no graphite series. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "2614",
+    name: "Titanium ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "heading",
+    note: "Titanium ores and concentrates, including ilmenite and rutile. Not zirconium ores (261510) and not the residual niobium, tantalum, and vanadium ore line (261590). Not titanium oxides (2823), titanium dioxide pigment (320611), or unwrought titanium (8108). Customs weight is not contained titanium. The Pink Sheet has no titanium series. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "261510",
+    name: "Zirconium ores and concentrates",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Zirconium ores and concentrates, including zircon. Not titanium ores (2614) and not the residual niobium, tantalum, and vanadium ore line (261590). Customs weight is not contained zirconium. The Pink Sheet has no zirconium series. An export statement is not the partner's import statement.",
+  },
+  {
+    hsCode: "261590",
+    name: "Niobium, tantalum, or vanadium ores",
+    category: "Minerals & energy",
+    parentHs: null,
+    level: "subheading",
+    note: "Residual customs line for niobium, tantalum, and vanadium ores and concentrates. One row can mix those metals, so it is not pure tantalum and not pure vanadium. Not zirconium ores (261510), not titanium ores (2614), and not ferro-alloys (7202). Customs weight is not contained metal. The Pink Sheet has no series for this line. An export statement is not the partner's import statement.",
+  },
 ];
 
 export const PRICE_SERIES = [
@@ -1191,6 +1223,7 @@ export function observatoryStatus(db) {
       "Liquefied natural gas, propane, butanes, and gaseous natural gas are separate lines. Do not add them to each other or to crude petroleum. US, Europe, and Japan gas quotes are dollars per million British thermal units and are not added together. The Japan quote is linked to liquefied natural gas. Customs weight in kilograms is not energy content. The natural gas index is not stored.",
       "Manganese ore, chromium ore, cobalt ore, cobalt oxides and hydroxides, and unwrought cobalt, mattes, and powders are separate lines. Do not add them. Customs weight is not contained metal. The Pink Sheet has no series for these lines.",
       "Unsorted diamonds, industrial unworked diamonds, non-industrial unworked diamonds, and non-industrial worked diamonds are separate lines. Do not add them to each other or to gold. Quantity is carats and is not the net weight in kilograms. The Pink Sheet has no diamond series.",
+      "Natural graphite, titanium ores, zirconium ores, and the residual niobium, tantalum, and vanadium ore line are separate lines. Do not add them. Customs weight is not contained carbon or contained metal. The residual line is not pure tantalum. The Pink Sheet has no series for these lines.",
       "Figures are historical statistical extracts, not orders or available inventory.",
       "The USD figure on a trade row is the reported trade value. Quantity or weight flagged as estimated is omitted, not shown as a measurement.",
       "Monthly prices are World Bank nominal reference quotes. They are not the unit value of a bilateral flow. Fertilizer quotes for the same month are separate benchmarks and are not added together.",
